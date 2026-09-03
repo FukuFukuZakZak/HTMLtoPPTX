@@ -13,7 +13,7 @@ Step 2 PoC: multi-slide HTML conversion with responsive progress feedback.
 
 ## Current work
 
-The first vertical slice is implemented and verified locally. Microsoft PowerPoint validation remains an explicit follow-up because PowerPoint is not installed on the current host.
+The first vertical slice is implemented and verified with LibreOffice Impress on the current host. Microsoft PowerPoint compatibility remains an explicit external follow-up because PowerPoint is not installed.
 
 ## Completed
 
@@ -36,7 +36,7 @@ The first vertical slice is implemented and verified locally. Microsoft PowerPoi
 
 ## Next actions
 
-1. Open the generated three-slide fixture in Microsoft PowerPoint and record visual/editability results.
+1. When a Microsoft PowerPoint environment becomes available, open the generated three-slide fixture and record compatibility results.
 2. Implement image conversion while preserving the current Worker progress protocol.
 3. Preserve inline text runs and explicitly define z-order for shapes, tables, images, and text.
 4. Add role-based normalization only where PowerPoint rendering proves that raw browser measurements are undesirable.
@@ -57,7 +57,7 @@ The first vertical slice is implemented and verified locally. Microsoft PowerPoi
 
 ## Risks / blockers
 
-- Microsoft PowerPoint is not available on this host, so final renderer compatibility and editability require follow-up validation.
+- LibreOffice Impress opens and renders the output correctly, but Microsoft PowerPoint-specific compatibility still requires later validation on a separate environment.
 - The current vertical slice converts direct text nodes and slide backgrounds; images, tables, SVG, shapes, and inline run styling are not implemented yet.
 - Browser measurements can be accurate but still undesirable across slides; header/font role normalization may be needed after visual comparison.
 - Font fallback and unsupported Japanese glyph detection are not implemented yet.
@@ -72,6 +72,8 @@ The first vertical slice is implemented and verified locally. Microsoft PowerPoi
 - Browser integration: uploaded `testdata/multi-slide.html`, downloaded `multi-slide.pptx`, and observed local progress completion at `3 / 3 枚` with no current-page console errors.
 - Slow-worker browser check: the converter-card progress reached `2 / 3 枚` while the file input remained enabled, body pointer events remained `auto`, progress positioning remained `static`, and cancellation succeeded.
 - Generated OOXML contains exactly `ppt/slides/slide1.xml` through `slide3.xml`, with the expected Japanese text in document order.
+- LibreOffice Impress headless rendering produced all three slide PNGs with correct order, Japanese text, and positions; visual inspection found no clipping or unexpected wrapping.
+- The presentation overflow checker passed with `No overflow detected`; OOXML inspection confirms editable `<p:sp>` text shapes rather than flattened slide images.
 - PptxGenJS 4.0.1 browser bundle and `write({ outputType: "arraybuffer" })` usage were checked through Context7 (`/gitbrent/pptxgenjs`).
 - The Qiita article on editable HTML-to-PPTX conversion was reviewed; browser measurement, whitespace normalization, PowerPoint-native validation, inline-run handling, z-order, and font/glyph lessons were incorporated into decisions and next actions.
 - `uv tool run pre-commit run --all-files`: passed, including the Code Review Graph update hook.
