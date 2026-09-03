@@ -13,7 +13,7 @@ Step 2 PoC: multi-slide HTML conversion with responsive progress feedback.
 
 ## Current work
 
-Private GitHub prerelease `v0.1.0-alpha.1` is being prepared. The Windows asset is built and verified locally; repository creation and upload are waiting for interactive GitHub sign-in.
+Private GitHub prerelease `v0.1.0-alpha.1` is published with the verified Windows executable attached. No release task remains active.
 
 ## Completed
 
@@ -33,14 +33,14 @@ Private GitHub prerelease `v0.1.0-alpha.1` is being prepared. The Windows asset 
 - Code Review Graph update and change detection were integrated into pre-commit on Windows.
 - Persistent handoff rules were added to `AGENTS.md`.
 - Context7 was made mandatory in `AGENTS.md` for implementation work involving third-party libraries, frameworks, SDKs, APIs, or CLI tools.
+- Created private GitHub repository `divine261402-pixel/HTMLtoPPTX`, pushed `main`, and published prerelease `v0.1.0-alpha.1` with the Windows executable asset.
 
 ## Next actions
 
-1. Complete GitHub sign-in in the open browser, create private repository `HTMLtoPPTX`, and publish `v0.1.0-alpha.1` as a prerelease.
-2. When a Microsoft PowerPoint environment becomes available, open the generated three-slide fixture and record compatibility results.
-3. Implement image conversion while preserving the current Worker progress protocol.
-4. Preserve inline text runs and explicitly define z-order for shapes, tables, images, and text.
-5. Add role-based normalization only where PowerPoint rendering proves that raw browser measurements are undesirable.
+1. When a Microsoft PowerPoint environment becomes available, open the generated three-slide fixture and record compatibility results.
+2. Implement image conversion while preserving the current Worker progress protocol.
+3. Preserve inline text runs and explicitly define z-order for shapes, tables, images, and text.
+4. Add role-based normalization only where PowerPoint rendering proves that raw browser measurements are undesirable.
 
 ## Decisions
 
@@ -58,7 +58,6 @@ Private GitHub prerelease `v0.1.0-alpha.1` is being prepared. The Windows asset 
 
 ## Risks / blockers
 
-- GitHub CLI has no authenticated session and the browser requires interactive GitHub sign-in before the private repository and prerelease can be created.
 - LibreOffice Impress opens and renders the output correctly, but Microsoft PowerPoint-specific compatibility still requires later validation on a separate environment.
 - The current vertical slice converts direct text nodes and slide backgrounds; images, tables, SVG, shapes, and inline run styling are not implemented yet.
 - Browser measurements can be accurate but still undesirable across slides; header/font role normalization may be needed after visual comparison.
@@ -68,6 +67,8 @@ Private GitHub prerelease `v0.1.0-alpha.1` is being prepared. The Windows asset 
 ## Verification
 
 - Prerelease candidate `dist/HTMLtoPPTX-v0.1.0-alpha.1-windows-amd64.exe`: 6,583,296 bytes; SHA-256 `FEEF9342F42E83BF1A3E4BD93EB32AE0B026510B3817C3AD1A3D5AD0AA9CF388`.
+- Private repository: `https://github.com/divine261402-pixel/HTMLtoPPTX`; GitHub UI showed the repository as Private before publication.
+- Published prerelease: `https://github.com/divine261402-pixel/HTMLtoPPTX/releases/tag/v0.1.0-alpha.1`; GitHub showed the `Pre-release` label, tag `v0.1.0-alpha.1`, commit `f651b3a`, and attached `HTMLtoPPTX-v0.1.0-alpha.1-windows-amd64.exe` (6.28 MB).
 - Prerelease candidate rebuild: `go test ./...`, `go vet ./...`, `npm test`, and JavaScript syntax checks passed.
 - `go test ./...`: passed with the Go build cache redirected inside the workspace.
 - `go vet ./...`: passed.
