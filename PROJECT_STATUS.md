@@ -13,7 +13,7 @@ Step 2 PoC: multi-slide HTML conversion with responsive progress feedback.
 
 ## Current work
 
-The first vertical slice is implemented and verified with LibreOffice Impress on the current host. Microsoft PowerPoint compatibility remains an explicit external follow-up because PowerPoint is not installed.
+Private GitHub prerelease `v0.1.0-alpha.1` is being prepared. The Windows asset is built and verified locally; repository creation and upload are waiting for interactive GitHub sign-in.
 
 ## Completed
 
@@ -36,10 +36,11 @@ The first vertical slice is implemented and verified with LibreOffice Impress on
 
 ## Next actions
 
-1. When a Microsoft PowerPoint environment becomes available, open the generated three-slide fixture and record compatibility results.
-2. Implement image conversion while preserving the current Worker progress protocol.
-3. Preserve inline text runs and explicitly define z-order for shapes, tables, images, and text.
-4. Add role-based normalization only where PowerPoint rendering proves that raw browser measurements are undesirable.
+1. Complete GitHub sign-in in the open browser, create private repository `HTMLtoPPTX`, and publish `v0.1.0-alpha.1` as a prerelease.
+2. When a Microsoft PowerPoint environment becomes available, open the generated three-slide fixture and record compatibility results.
+3. Implement image conversion while preserving the current Worker progress protocol.
+4. Preserve inline text runs and explicitly define z-order for shapes, tables, images, and text.
+5. Add role-based normalization only where PowerPoint rendering proves that raw browser measurements are undesirable.
 
 ## Decisions
 
@@ -57,6 +58,7 @@ The first vertical slice is implemented and verified with LibreOffice Impress on
 
 ## Risks / blockers
 
+- GitHub CLI has no authenticated session and the browser requires interactive GitHub sign-in before the private repository and prerelease can be created.
 - LibreOffice Impress opens and renders the output correctly, but Microsoft PowerPoint-specific compatibility still requires later validation on a separate environment.
 - The current vertical slice converts direct text nodes and slide backgrounds; images, tables, SVG, shapes, and inline run styling are not implemented yet.
 - Browser measurements can be accurate but still undesirable across slides; header/font role normalization may be needed after visual comparison.
@@ -65,6 +67,8 @@ The first vertical slice is implemented and verified with LibreOffice Impress on
 
 ## Verification
 
+- Prerelease candidate `dist/HTMLtoPPTX-v0.1.0-alpha.1-windows-amd64.exe`: 6,583,296 bytes; SHA-256 `FEEF9342F42E83BF1A3E4BD93EB32AE0B026510B3817C3AD1A3D5AD0AA9CF388`.
+- Prerelease candidate rebuild: `go test ./...`, `go vet ./...`, `npm test`, and JavaScript syntax checks passed.
 - `go test ./...`: passed with the Go build cache redirected inside the workspace.
 - `go vet ./...`: passed.
 - `go build -o .tmp/Html2Pptx.exe .`: passed; the embedded Windows executable was 9,192,448 bytes.
