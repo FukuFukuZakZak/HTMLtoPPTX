@@ -1,0 +1,56 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "C:/Users/\u798f\u5bb6/AppData/Roaming/uv/tools/graphifyy/Scripts/graphify.exe hook-check"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "C:/Users/\u798f\u5bb6/.local/bin/serena-hooks.exe remind --client=codex"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "^mcp__serena__.*$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "C:/Users/\u798f\u5bb6/.local/bin/serena-hooks.exe reset --client=codex"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "C:/Users/\u798f\u5bb6/.local/bin/serena-hooks.exe activate --client=codex"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "C:/Users/\u798f\u5bb6/.local/bin/serena-hooks.exe cleanup --client=codex"
+          }
+        ]
+      }
+    ]
+  }
+}

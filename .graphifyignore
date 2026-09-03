@@ -1,0 +1,9 @@
+# Agent/tool configuration is not part of the product architecture.
+.claude/
+.codex/
+.serena/
+AGENTS.md
+CLAUDE.md
+.mcp.json
+.gitignore
+.graphifyignore
