@@ -27,6 +27,17 @@ This repository exposes three MCP servers to Codex through `.codex/config.toml`.
 
 At the start of a session, activate the current repository with Serena and read its initial instructions. Use `code-review-graph` primarily for its Git and edit hooks; prefer `better-code-review-graph` for interactive queries. If graph-backed lookup finds nothing, fall back in this order: Graphify, Serena partial symbol lookup, then `rg` and direct file reads.
 
+## External documentation with Context7
+
+Context7 is the required first source for current documentation about third-party libraries, frameworks, SDKs, APIs, CLI tools, and their configuration.
+
+- Before writing or modifying code that depends on an external library, framework, SDK, API, or CLI, call `mcp__context7__resolve_library_id` and then `mcp__context7__query_docs` for the exact implementation topic.
+- Do this before selecting or adding a dependency, using an unfamiliar API, changing dependency configuration, handling a version migration, or diagnosing library-specific behavior. Do not rely on model memory for these facts.
+- If the repository pins a version, query that version when Context7 exposes it. Keep each query focused on one concrete topic.
+- Context7 is not required for standard-library-only work, repository-local business logic, mechanical refactoring, or general programming concepts.
+- If Context7 is unavailable or has no relevant documentation, state that briefly and use the dependency's official documentation as the fallback.
+- When implementation used Context7, record the library/topic consulted under `PROJECT_STATUS.md` Verification so later tasks can audit that the requirement fired.
+
 ## Persistent work management
 
 `PROJECT_STATUS.md` is the durable handoff record for this repository. Do not rely on chat history as the only record of progress.

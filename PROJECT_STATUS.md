@@ -24,6 +24,7 @@ No implementation task is active. The repository is ready for the first PoC impl
 - Pre-commit 4.6.1 and generic repository checks were installed and verified.
 - Code Review Graph update and change detection were integrated into pre-commit on Windows.
 - Persistent handoff rules were added to `AGENTS.md`.
+- Context7 was made mandatory in `AGENTS.md` for implementation work involving third-party libraries, frameworks, SDKs, APIs, or CLI tools.
 
 ## Next actions
 
@@ -38,6 +39,7 @@ No implementation task is active. The repository is ready for the first PoC impl
 - Keep generated Graphify and code-review databases local and ignored by Git.
 - Treat one HTML `.slide` element as one PowerPoint slide, per the current design.
 - Keep pre-commit checks language-neutral until implementation code establishes the Go and frontend toolchain.
+- Require Context7 before coding against third-party libraries, frameworks, SDKs, APIs, or CLI tools; fall back to official documentation only when Context7 is unavailable or has no relevant entry.
 
 ## Risks / blockers
 
@@ -49,6 +51,7 @@ No implementation task is active. The repository is ready for the first PoC impl
 - Latest completed setup commit before this status file: `238965f` (`pre-commitチェックを導入`).
 - `pre-commit run --all-files`: passed, including the Windows-compatible Code Review Graph hook.
 - Graphify minimal query result: `.slide要素による複数スライド構造`.
+- Context7 MCP invocation verified by resolving `/gitbrent/pptxgenjs` and querying browser-side wide-layout PPTX generation, editable text boxes, local bundling, and file download; mandatory firing conditions are recorded in `AGENTS.md`.
 
 ## Working tree notes
 
