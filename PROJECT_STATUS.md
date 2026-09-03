@@ -1,6 +1,6 @@
 # Project status
 
-Last updated: 2026-09-03
+Last updated: 2026-09-04
 Status owner: Codex and repository maintainers
 
 ## Objective
@@ -9,14 +9,22 @@ Build the HTML-to-PPTX converter described in `docs/HTML_to_PPTX_converter_spec_
 
 ## Current milestone
 
-Development environment and persistent workflow setup.
+Step 2 PoC: multi-slide HTML conversion with responsive progress feedback.
 
 ## Current work
 
-No implementation task is active. The repository is ready for the first PoC implementation task.
+The first vertical slice is implemented and verified locally. Microsoft PowerPoint validation remains an explicit follow-up because PowerPoint is not installed on the current host.
 
 ## Completed
 
+- Added a standard-library Go localhost server with an embedded browser UI and Windows browser launch.
+- Added local PptxGenJS 4.0.1 bundling; end users do not need Node.js or a CDN.
+- Added `.slide` enumeration and one PowerPoint page per `.slide`, preserving document order.
+- Added browser-rendered DOM bounding-box and computed-style extraction for editable text boxes.
+- Added a converter-card-local native progress bar with `completed / total` slide counts.
+- Moved PowerPoint creation and ZIP packaging to a Web Worker so the browser UI remains responsive.
+- Added cancellation and kept file selection available while a conversion is running.
+- Added Go embedding/security tests, JavaScript core tests, and a tracked three-slide browser fixture.
 - Git repository initialized.
 - Project-scoped Codex, Serena, Code Review Graph, Better Code Review Graph, and Graphify configuration added.
 - The design document was indexed into the local Graphify knowledge graph.
@@ -28,12 +36,18 @@ No implementation task is active. The repository is ready for the first PoC impl
 
 ## Next actions
 
-1. Review the initial PoC scope in the design document.
-2. Turn the selected PoC scope into small acceptance-tested implementation tasks.
-3. Implement the first vertical slice and update this file with verification evidence.
+1. Open the generated three-slide fixture in Microsoft PowerPoint and record visual/editability results.
+2. Implement image conversion while preserving the current Worker progress protocol.
+3. Preserve inline text runs and explicitly define z-order for shapes, tables, images, and text.
+4. Add role-based normalization only where PowerPoint rendering proves that raw browser measurements are undesirable.
 
 ## Decisions
 
+- Keep DOM measurement on the browser main thread but yield between slides; perform PPTX construction and compression in a Web Worker.
+- Keep progress inside the converter card. Do not use a page-level overlay or disable unrelated controls.
+- Use the native `<progress>` element with explicit slide counts and an ARIA live status message.
+- Treat measured bounding boxes and computed styles as the starting point; add semantic normalization only for verified cross-renderer differences.
+- Validate final files in Microsoft PowerPoint, not only through OOXML inspection or LibreOffice.
 - Use `PROJECT_STATUS.md` as the source of truth for cross-thread progress and handoff.
 - Use Git commits and test output as completion evidence.
 - Keep generated Graphify and code-review databases local and ignored by Git.
@@ -43,12 +57,26 @@ No implementation task is active. The repository is ready for the first PoC impl
 
 ## Risks / blockers
 
-- Application code has not been created yet, so implementation-level architecture and tests remain unverified.
+- Microsoft PowerPoint is not available on this host, so final renderer compatibility and editability require follow-up validation.
+- The current vertical slice converts direct text nodes and slide backgrounds; images, tables, SVG, shapes, and inline run styling are not implemented yet.
+- Browser measurements can be accurate but still undesirable across slides; header/font role normalization may be needed after visual comparison.
+- Font fallback and unsupported Japanese glyph detection are not implemented yet.
 - The initial design document is currently untracked and must not be added or modified without user intent.
 
 ## Verification
 
-- Latest completed setup commit before this status file: `238965f` (`pre-commitチェックを導入`).
+- `go test ./...`: passed with the Go build cache redirected inside the workspace.
+- `go vet ./...`: passed.
+- `go build -o .tmp/Html2Pptx.exe .`: passed; the embedded Windows executable was 9,192,448 bytes.
+- `npm test`: 4 JavaScript core tests passed; `node --check` passed for all project JavaScript files.
+- Browser integration: uploaded `testdata/multi-slide.html`, downloaded `multi-slide.pptx`, and observed local progress completion at `3 / 3 枚` with no current-page console errors.
+- Slow-worker browser check: the converter-card progress reached `2 / 3 枚` while the file input remained enabled, body pointer events remained `auto`, progress positioning remained `static`, and cancellation succeeded.
+- Generated OOXML contains exactly `ppt/slides/slide1.xml` through `slide3.xml`, with the expected Japanese text in document order.
+- PptxGenJS 4.0.1 browser bundle and `write({ outputType: "arraybuffer" })` usage were checked through Context7 (`/gitbrent/pptxgenjs`).
+- The Qiita article on editable HTML-to-PPTX conversion was reviewed; browser measurement, whitespace normalization, PowerPoint-native validation, inline-run handling, z-order, and font/glyph lessons were incorporated into decisions and next actions.
+- `uv tool run pre-commit run --all-files`: passed, including the Code Review Graph update hook.
+- `graphify update .`: rebuilt the code graph to 179 nodes, 394 edges, and 13 communities (community labels need a future refresh).
+- Latest completed setup commit before this task: `725fb75` (`Context7の必須利用ルールを追加`).
 - `pre-commit run --all-files`: passed, including the Windows-compatible Code Review Graph hook.
 - Graphify minimal query result: `.slide要素による複数スライド構造`.
 - Context7 MCP invocation verified by resolving `/gitbrent/pptxgenjs` and querying browser-side wide-layout PPTX generation, editable text boxes, local bundling, and file download; mandatory firing conditions are recorded in `AGENTS.md`.

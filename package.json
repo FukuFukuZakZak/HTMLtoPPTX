@@ -1,0 +1,12 @@
+{
+  "name": "html-to-pptx-local-converter",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Development dependencies and tests for the embedded HTML to PPTX converter UI.",
+  "scripts": {
+    "test": "node --test web/converter-core.test.js"
+  },
+  "dependencies": {
+    "pptxgenjs": "4.0.1"
+  }
+}
