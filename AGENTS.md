@@ -26,3 +26,27 @@ This repository exposes three MCP servers to Codex through `.codex/config.toml`.
 | Review recent changes | `better-code-review-graph` review tools |
 
 At the start of a session, activate the current repository with Serena and read its initial instructions. Use `code-review-graph` primarily for its Git and edit hooks; prefer `better-code-review-graph` for interactive queries. If graph-backed lookup finds nothing, fall back in this order: Graphify, Serena partial symbol lookup, then `rg` and direct file reads.
+
+## Persistent work management
+
+`PROJECT_STATUS.md` is the durable handoff record for this repository. Do not rely on chat history as the only record of progress.
+
+At the start of every new task or cleared thread:
+
+1. Read `PROJECT_STATUS.md` before proposing or changing implementation.
+2. Run `git status --short` and inspect the recent Git log.
+3. Reconcile the status file with the working tree and verified commits. Git and test results take precedence if the record is stale.
+4. Read only the design sections and source files needed for the current item; use Graphify for repository-wide context.
+
+During work:
+
+- Keep `Current work`, `Next actions`, `Decisions`, `Risks / blockers`, and `Verification` current when their meaning changes.
+- Record outcomes and evidence, not a transcript of commands or discussion.
+- Mark an item complete only after its acceptance checks pass.
+- Preserve user-owned or unrelated working-tree changes and note them under `Working tree notes` when they affect handoff.
+- Update `PROJECT_STATUS.md` before ending an incomplete task, changing milestones, or recommending a cleared/new thread.
+- Commit the status update with the corresponding implementation when practical.
+
+Recommend clearing the thread when a milestone or self-contained task has been committed and verified, the next task is materially different, or accumulated logs and obsolete context are likely to distract from the next phase. Do not recommend clearing while required work is uncommitted, a failure is unexplained, or a blocker/next action is missing from `PROJECT_STATUS.md`.
+
+When recommending it, say explicitly: `ここで一度スレッドをクリアして問題ありません。進捗は PROJECT_STATUS.md に反映済みです。` Include the next action the new thread should start with.
