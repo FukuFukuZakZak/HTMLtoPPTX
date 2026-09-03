@@ -1,0 +1,23 @@
+# --- Node.js ---
+node_modules/
+dist/
+
+# --- Claude Code ---
+.claude/settings.local.json
+.claude/settings.json.bak
+
+# --- code-review-graph / better-code-review-graph ---
+.code-review-graph/
+*.db
+
+# --- Graphify ---
+.graphify/
+graphify-out/
+graph.html
+graph.json
+GRAPH_REPORT.md
+obsidian/
+wiki/
+
+# --- Serena ---
+.serena/memories/
