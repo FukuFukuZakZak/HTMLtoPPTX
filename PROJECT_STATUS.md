@@ -24,6 +24,7 @@ Step 2 PoC: multi-HTML batch conversion with responsive progress feedback and ZI
 - Hidden `.slide` elements are measured in isolation and restored. Text extraction preserves authored and rendered line boundaries, inline styles, CSS whitespace, and computed line height as editable PowerPoint text.
 - Embedded scripts remain disabled by default. A trusted-HTML option can execute inline scripts in a network-blocked, opaque-origin sandbox and snapshot the resulting DOM before conversion.
 - PPTX construction and ZIP packaging run in a Web Worker while DOM measurement remains on the browser main thread with yielding between slides.
+- Each HTML can now produce widescreen, A4 landscape, or A4 portrait output. `.slide` remains the primary page marker; when it is absent, inline `@page size` and rendered A4-proportioned page elements are detected.
 - Repository-scoped Codex context optimization is complete: Graphify uses a short router, unrelated or duplicate plugins are disabled, Serena has an absolute startup path, and tool-output/compaction limits are configured.
 
 ## Current release
@@ -37,15 +38,18 @@ Step 2 PoC: multi-HTML batch conversion with responsive progress feedback and ZI
 
 ## Next actions
 
-1. Validate the closed Issue #5 against its attached PDF/PPTX pair in Microsoft PowerPoint, focusing on table-cell line order, explicit breaks, boundary containment, and logical edit units.
-2. Implement Issue #5 stage 3: surface material `fit: shrink` risk, detect/report font fallback where practical, and calibrate remaining PowerPoint-specific line-height differences.
-3. If Issue #6 needs further follow-up, obtain an exact slide/object example and compare the PowerPoint selection UI with OOXML while preserving independent objects.
-4. Resume image conversion while preserving the current Worker progress protocol and explicit shape-before-text z-order.
-5. In a fresh Codex task, confirm the project plugin/MCP profile is reloaded and compare the initial prompt/tool-schema token count with the previous approximately 40,000-token baseline.
+1. Add mixed-orientation handling: classify every A4 page, split portrait and landscape pages into separate PPTX files while preserving order, and show that the outputs must be combined manually after conversion.
+2. Validate the closed Issue #5 against its attached PDF/PPTX pair in Microsoft PowerPoint, focusing on table-cell line order, explicit breaks, boundary containment, and logical edit units.
+3. Open representative A4 portrait and landscape output in Microsoft PowerPoint and confirm page setup and editable-object placement against the source HTML.
+4. Implement Issue #5 stage 3: surface material `fit: shrink` risk, detect/report font fallback where practical, and calibrate remaining PowerPoint-specific line-height differences.
+5. If Issue #6 needs further follow-up, obtain an exact slide/object example and compare the PowerPoint selection UI with OOXML while preserving independent objects.
+6. Resume image conversion while preserving the current Worker progress protocol and explicit shape-before-text z-order.
+7. In a fresh Codex task, confirm the project plugin/MCP profile is reloaded and compare the initial prompt/tool-schema token count with the previous approximately 40,000-token baseline.
 
 ## Active risks / blockers
 
 - Microsoft PowerPoint-specific compatibility still requires validation on a separate environment; LibreOffice and OOXML checks have passed.
+- PowerPoint uses one page size per presentation. Mixed A4 portrait and landscape pages must be supplied as separate HTML files; batch conversion can place both resulting PPTX files in the same ZIP.
 - Gradients, box shadows, pseudo-elements, images, semantic PowerPoint tables, and SVG content are not implemented.
 - Pixel-identical browser-to-PowerPoint text layout cannot be guaranteed while keeping text editable. Issue #5 still needs PowerPoint validation.
 - Font fallback and unsupported Japanese glyph detection are not implemented.

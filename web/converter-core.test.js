@@ -42,6 +42,22 @@ test("CSS line height becomes exact PowerPoint point spacing", () => {
   assert.equal(core.lineSpacingPoints("normal", 20), undefined);
 });
 
+test("A4 page size is detected from CSS and rendered dimensions", () => {
+  assert.equal(core.a4LayoutFromCss("@page { size: A4 portrait; margin: 0; }").id, "a4-portrait");
+  assert.equal(core.a4LayoutFromCss("@page report { size: landscape A4; }").id, "a4-landscape");
+  assert.equal(core.a4LayoutFromCss("@page { size: 210mm 297mm; }").id, "a4-portrait");
+  assert.equal(core.a4LayoutFromCss("@page { size: 11.69in 8.27in; }").id, "a4-landscape");
+  assert.equal(core.a4LayoutFromDimensions(1122.5, 793.7).id, "a4-landscape");
+  assert.equal(core.a4LayoutFromDimensions(793.7, 1122.5).id, "a4-portrait");
+  assert.equal(core.a4LayoutFromDimensions(1280, 720), null);
+});
+
+test("presentation layout falls back to the existing widescreen size", () => {
+  assert.equal(core.presentationLayout().id, "wide");
+  assert.equal(core.presentationLayout({ id: "a4-portrait" }).width, 210 / 25.4);
+  assert.equal(core.presentationLayout({ id: "unknown" }).height, core.SLIDE_HEIGHT_IN);
+});
+
 test("rich text runs preserve hard and repeated line breaks", () => {
   const runs = core.buildTextRuns([
     { text: "  first  ", whiteSpace: "normal", options: { bold: true } },
@@ -156,5 +172,5 @@ test("slide validation preserves every slide in order", () => {
 });
 
 test("an empty slide list gives an actionable error", () => {
-  assert.throws(() => core.validateSlides([]), /<section class="slide" style="width:1280px;height:720px">/);
+  assert.throws(() => core.validateSlides([]), /.slide 要素、またはA4横・A4縦/);
 });

@@ -26,7 +26,7 @@
         <p>複数のHTMLを順番に読み取り、HTMLごとに1つのPPTXを作成してZIPにまとめます。</p>
         <ol class="flow" aria-label="変換の流れ">
           <li><span>HTML</span><small>読み込み</small></li>
-          <li><span>.slide</span><small>ページ化</small></li>
+          <li><span>ページ</span><small>サイズ判定</small></li>
           <li><span>ZIP</span><small>PPTXを保存</small></li>
         </ol>
       </section>
@@ -37,7 +37,7 @@
             <p class="kicker">変換するファイル</p>
             <h2 id="converter-title">HTMLを選択</h2>
           </div>
-          <span class="format-badge">16:9</span>
+          <span class="format-badge">16:9 / A4</span>
         </div>
 
         <label class="drop-zone" id="drop-zone" for="html-file">
@@ -48,8 +48,8 @@
         </label>
 
         <ul class="input-contract" aria-label="対応するHTMLの条件">
-          <li>各HTMLに <code>.slide</code> を1個以上含む</li>
-          <li>各スライドは固定16:9（推奨1280 × 720）</li>
+          <li><code>.slide</code>、またはA4横・A4縦と判断できるページを含む</li>
+          <li>A4は <code>@page</code> の <code>size</code> またはページ要素の寸法から判定</li>
           <li>スクリプトは既定で実行しません（信頼できるHTMLのみ任意で実行できます）</li>
         </ul>
 

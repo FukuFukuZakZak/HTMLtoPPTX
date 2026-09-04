@@ -10,6 +10,15 @@ This file is the detailed audit trail. The concise current result is in [`../PRO
 - `git diff --check` and `uv tool run pre-commit run --all-files` passed; every relative Markdown link resolves to an existing file.
 - Only status documentation changed; user-owned `docs/` and `test-data/` remained untouched.
 
+## A4 portrait and landscape conversion — 2026-09-05
+
+- `npm test` passed 16 tests, including exact OOXML slide-size checks for widescreen, A4 portrait, and A4 landscape output; JavaScript syntax checks and the Go verification suite also passed.
+- Headless Microsoft Edge converted the user-owned `test-data/2026スマホ教室.html` (no `.slide`, inline `@page { size: A4 portrait; }`) together with a temporary A4 landscape fixture in one batch ZIP.
+- The generated presentations used exact A4 OOXML dimensions: portrait `7560000 x 10692000` EMU and landscape `10692000 x 7560000` EMU.
+- The browser run had no conversion/runtime errors. One expected 404 warning came from the source HTML's unresolved relative image asset, which remains outside the current image-conversion scope.
+- PptxGenJS custom layout definition and selection were checked through Context7 (`/gitbrent/pptxgenjs`). The required modern-web-guidance search was attempted but the local command timed out without results, so repository patterns and direct browser verification were used.
+- Graphify's recorded Python environment refreshed the code graph to 282 nodes, 585 edges, and 19 communities; no LLM extraction was required.
+
 ## Current batch release — 2026-09-05
 
 - Clean clone commit: `7e3fcbfb37ef45ac8b8fa8566e918357b076175e`.

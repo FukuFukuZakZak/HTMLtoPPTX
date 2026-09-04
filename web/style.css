@@ -214,13 +214,15 @@ code {
 .format-badge {
   display: grid;
   place-items: center;
-  width: 54px;
+  min-width: 54px;
   height: 32px;
+  padding-inline: 8px;
   color: var(--surface);
   background: var(--ink);
   border-radius: 2px;
   font-size: 0.74rem;
   font-weight: 750;
+  white-space: nowrap;
 }
 
 .drop-zone {

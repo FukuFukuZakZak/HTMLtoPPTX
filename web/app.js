@@ -122,10 +122,8 @@
           renderHtml = await createScriptSnapshot(html, controller.signal);
         }
         frame = await createRenderFrame(renderHtml, controller.signal);
-        const slideElements = Array.from(frame.contentDocument.querySelectorAll(".slide"));
-        if (slideElements.length === 0) {
-          throw new Error(`${sourceFile.name}: .slide 要素が見つかりません。例: <section class="slide" style="width:1280px;height:720px">...</section>`);
-        }
+        const pageSet = resolveConvertiblePages(frame.contentDocument);
+        const slideElements = pageSet.elements;
 
         const slideModels = [];
         const slideDisplay = preferredSlideDisplay(slideElements);
@@ -135,13 +133,13 @@
           const restore = HtmlToPptxCore.showOnlySlideForMeasurement(slideElements, slideElements[slideIndex], slideDisplay);
           try {
             await nextFrame();
-            slideModels.push(extractSlide(slideElements[slideIndex]));
+            slideModels.push(extractSlide(slideElements[slideIndex], pageSet.layout));
           } finally {
             restore();
           }
         }
         totalSlides += slideModels.length;
-        presentations.push({ title: sourceFile.name, outputName: outputNames[fileIndex], slides: slideModels });
+        presentations.push({ title: sourceFile.name, outputName: outputNames[fileIndex], layout: pageSet.layout, slides: slideModels });
         frame.remove();
         frame = null;
       }
@@ -338,15 +336,76 @@
     return "block";
   }
 
-  function extractSlide(slideElement) {
+  function elementA4Layout(element) {
+    const view = element.ownerDocument.defaultView;
+    const rect = element.getBoundingClientRect();
+    const style = view.getComputedStyle(element);
+    const width = rect.width || Number.parseFloat(style.width);
+    const height = rect.height || Number.parseFloat(style.height);
+    return HtmlToPptxCore.a4LayoutFromDimensions(width, height);
+  }
+
+  function authoredA4Layout(document) {
+    const cssText = Array.from(document.querySelectorAll("style"), (style) => style.textContent || "").join("\n");
+    return HtmlToPptxCore.a4LayoutFromCss(cssText);
+  }
+
+  function a4PageCandidates(document, expectedLayout) {
+    const body = document.body;
+    if (!body) return [];
+    const preferred = Array.from(body.querySelectorAll(".page, [data-page], [role='document'], main"));
+    const candidates = Array.from(new Set([...body.children, ...preferred])).filter((element) => {
+      const layout = elementA4Layout(element);
+      return layout && (!expectedLayout || layout.id === expectedLayout.id);
+    });
+    return candidates.filter((candidate) => !candidates.some((other) => other !== candidate && candidate.contains(other)));
+  }
+
+  function resolveConvertiblePages(document) {
+    const slides = Array.from(document.querySelectorAll(".slide"));
+    if (slides.length > 0) {
+      const inferredLayouts = slides.map(elementA4Layout);
+      const inferred = inferredLayouts[0];
+      const layout = inferred && inferredLayouts.every((item) => item && item.id === inferred.id)
+        ? inferred
+        : HtmlToPptxCore.PRESENTATION_LAYOUTS.wide;
+      return { elements: slides, layout };
+    }
+
+    const authored = authoredA4Layout(document);
+    const candidates = a4PageCandidates(document, authored);
+    if (candidates.length > 0) {
+      const candidateLayouts = candidates.map(elementA4Layout);
+      if (new Set(candidateLayouts.map((layout) => layout.id)).size > 1) {
+        throw new Error("1つのPPTXではページの向きを統一してください。A4縦とA4横は別々のHTMLに分けて変換できます。");
+      }
+      return { elements: candidates, layout: authored || candidateLayouts[0] };
+    }
+
+    if (authored && document.body) {
+      const visibleChildren = Array.from(document.body.children).filter((element) => {
+        const rect = element.getBoundingClientRect();
+        const style = document.defaultView.getComputedStyle(element);
+        return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+      });
+      if (visibleChildren.length === 1) return { elements: visibleChildren, layout: authored };
+      const bodyLayout = elementA4Layout(document.body);
+      if (bodyLayout && bodyLayout.id === authored.id) return { elements: [document.body], layout: authored };
+    }
+
+    throw new Error(".slide 要素、またはA4横・A4縦と判断できるページが見つかりません。@page の size かページ要素の寸法を指定してください。");
+  }
+
+  function extractSlide(slideElement, requestedLayout) {
     const view = slideElement.ownerDocument.defaultView;
     const slideRect = slideElement.getBoundingClientRect();
     if (slideRect.width <= 0 || slideRect.height <= 0) {
-      throw new Error("幅または高さが0の .slide 要素があります。表示可能な16:9サイズを指定してください。");
+      throw new Error("幅または高さが0のページ要素があります。表示可能なサイズを指定してください。");
     }
 
-    const scaleX = HtmlToPptxCore.SLIDE_WIDTH_IN / slideRect.width;
-    const scaleY = HtmlToPptxCore.SLIDE_HEIGHT_IN / slideRect.height;
+    const layout = HtmlToPptxCore.presentationLayout(requestedLayout);
+    const scaleX = layout.width / slideRect.width;
+    const scaleY = layout.height / slideRect.height;
     const colorReader = createColorReader(slideElement.ownerDocument);
     const shapes = [];
     const texts = [];
@@ -376,15 +435,15 @@
       const y = (rect.top + paddingTop - slideRect.top) * scaleY;
       const width = Math.max(1, rect.width - paddingLeft - paddingRight);
       const height = Math.max(1, rect.height - paddingTop - paddingBottom);
-      if (x >= HtmlToPptxCore.SLIDE_WIDTH_IN || y >= HtmlToPptxCore.SLIDE_HEIGHT_IN || x + rect.width * scaleX <= 0 || y + rect.height * scaleY <= 0) continue;
+      if (x >= layout.width || y >= layout.height || x + rect.width * scaleX <= 0 || y + rect.height * scaleY <= 0) continue;
 
       texts.push({
         text: plainText,
         runs,
         x,
         y,
-        w: Math.min(width * scaleX, HtmlToPptxCore.SLIDE_WIDTH_IN - Math.max(0, x)),
-        h: Math.min(height * scaleY, HtmlToPptxCore.SLIDE_HEIGHT_IN - Math.max(0, y)),
+        w: Math.min(width * scaleX, layout.width - Math.max(0, x)),
+        h: Math.min(height * scaleY, layout.height - Math.max(0, y)),
         fontFace: style.fontFamily.split(",")[0].replace(/["']/g, "").trim(),
         fontSize: Number.parseFloat(style.fontSize) * 0.75,
         lineSpacing: extracted.lineSpacing || HtmlToPptxCore.lineSpacingPoints(style.lineHeight, Number.parseFloat(style.fontSize)),

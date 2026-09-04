@@ -11,6 +11,7 @@ self.onmessage = async function (event) {
     const validated = presentations.map((presentation) => ({
       title: presentation.title,
       outputName: presentation.outputName,
+      layout: HtmlToPptxCore.presentationLayout(presentation.layout),
       slides: HtmlToPptxCore.validateSlides(presentation.slides)
     }));
     const total = validated.reduce((sum, presentation) => sum + presentation.slides.length, 0);
@@ -20,7 +21,16 @@ self.onmessage = async function (event) {
     for (let fileIndex = 0; fileIndex < validated.length; fileIndex += 1) {
       const presentation = validated[fileIndex];
       const pptx = new PptxGenJS();
-      pptx.layout = "LAYOUT_WIDE";
+      if (presentation.layout.id === "wide") {
+        pptx.layout = presentation.layout.name;
+      } else {
+        pptx.defineLayout({
+          name: presentation.layout.name,
+          width: presentation.layout.width,
+          height: presentation.layout.height
+        });
+        pptx.layout = presentation.layout.name;
+      }
       pptx.author = "HTML → PowerPoint Converter";
       pptx.subject = "HTMLから変換したプレゼンテーション";
       pptx.title = presentation.title || "Presentation";

@@ -9,6 +9,58 @@
 
   const SLIDE_WIDTH_IN = 13.333;
   const SLIDE_HEIGHT_IN = 7.5;
+  const A4_SHORT_EDGE_IN = 210 / 25.4;
+  const A4_LONG_EDGE_IN = 297 / 25.4;
+  const PRESENTATION_LAYOUTS = Object.freeze({
+    wide: Object.freeze({ id: "wide", name: "LAYOUT_WIDE", width: SLIDE_WIDTH_IN, height: SLIDE_HEIGHT_IN }),
+    "a4-landscape": Object.freeze({ id: "a4-landscape", name: "HTML_A4_LANDSCAPE", width: A4_LONG_EDGE_IN, height: A4_SHORT_EDGE_IN }),
+    "a4-portrait": Object.freeze({ id: "a4-portrait", name: "HTML_A4_PORTRAIT", width: A4_SHORT_EDGE_IN, height: A4_LONG_EDGE_IN })
+  });
+
+  function presentationLayout(layout) {
+    const id = typeof layout === "string" ? layout : layout && layout.id;
+    return PRESENTATION_LAYOUTS[id] || PRESENTATION_LAYOUTS.wide;
+  }
+
+  function a4LayoutFromDimensions(width, height, tolerance) {
+    const measuredWidth = Number(width);
+    const measuredHeight = Number(height);
+    if (!Number.isFinite(measuredWidth) || !Number.isFinite(measuredHeight) || measuredWidth <= 0 || measuredHeight <= 0) return null;
+    const actualRatio = Math.max(measuredWidth, measuredHeight) / Math.min(measuredWidth, measuredHeight);
+    const a4Ratio = A4_LONG_EDGE_IN / A4_SHORT_EDGE_IN;
+    const allowedDifference = Number.isFinite(Number(tolerance)) ? Math.max(0, Number(tolerance)) : 0.03;
+    if (Math.abs(actualRatio / a4Ratio - 1) > allowedDifference) return null;
+    return measuredWidth > measuredHeight ? PRESENTATION_LAYOUTS["a4-landscape"] : PRESENTATION_LAYOUTS["a4-portrait"];
+  }
+
+  function cssLengthInches(value) {
+    const match = String(value || "").trim().match(/^([0-9]*\.?[0-9]+)\s*(mm|cm|in|pt|px)$/i);
+    if (!match) return null;
+    const amount = Number(match[1]);
+    const unit = match[2].toLowerCase();
+    const factors = { mm: 1 / 25.4, cm: 1 / 2.54, in: 1, pt: 1 / 72, px: 1 / 96 };
+    return amount * factors[unit];
+  }
+
+  function a4LayoutFromCss(cssText) {
+    const blocks = String(cssText || "").match(/@page(?:\s+[^{}]+)?\s*\{[^{}]*\}/gi) || [];
+    for (const block of blocks) {
+      const sizeMatch = block.match(/(?:^|[;{])\s*size\s*:\s*([^;}]+)/i);
+      if (!sizeMatch) continue;
+      const size = sizeMatch[1].trim();
+      if (/\ba4\b/i.test(size)) {
+        return /\blandscape\b/i.test(size) ? PRESENTATION_LAYOUTS["a4-landscape"] : PRESENTATION_LAYOUTS["a4-portrait"];
+      }
+      const lengths = size.match(/[0-9]*\.?[0-9]+\s*(?:mm|cm|in|pt|px)\b/gi) || [];
+      if (lengths.length >= 2) {
+        const width = cssLengthInches(lengths[0]);
+        const height = cssLengthInches(lengths[1]);
+        const layout = a4LayoutFromDimensions(width, height, 0.015);
+        if (layout) return layout;
+      }
+    }
+    return null;
+  }
 
   function outputFileName(inputName) {
     const baseName = String(inputName || "presentation")
@@ -240,7 +292,7 @@
 
   function validateSlides(slides) {
     if (!Array.isArray(slides) || slides.length === 0) {
-      throw new Error(".slide 要素が見つかりません。例: <section class=\"slide\" style=\"width:1280px;height:720px\">...</section>");
+      throw new Error("変換するページがありません。.slide 要素、またはA4横・A4縦のページを指定してください。");
     }
     return slides.map((slide) => ({
       background: hexColor(slide.background, "FFFFFF"),
@@ -252,6 +304,10 @@
   return {
     SLIDE_WIDTH_IN,
     SLIDE_HEIGHT_IN,
+    PRESENTATION_LAYOUTS,
+    presentationLayout,
+    a4LayoutFromDimensions,
+    a4LayoutFromCss,
     outputFileName,
     uniqueOutputFileNames,
     zipOutputFileName,

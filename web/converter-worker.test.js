@@ -26,8 +26,9 @@ test("worker creates one PPTX per presentation inside one ZIP", async () => {
     data: {
       type: "convert-batch",
       presentations: [
-        { title: "First", outputName: "first.pptx", slides: [slide] },
-        { title: "Second", outputName: "first (2).pptx", slides: [slide] }
+        { title: "Wide", outputName: "wide.pptx", slides: [slide] },
+        { title: "Portrait", outputName: "portrait.pptx", layout: { id: "a4-portrait" }, slides: [slide] },
+        { title: "Landscape", outputName: "landscape.pptx", layout: { id: "a4-landscape" }, slides: [slide] }
       ]
     }
   });
@@ -40,17 +41,26 @@ test("worker creates one PPTX per presentation inside one ZIP", async () => {
   const archive = await JSZip.loadAsync(complete.buffer);
   assert.deepEqual(
     Object.keys(archive.files).filter((name) => name.endsWith(".pptx")).sort(),
-    ["first (2).pptx", "first.pptx"]
+    ["landscape.pptx", "portrait.pptx", "wide.pptx"]
   );
 
-  for (const name of ["first.pptx", "first (2).pptx"]) {
+  const expectedSizes = {
+    "wide.pptx": null,
+    "portrait.pptx": [7560000, 10692000],
+    "landscape.pptx": [10692000, 7560000]
+  };
+  for (const [name, expectedSize] of Object.entries(expectedSizes)) {
     const pptx = await JSZip.loadAsync(await archive.file(name).async("arraybuffer"));
     assert.ok(pptx.file("ppt/presentation.xml"));
     assert.ok(pptx.file("ppt/slides/slide1.xml"));
     assert.equal(pptx.file("ppt/slides/slide2.xml"), null);
+    if (expectedSize) {
+      const presentationXml = await pptx.file("ppt/presentation.xml").async("string");
+      assert.match(presentationXml, new RegExp(`<p:sldSz cx="${expectedSize[0]}" cy="${expectedSize[1]}"`));
+    }
   }
 
   const progress = messages.filter((message) => message.type === "progress");
-  assert.deepEqual(progress.map((message) => message.completed), [1, 2]);
+  assert.deepEqual(progress.map((message) => message.completed), [1, 2, 3]);
   assert.ok(messages.some((message) => message.type === "packaging"));
 });
