@@ -13,7 +13,7 @@ Step 2 PoC: multi-slide HTML conversion with responsive progress feedback.
 
 ## Current work
 
-GitHub Issues #1-#6 are closed. Issues #3 and #4 are committed and pushed: the UI states the static 16:9 `.slide` contract, the no-slide error includes a minimal correction example, and hidden slides are isolated, temporarily displayed, measured, and restored one at a time. Issue #5 stages 1 and 2 are also committed and pushed: text extraction preserves explicit/block/rendered line boundaries, inline styles, CSS whitespace, and computed line height through PptxGenJS rich text runs and soft line breaks. The annotated prerelease tag targets product commit `69569fa`, and GitHub prerelease `v0.1.0-alpha.1` contains the verified Issue #3-#5 field-validation EXE and updated checksum. Issue #6 was closed at the user's direction while the sample-dependent PowerPoint selection-UI validation remains recorded as follow-up work; an OOXML regression test asserts that rich editable text does not introduce nested PowerPoint group objects. Issue #7 (`サイドバーの再現性について`) is implemented locally: the UI now offers an explicit trusted-HTML option that executes embedded scripts in an opaque-origin, network-blocked sandbox, freezes the resulting DOM, and then uses the existing script-disabled conversion path.
+GitHub Issues #1-#7 are closed. Issues #3 and #4 are committed and pushed: the UI states the static 16:9 `.slide` contract, the no-slide error includes a minimal correction example, and hidden slides are isolated, temporarily displayed, measured, and restored one at a time. Issue #5 stages 1 and 2 are also committed and pushed: text extraction preserves explicit/block/rendered line boundaries, inline styles, CSS whitespace, and computed line height through PptxGenJS rich text runs and soft line breaks. The annotated prerelease tag targets product commit `69569fa`, and GitHub prerelease `v0.1.0-alpha.1` contains the verified Issue #3-#5 field-validation EXE and updated checksum. Issue #6 was closed at the user's direction while the sample-dependent PowerPoint selection-UI validation remains recorded as follow-up work; an OOXML regression test asserts that rich editable text does not introduce nested PowerPoint group objects. Issue #7 (`サイドバーの再現性について`) was implemented, pushed as `2e298dc`, and closed with a trusted-HTML usage note: the UI offers an explicit option that executes embedded scripts in an opaque-origin, network-blocked sandbox, freezes the resulting DOM, and then uses the existing script-disabled conversion path.
 
 Repository-scoped Codex context optimization is complete. Graphify now loads a 65-line router for normal use and keeps the complete 705-line build runbook behind an operation-specific reference. The project profile disables duplicate/unrelated plugins and the legacy Code Review Graph MCP, fixes Serena startup to an absolute executable path, limits stored tool output, and enables early context compaction.
 
@@ -58,10 +58,9 @@ Repository-scoped Codex context optimization is complete. Graphify now loads a 6
 
 ## Next actions
 
-1. Commit and push the verified Issue #7 implementation, then close the GitHub issue with the trusted-HTML usage note.
-2. Validate the closed Issue #5 against its attached PDF/PPTX pair in Microsoft PowerPoint, focusing on table-cell line order, explicit breaks, boundary containment, and logical edit units.
-3. Implement Issue #5 stage 3: surface material `fit: shrink` risk, detect/report font fallback where practical, and calibrate remaining PowerPoint-specific line-height differences.
-4. If Issue #6 needs further follow-up, obtain an exact slide/object example and compare the PowerPoint selection UI with OOXML while preserving independent objects.
+1. Validate the closed Issue #5 against its attached PDF/PPTX pair in Microsoft PowerPoint, focusing on table-cell line order, explicit breaks, boundary containment, and logical edit units.
+2. Implement Issue #5 stage 3: surface material `fit: shrink` risk, detect/report font fallback where practical, and calibrate remaining PowerPoint-specific line-height differences.
+3. If Issue #6 needs further follow-up, obtain an exact slide/object example and compare the PowerPoint selection UI with OOXML while preserving independent objects.
 5. Resume image conversion while preserving the current Worker progress protocol and explicit shape-before-text z-order.
 6. In the next fresh Codex task, confirm the project plugin/MCP profile is reloaded and compare the initial prompt/tool-schema token count with the previous approximately 40,000-token baseline.
 
@@ -144,10 +143,10 @@ Repository-scoped Codex context optimization is complete. Graphify now loads a 6
 - The mandatory modern-web-guidance lookup was attempted; its online command stalled and the offline package cache was unavailable, so no guidance result was used.
 - `graphify update .`: rebuilt the post-fix graph to 185 nodes, 412 edges, and 13 communities; `extractElementShapes`, `createColorReader`, `shapeOptions`, `preparePptxDownload`, and `clearDownload` are present in the updated graph.
 - GitHub Issues #3 (`.slide` absence), #4 (zero-sized hidden slides), #5 (low line-break/layout fidelity), and #6 (reported grouping) were inspected through authenticated GitHub access on 2026-09-04; no Issue fields were changed.
-- GitHub CLI was re-authenticated as `divine261402-pixel` on 2026-09-04. Issues #3-#6 were closed as completed at the user's direction; Issues #1 and #2 were already closed, and Issue #7 remains open.
+- GitHub CLI was re-authenticated as `divine261402-pixel` on 2026-09-04. Issues #3-#7 were closed as completed; Issues #1 and #2 were already closed. Issue #7 was closed after pushing `2e298dc`, with a comment explaining the trusted-script option and attached-source verification.
 - Issue #7 (`サイドバーの再現性について`) reports that the converted PPTX omits the sidebar and includes a reference PDF, source HTML, and converted PPTX; it had no labels, assignees, or comments when inspected.
 - Issue #7 root cause: slides 2-12 contain an empty `<ul class="agenda">`; a bottom-of-document script injects all agenda `<li>` items at runtime. The supplied converted PDF reproduces the dark sidebar shell but omits those items, confirming a blocked runtime-content gap rather than a shape-extraction failure.
-- Issue #7 verification on 2026-09-04: `node --check web/app.js`, `go test ./...`, and `npm test` passed (11 JavaScript tests). Browser acceptance with the attached 12-slide source HTML and the trusted-script checkbox enabled completed at `12 / 12 枚` and exposed the PPTX save link.
+- Issue #7 verification on 2026-09-04: `node --check web/app.js`, `go test ./...`, `go vet ./...`, `npm test` (11 JavaScript tests), and `uv tool run pre-commit run --all-files` passed. Browser acceptance with the attached 12-slide source HTML and the trusted-script checkbox enabled completed at `12 / 12 枚` and exposed the PPTX save link.
 - The Issue #7 runner endpoint test asserts `sandbox allow-scripts`, `default-src 'none'`, inline-script-only execution, blocked connections, and blocked forms. Better Code Review Graph's heuristic security scan reported zero findings.
 - The mandatory modern-web-guidance security lookup was used for the Issue #7 design; the implementation follows its postMessage origin/source/payload validation guidance while using a one-time token and an opaque-origin sandbox. The initial search required a network-enabled retry, and the installed guide version reported itself as stale.
 - Graphify was updated through the interpreter recorded in `graphify-out/.graphify_python` because the command alias was not on PATH; the code graph rebuilt to 214 nodes, 450 edges, and 15 communities.
@@ -175,7 +174,7 @@ Repository-scoped Codex context optimization is complete. Graphify now loads a 6
 
 - `docs/` and `test-data/` are user-owned untracked directories as of 2026-09-03. Preserve them unless the user explicitly requests otherwise.
 - `deliverables/HTMLtoPPTX_Issue3-6_改修方針書.docx` is the task-owned decision memo used as the implementation source on 2026-09-04; the document itself was not edited.
-- The Issue #7 implementation is locally verified but not yet committed at this checkpoint. The preserved user-owned untracked `docs/` and `test-data/` directories remain untouched.
+- The Issue #7 implementation is committed as `2e298dc`, pushed to `origin/main`, and the GitHub issue is closed. Only the preserved user-owned untracked `docs/` and `test-data/` directories remain untouched.
 
 ## Handoff checklist
 
