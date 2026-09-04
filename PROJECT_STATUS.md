@@ -13,7 +13,9 @@ Step 2 PoC: multi-slide HTML conversion with responsive progress feedback.
 
 ## Current work
 
-GitHub Issues #1 and #2 are fixed and published in the replaced prerelease `v0.1.0-alpha.1`. The tag and release point to fix commit `c7eed34`, and the verified replacement Windows asset is attached. No release task remains active.
+GitHub Issues #1 and #2 are fixed, published in the replaced prerelease `v0.1.0-alpha.1`, and closed. The Issue #3-#6 implementation pass started on 2026-09-04 from `deliverables/HTMLtoPPTX_Issue3-6_改修方針書.docx`. Issues #3 and #4 are committed and pushed: the UI states the static 16:9 `.slide` contract, the no-slide error includes a minimal correction example, and hidden slides are isolated, temporarily displayed, measured, and restored one at a time. Issue #5 stages 1 and 2 are also committed and pushed: text extraction preserves explicit/block/rendered line boundaries, inline styles, CSS whitespace, and computed line height through PptxGenJS rich text runs and soft line breaks. The annotated prerelease tag now targets product commit `69569fa`; the verified replacement EXE is ready, but deleting the old GitHub release asset and submitting the updated public release are awaiting the required action-time confirmation. Issue #6 remains sample-dependent; an OOXML regression test asserts that rich editable text does not introduce nested PowerPoint group objects.
+
+Repository-scoped Codex context optimization is complete. Graphify now loads a 65-line router for normal use and keeps the complete 705-line build runbook behind an operation-specific reference. The project profile disables duplicate/unrelated plugins and the legacy Code Review Graph MCP, fixes Serena startup to an absolute executable path, limits stored tool output, and enables early context compaction.
 
 ## Completed
 
@@ -39,13 +41,27 @@ GitHub Issues #1 and #2 are fixed and published in the replaced prerelease `v0.1
 - Normalized browser CSS colors, including `oklch(...)`, through an sRGB canvas before passing colors and alpha transparency to PptxGenJS.
 - Fixed Issue #2 by keeping a persistent user-clicked PPTX save link, revoking only superseded Blob URLs, and ignoring stale Worker callbacks through per-job identity checks.
 - Added OOXML integration coverage for editable fill and dashed-border colors, plus shape-option and alpha-transparency tests.
+- Documented the supported input contract in the browser UI: one or more `.slide` elements, fixed 16:9 dimensions, static DOM content, and disabled uploaded scripts.
+- Added an actionable `.slide`-missing error with a minimal 1280 x 720 HTML example.
+- Added per-slide measurement isolation that preserves and restores each slide's exact `class`, inline `style`, and `hidden` attributes.
+- Added a 12-slide `display:none` browser fixture and verified every slide converts without zero-size failures.
+- Replaced direct-text whitespace flattening with logical element/table-cell extraction using `Range.getClientRects()`, explicit `<br>` and block boundaries, CSS `white-space`, inline rich-text styling, and computed `line-height`.
+- Added PptxGenJS `softBreakBefore` output so browser line boundaries serialize as editable `<a:br/>` elements instead of separate shapes.
+- Added OOXML tests for explicit soft line breaks, exact point line spacing, and the absence of nested `<p:grpSp>` objects.
+- Split the Graphify skill into a 4,364-byte router and an on-demand full pipeline runbook without removing build, query, update, export, or honesty guidance.
+- Added a repository-local Codex profile that disables 14 unrelated or duplicate plugins, keeps the six capabilities relevant to HTML/PPTX development, and removes the duplicate legacy Code Review Graph MCP surface.
+- Added global and per-graph-tool output limits plus a 120,000-token automatic compaction threshold for this repository.
+- Committed and pushed the repository context optimization as `74c5dfd` and the Issue #3-#5 implementation as `69569fa`.
+- Force-updated annotated tag `v0.1.0-alpha.1` from product commit `c7eed34` to `69569fa` for the next field-machine validation build.
 
 ## Next actions
 
-1. Validate the Issue #1 source HTML and generated PPTX on the reporting field machine in Microsoft PowerPoint.
-2. Implement image conversion while preserving the current Worker progress protocol.
-3. Preserve inline text runs and extend the now-explicit shape-before-text z-order to tables and images.
-4. Add role-based normalization only where PowerPoint rendering proves that raw browser measurements are undesirable.
+1. Validate Issue #5 against its attached PDF/PPTX pair in Microsoft PowerPoint, focusing on table-cell line order, explicit breaks, boundary containment, and logical edit units.
+2. Implement Issue #5 stage 3: surface material `fit: shrink` risk, detect/report font fallback where practical, and calibrate remaining PowerPoint-specific line-height differences.
+3. Obtain an Issue #6 PPTX or exact slide/object example, then compare the PowerPoint selection UI with OOXML while preserving independent objects.
+4. After action-time confirmation, remove the old GitHub release asset, upload the verified Issue #3-#5 EXE under the same filename, update the release notes/checksum, and verify that the release remains marked `Pre-release`.
+5. After Issues #3-#6, resume image conversion while preserving the current Worker progress protocol and explicit shape-before-text z-order.
+6. In the next fresh Codex task, confirm the project plugin/MCP profile is reloaded and compare the initial prompt/tool-schema token count with the previous approximately 40,000-token baseline.
 
 ## Decisions
 
@@ -64,15 +80,29 @@ GitHub Issues #1 and #2 are fixed and published in the replaced prerelease `v0.1
 - Convert computed CSS colors to sRGB in the browser rather than trying to parse every current CSS color syntax in the Worker.
 - Require an explicit save click after conversion so each conversion has a fresh browser-authorized download gesture; keep the generated Blob URL valid until selection, reconversion, or page exit.
 - Bind every asynchronous conversion callback to its originating job so callbacks from a cancelled or superseded Worker cannot finish a newer conversion.
+- Keep uploaded HTML scripts disabled by default. Slide-visibility normalization must be performed by the converter and must not add `allow-scripts` to the same-origin sandbox.
+- Keep `.slide` as a mandatory deterministic input contract. Do not add classless slide discovery or automatic pagination of arbitrary HTML.
+- Define supported HTML as static 16:9 slide markup. A sidebar inside each slide is supported when it is present in the static DOM; runtime-only content generation is outside the default security model.
+- Treat text fidelity as a human-effort optimization problem: preserve explicit structure and measured line boundaries, prevent text from crossing its intended box, and leave only exceptional font/layout refinements for manual PowerPoint editing.
+- Keep generated PowerPoint objects ungrouped. Favor one editable text object per logical DOM element with measured line breaks/runs over a native PowerPoint table when independent object manipulation is required.
+- Use PptxGenJS `softBreakBefore` for browser-rendered and authored soft line boundaries because version 4.0.1 serializes it as `<a:br/>`; `breakLine` creates a separate `<a:p>` paragraph instead.
+- Measure text at the logical DOM element level, except table cells, which own their descendant text so each cell remains one independently editable PowerPoint text box.
+- Route routine code work to Better Code Review Graph or Serena; invoke Graphify automatically only for explicit graph requests, broad architecture, or code-to-document relationships.
+- Keep project plugins task-specific: presentations, PDF, frontend design, GitHub, the built-in browser, and unified computer use remain available; unrelated document/app plugins and duplicate browser/GitHub stacks stay disabled unless a task needs them.
+- Cap stored tool output at 6,000 tokens by default, use tighter 3,000-5,000-token caps for graph operations, and narrow a query before increasing its budget.
 
 ## Risks / blockers
 
 - LibreOffice Impress opens and renders the output correctly, but Microsoft PowerPoint-specific compatibility still requires later validation on a separate environment.
-- The current vertical slice converts direct text nodes, slide backgrounds, solid element fills, and CSS borders; gradients, box shadows, pseudo-elements, images, tables, SVG content, and inline run styling are not implemented yet.
+- The current vertical slice converts logical text runs, slide backgrounds, solid element fills, and CSS borders; gradients, box shadows, pseudo-elements, images, semantic PowerPoint tables, and SVG content are not implemented yet.
 - Border radii are represented as PowerPoint rounded rectangles, so exact per-corner CSS radius values are approximated.
 - Browser measurements can be accurate but still undesirable across slides; header/font role normalization may be needed after visual comparison.
 - Font fallback and unsupported Japanese glyph detection are not implemented yet.
 - The initial design document is currently untracked and must not be added or modified without user intent.
+- Issue #4's HTML builds sidebar agenda content with JavaScript. The current sandbox intentionally does not execute uploaded scripts, so fixing hidden-slide measurement alone will not reproduce script-generated content; the source must contain final static DOM or a separately designed trusted-content mode is required.
+- Pixel-identical browser-to-PowerPoint text layout cannot be guaranteed while keeping text editable because the browser and PowerPoint use different text engines. Measured line boundaries and explicit rich-text breaks materially improve fidelity but still need validation against the Issue #5 attachment in Microsoft PowerPoint.
+- Character-level `Range.getClientRects()` measurement favors Japanese line fidelity over extraction speed; very text-heavy decks may need a later performance optimization that preserves the same line-boundary result.
+- Issue #6 has no attachment or exact PowerPoint object example. Current code does not call a grouping API, and the inspected Issue #5 PPTX has zero nested PowerPoint group shapes, so the reported grouping is not yet reproducible.
 
 ## Verification
 
@@ -110,10 +140,32 @@ GitHub Issues #1 and #2 are fixed and published in the replaced prerelease `v0.1
 - PptxGenJS 4.0.1 shape, fill, line, dash, transparency, and text options were checked through Context7 (`/gitbrent/pptxgenjs`) before implementation.
 - The mandatory modern-web-guidance lookup was attempted; its online command stalled and the offline package cache was unavailable, so no guidance result was used.
 - `graphify update .`: rebuilt the post-fix graph to 185 nodes, 412 edges, and 13 communities; `extractElementShapes`, `createColorReader`, `shapeOptions`, `preparePptxDownload`, and `clearDownload` are present in the updated graph.
+- GitHub Issues #3 (`.slide` absence), #4 (zero-sized hidden slides), #5 (low line-break/layout fidelity), and #6 (reported grouping) were inspected through authenticated GitHub access on 2026-09-04; no Issue fields were changed.
+- Issue #4 attachment: 12 `.slide` sections are declared at 1280x720, but `.slide { display:none }` and only `.slide.active { display:flex }`. The converter selects all 12 and throws on the second hidden slide because `getBoundingClientRect()` returns zero size. The attachment also generates agenda entries with a script that the converter sandbox intentionally blocks.
+- Issue #5 visual comparison: the one-page source PDF preserves multi-line table cells, while the generated PPTX flattens several cell lines and shifts/wraps text differently. The PPTX slide contains 98 `<p:sp>` objects, 40 text runs/paragraphs, zero explicit `<a:br>` breaks, and zero nested `<p:grpSp>` group objects; the overflow checker nevertheless passes because the problem is fidelity inside measured boxes rather than slide-canvas overflow.
+- Source inspection confirms the direct-text path joins text nodes with spaces and applies `/\s+/g`, discarding explicit whitespace/line-break intent, while `textOptions()` does not carry CSS line height or rendered browser line boundaries. PptxGenJS 4.x rich text runs, `breakLine`, `lineSpacing`, `lineSpacingMultiple`, and `fit: "shrink"` were checked through Context7 (`/gitbrent/pptxgenjs`).
+- Better Code Review Graph prospective impact analysis scoped Issues #3-#6 mainly to `web/app.js`, `web/converter-core.js`, `web/converter-worker.js`, and JavaScript tests; the bundled PptxGenJS file is the only additional affected file reported within the queried radius.
+- Created `deliverables/HTMLtoPPTX_Issue3-6_改修方針書.docx` as the implementation handoff for Issues #3-#6. The final DOCX rendered to 9 Letter-size pages; all pages passed visual inspection, the accessibility audit reported zero findings, and the document contains no placeholder or internal citation tokens.
+- Issue #3-#6 implementation verification on 2026-09-04: `npm test` passed 11 tests; `node --check` passed for `web/app.js`, `web/converter-core.js`, and `web/converter-worker.js`; `go test ./...`, `go vet ./...`, `go build`, and `git diff --check` passed.
+- Browser integration on the final build converted `testdata/hidden-slides.html` from one visible and eleven `display:none` slides to completion at `12 / 12 枚`; the save link was shown and browser error/warning logs were empty.
+- Browser acceptance for `testdata/no-slide.html` displayed the minimal correction example `<section class="slide" style="width:1280px;height:720px">...</section>` instead of a generic failure.
+- OOXML integration confirms PptxGenJS 4.0.1 rich text `softBreakBefore` emits `<a:br/>`, a CSS-derived 18pt line height emits `<a:spcPts val="1800"/>`, and no nested `<p:grpSp>` is generated.
+- Current PptxGenJS rich text, `softBreakBefore`, `lineSpacing`, and `fit: "shrink"` behavior was checked through Context7 (`/gitbrent/pptxgenjs`); JSZip in-memory PPTX inspection was checked through Context7 (`/stuk/jszip`).
+- The mandatory modern-web-guidance lookup completed after an initial sandbox/network failure. The closest guides covered hidden-content state and text layout; the implementation preserves source visibility attributes during temporary measurement and does not rewrite uploaded HTML to newer disclosure primitives.
+- Codex context-profile verification on 2026-09-04: `.codex/config.toml` parsed with Python `tomllib`; it contains 14 project-level plugin disables, a 6,000-token stored-output cap, a 120,000-token compaction threshold, four allowlisted Better Code Review Graph tools, and the legacy Code Review Graph MCP disabled.
+- Graphify skill validation on 2026-09-04: the skill-creator `quick_validate.py` passed; all nine router references exist; the always-loaded body decreased from 40,537 bytes / 699 lines to 4,364 bytes / 65 lines. The complete 40,450-byte / 705-line runbook, including its new contents list and corrected relative paths, remains available on demand.
+- Serena path verification on 2026-09-04: `C:\Users\福家\.local\bin\serena.exe start-mcp-server --help` passed and confirmed `--project-from-cwd` plus `--context` support. A fresh Codex task is required for the desktop host to load the updated MCP/plugin profile.
+- Release replacement verification on 2026-09-04: `npm test` passed 11 tests; `go test ./...`, `go vet ./...`, JavaScript syntax checks, `git diff --check`, and `uv tool run pre-commit run --all-files` passed.
+- Verified replacement EXE: `.tmp/release-candidate/HTMLtoPPTX-v0.1.0-alpha.1-windows-amd64.exe`; 6,606,336 bytes; SHA-256 `6899929B140AD0A72511E6D3EEFA86C1485750AB10418E0F4B3B663AE81C560C`; PE subsystem `3`.
+- GitHub `main` contains commits `74c5dfd` and `69569fa`. Remote annotated tag `v0.1.0-alpha.1` was force-updated to tag object `d82a26a`, dereferencing to product commit `69569fa`.
+- GitHub release UI confirmed the tag now shows commit `69569fa`, the release remains `Pre-release`, and the old 6.29 MB asset still has digest `sha256:8ff7593fd1b7a218b857d0895f897ec30c8eb8205e73d6c2c9268008357d3a59`; asset replacement is intentionally paused immediately before deletion pending confirmation.
+- `graphify update .` could not be rerun because the `graphify` executable was unavailable in the fresh shell; the pre-commit Code Review Graph hook passed and the previously updated Graphify output remains in place.
 
 ## Working tree notes
 
 - `docs/` and `test-data/` are user-owned untracked directories as of 2026-09-03. Preserve them unless the user explicitly requests otherwise.
+- `deliverables/HTMLtoPPTX_Issue3-6_改修方針書.docx` is the task-owned decision memo used as the implementation source on 2026-09-04; the document itself was not edited.
+- The Issue #3-#5 implementation and repository context optimization are committed separately and pushed. Apart from this status update, only the preserved user-owned untracked `docs/` and `test-data/` directories remain.
 
 ## Handoff checklist
 
