@@ -48,3 +48,24 @@ func TestEmbeddedWorkerAndBundleAreServed(t *testing.T) {
 		}
 	}
 }
+
+func TestScriptRunnerUsesIsolatedContentSecurityPolicy(t *testing.T) {
+	server := httptest.NewServer(newHandler())
+	defer server.Close()
+
+	response, err := http.Get(server.URL + "/script-runner.html")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want %d", response.StatusCode, http.StatusOK)
+	}
+	policy := response.Header.Get("Content-Security-Policy")
+	for _, directive := range []string{"sandbox allow-scripts", "default-src 'none'", "script-src 'unsafe-inline'", "connect-src 'none'", "form-action 'none'"} {
+		if !strings.Contains(policy, directive) {
+			t.Errorf("script runner policy is missing %q: %s", directive, policy)
+		}
+	}
+}

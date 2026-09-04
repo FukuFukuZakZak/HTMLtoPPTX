@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <title>HTML script runner</title>
+  </head>
+  <body>
+    <script>
+      (() => {
+        "use strict";
+
+        const parameters = new URLSearchParams(window.location.hash.slice(1));
+        const token = parameters.get("token");
+        const parentOrigin = parameters.get("parentOrigin");
+
+        window.addEventListener("message", (event) => {
+          const data = event.data;
+          if (
+            event.source !== window.parent ||
+            event.origin !== parentOrigin ||
+            !data ||
+            data.type !== "html-to-pptx-script-run" ||
+            data.token !== token ||
+            typeof data.html !== "string"
+          ) {
+            return;
+          }
+
+          document.open();
+          document.write(data.html);
+          document.close();
+        }, { once: true });
+      })();
+    </script>
+  </body>
+</html>

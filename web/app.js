@@ -6,6 +6,7 @@
   const fileRow = document.getElementById("file-row");
   const fileName = document.getElementById("file-name");
   const fileSize = document.getElementById("file-size");
+  const executeScripts = document.getElementById("execute-scripts");
   const convertButton = document.getElementById("convert-button");
   const downloadLink = document.getElementById("download-link");
   const progressCard = document.getElementById("progress-card");
@@ -69,6 +70,7 @@
   convertButton.addEventListener("click", async () => {
     if (!selectedFile || activeJob) return;
     const sourceFile = selectedFile;
+    const shouldExecuteScripts = executeScripts.checked;
     const controller = new AbortController();
     let worker = null;
     let frame = null;
@@ -87,6 +89,7 @@
     clearDownload();
 
     convertButton.disabled = true;
+    executeScripts.disabled = true;
     progressCard.hidden = false;
     cancelButton.hidden = false;
     progress.removeAttribute("value");
@@ -98,7 +101,13 @@
     try {
       const html = await sourceFile.text();
       if (controller.signal.aborted) return;
-      frame = await createRenderFrame(html, controller.signal);
+      let renderHtml = html;
+      if (shouldExecuteScripts) {
+        progressLabel.textContent = "埋め込みスクリプトを実行中";
+        progressDetail.textContent = "外部通信を遮断した隔離環境でDOMを生成しています";
+        renderHtml = await createScriptSnapshot(html, controller.signal);
+      }
+      frame = await createRenderFrame(renderHtml, controller.signal);
       const slideElements = Array.from(frame.contentDocument.querySelectorAll(".slide"));
       if (slideElements.length === 0) {
         throw new Error(".slide 要素が見つかりません。例: <section class=\"slide\" style=\"width:1280px;height:720px\">...</section>");
@@ -172,6 +181,7 @@
     if (activeJob !== job) return;
     activeJob = null;
     convertButton.disabled = !selectedFile;
+    executeScripts.disabled = false;
     cancelButton.hidden = true;
     if (isError) {
       progressLabel.textContent = "変換できませんでした";
@@ -180,6 +190,100 @@
     }
     progressDetail.textContent = text;
     setMessage(text, isError);
+  }
+
+  function createScriptSnapshot(html, signal) {
+    return new Promise((resolve, reject) => {
+      const token = Array.from(crypto.getRandomValues(new Uint32Array(4)), (value) => value.toString(16)).join("-");
+      const snapshotType = "html-to-pptx-script-snapshot";
+      const parsed = new DOMParser().parseFromString(html, "text/html");
+      const policy = parsed.createElement("meta");
+      policy.httpEquiv = "Content-Security-Policy";
+      policy.content = [
+        "default-src 'none'",
+        "script-src 'unsafe-inline'",
+        "style-src 'unsafe-inline'",
+        "img-src data: blob:",
+        "font-src data:",
+        "media-src data: blob:",
+        "connect-src 'none'",
+        "worker-src 'none'",
+        "child-src 'none'",
+        "frame-src 'none'",
+        "form-action 'none'",
+        "base-uri 'none'"
+      ].join("; ");
+      parsed.head.prepend(policy);
+
+      const bridge = parsed.createElement("script");
+      bridge.textContent = `(() => {
+        "use strict";
+        const sendSnapshot = () => setTimeout(() => {
+          window.parent.postMessage({
+            type: ${JSON.stringify(snapshotType)},
+            token: ${JSON.stringify(token)},
+            html: document.documentElement.outerHTML
+          }, ${JSON.stringify(window.location.origin)});
+        }, 0);
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", sendSnapshot, { once: true });
+        } else {
+          sendSnapshot();
+        }
+      })();`;
+      parsed.body.append(bridge);
+
+      const frame = document.createElement("iframe");
+      frame.setAttribute("sandbox", "allow-scripts");
+      frame.title = "埋め込みスクリプト実行用の隔離領域";
+      const executionHtml = `<!doctype html>\n${parsed.documentElement.outerHTML}`;
+      const runnerUrl = new URL("./script-runner.html", window.location.href);
+      runnerUrl.hash = new URLSearchParams({ token, parentOrigin: window.location.origin }).toString();
+      const timeout = window.setTimeout(() => {
+        cleanup();
+        reject(new Error("埋め込みスクリプトの実行が完了しませんでした。スクリプト実行を外して再度お試しください。"));
+      }, 5000);
+      const cleanup = () => {
+        window.clearTimeout(timeout);
+        signal.removeEventListener("abort", onAbort);
+        frame.removeEventListener("load", onLoad);
+        window.removeEventListener("message", onMessage);
+        frame.remove();
+      };
+      const onAbort = () => {
+        cleanup();
+        reject(new DOMException("変換をキャンセルしました", "AbortError"));
+      };
+      const onMessage = (event) => {
+        const data = event.data;
+        if (
+          event.source !== frame.contentWindow ||
+          event.origin !== "null" ||
+          !data ||
+          data.type !== snapshotType ||
+          data.token !== token ||
+          typeof data.html !== "string"
+        ) {
+          return;
+        }
+        cleanup();
+        resolve(`<!doctype html>\n${data.html}`);
+      };
+      const onLoad = () => {
+        // A sandboxed frame has an opaque origin, so targetOrigin cannot name it.
+        // The runner validates the parent origin, window source, and one-time token.
+        frame.contentWindow.postMessage({
+          type: "html-to-pptx-script-run",
+          token,
+          html: executionHtml
+        }, "*");
+      };
+      signal.addEventListener("abort", onAbort, { once: true });
+      frame.addEventListener("load", onLoad, { once: true });
+      window.addEventListener("message", onMessage);
+      frame.src = runnerUrl.href;
+      renderHost.appendChild(frame);
+    });
   }
 
   function createRenderFrame(html, signal) {

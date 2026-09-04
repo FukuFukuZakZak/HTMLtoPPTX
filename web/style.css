@@ -345,6 +345,54 @@ code {
   font-size: 0.68rem;
 }
 
+.script-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin-top: 14px;
+  padding: 13px 14px;
+  color: var(--ink);
+  background: #f8f7f2;
+  border: 1px solid var(--rule);
+  cursor: pointer;
+}
+
+.script-option input {
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
+  margin: 1px 0 0;
+  accent-color: var(--teal);
+}
+
+.script-option input:focus-visible {
+  outline: 3px solid rgba(47, 124, 128, 0.42);
+  outline-offset: 3px;
+}
+
+.script-option span,
+.script-option strong,
+.script-option small {
+  display: block;
+}
+
+.script-option strong {
+  font-size: 0.78rem;
+}
+
+.script-option small {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1.5;
+}
+
+.script-option:has(input:disabled) {
+  color: var(--muted);
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
 .actions {
   flex-direction: column;
   gap: 10px;

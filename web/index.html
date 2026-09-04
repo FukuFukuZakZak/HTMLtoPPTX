@@ -50,7 +50,7 @@
         <ul class="input-contract" aria-label="対応するHTMLの条件">
           <li><code>.slide</code> を1個以上含む</li>
           <li>各スライドは固定16:9（推奨1280 × 720）</li>
-          <li>内容は静的DOMとして記述（アップロード内のスクリプトは実行しません）</li>
+          <li>スクリプトは既定で実行しません（信頼できるHTMLのみ任意で実行できます）</li>
         </ul>
 
         <div class="file-row" id="file-row" hidden>
@@ -60,6 +60,14 @@
             <small id="file-size"></small>
           </span>
         </div>
+
+        <label class="script-option" for="execute-scripts">
+          <input id="execute-scripts" type="checkbox">
+          <span>
+            <strong>埋め込みスクリプトを実行して変換</strong>
+            <small>信頼できるHTML専用です。外部通信を遮断した隔離環境で実行します。</small>
+          </span>
+        </label>
 
         <div class="actions">
           <button class="primary-button" id="convert-button" type="button" disabled>
