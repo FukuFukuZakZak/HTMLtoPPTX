@@ -13,7 +13,7 @@ Step 2 PoC: multi-slide HTML conversion with responsive progress feedback.
 
 ## Current work
 
-GitHub Issues #1 and #2 are fixed, published in the replaced prerelease `v0.1.0-alpha.1`, and closed. The Issue #3-#6 implementation pass started on 2026-09-04 from `deliverables/HTMLtoPPTX_Issue3-6_改修方針書.docx`. Issues #3 and #4 are committed and pushed: the UI states the static 16:9 `.slide` contract, the no-slide error includes a minimal correction example, and hidden slides are isolated, temporarily displayed, measured, and restored one at a time. Issue #5 stages 1 and 2 are also committed and pushed: text extraction preserves explicit/block/rendered line boundaries, inline styles, CSS whitespace, and computed line height through PptxGenJS rich text runs and soft line breaks. The annotated prerelease tag targets product commit `69569fa`, and GitHub prerelease `v0.1.0-alpha.1` now contains the verified Issue #3-#5 field-validation EXE and updated checksum. Issue #6 remains sample-dependent; an OOXML regression test asserts that rich editable text does not introduce nested PowerPoint group objects.
+GitHub Issues #1-#6 are closed. Issues #3 and #4 are committed and pushed: the UI states the static 16:9 `.slide` contract, the no-slide error includes a minimal correction example, and hidden slides are isolated, temporarily displayed, measured, and restored one at a time. Issue #5 stages 1 and 2 are also committed and pushed: text extraction preserves explicit/block/rendered line boundaries, inline styles, CSS whitespace, and computed line height through PptxGenJS rich text runs and soft line breaks. The annotated prerelease tag targets product commit `69569fa`, and GitHub prerelease `v0.1.0-alpha.1` contains the verified Issue #3-#5 field-validation EXE and updated checksum. Issue #6 was closed at the user's direction while the sample-dependent PowerPoint selection-UI validation remains recorded as follow-up work; an OOXML regression test asserts that rich editable text does not introduce nested PowerPoint group objects. Issue #7 (`サイドバーの再現性について`) is open with attached PDF, source HTML, and converted PPTX for the missing-sidebar report.
 
 Repository-scoped Codex context optimization is complete. Graphify now loads a 65-line router for normal use and keeps the complete 705-line build runbook behind an operation-specific reference. The project profile disables duplicate/unrelated plugins and the legacy Code Review Graph MCP, fixes Serena startup to an absolute executable path, limits stored tool output, and enables early context compaction.
 
@@ -57,11 +57,12 @@ Repository-scoped Codex context optimization is complete. Graphify now loads a 6
 
 ## Next actions
 
-1. Validate Issue #5 against its attached PDF/PPTX pair in Microsoft PowerPoint, focusing on table-cell line order, explicit breaks, boundary containment, and logical edit units.
-2. Implement Issue #5 stage 3: surface material `fit: shrink` risk, detect/report font fallback where practical, and calibrate remaining PowerPoint-specific line-height differences.
-3. Obtain an Issue #6 PPTX or exact slide/object example, then compare the PowerPoint selection UI with OOXML while preserving independent objects.
-4. After Issues #3-#6, resume image conversion while preserving the current Worker progress protocol and explicit shape-before-text z-order.
-5. In the next fresh Codex task, confirm the project plugin/MCP profile is reloaded and compare the initial prompt/tool-schema token count with the previous approximately 40,000-token baseline.
+1. Inspect Issue #7's attached HTML/PDF/PPTX and determine whether the missing sidebar is runtime-generated content blocked by the uploaded-script security model or a static DOM extraction gap.
+2. Validate the closed Issue #5 against its attached PDF/PPTX pair in Microsoft PowerPoint, focusing on table-cell line order, explicit breaks, boundary containment, and logical edit units.
+3. Implement Issue #5 stage 3: surface material `fit: shrink` risk, detect/report font fallback where practical, and calibrate remaining PowerPoint-specific line-height differences.
+4. If Issue #6 needs further follow-up, obtain an exact slide/object example and compare the PowerPoint selection UI with OOXML while preserving independent objects.
+5. Resume image conversion while preserving the current Worker progress protocol and explicit shape-before-text z-order.
+6. In the next fresh Codex task, confirm the project plugin/MCP profile is reloaded and compare the initial prompt/tool-schema token count with the previous approximately 40,000-token baseline.
 
 ## Decisions
 
@@ -141,6 +142,8 @@ Repository-scoped Codex context optimization is complete. Graphify now loads a 6
 - The mandatory modern-web-guidance lookup was attempted; its online command stalled and the offline package cache was unavailable, so no guidance result was used.
 - `graphify update .`: rebuilt the post-fix graph to 185 nodes, 412 edges, and 13 communities; `extractElementShapes`, `createColorReader`, `shapeOptions`, `preparePptxDownload`, and `clearDownload` are present in the updated graph.
 - GitHub Issues #3 (`.slide` absence), #4 (zero-sized hidden slides), #5 (low line-break/layout fidelity), and #6 (reported grouping) were inspected through authenticated GitHub access on 2026-09-04; no Issue fields were changed.
+- GitHub CLI was re-authenticated as `divine261402-pixel` on 2026-09-04. Issues #3-#6 were closed as completed at the user's direction; Issues #1 and #2 were already closed, and Issue #7 remains open.
+- Issue #7 (`サイドバーの再現性について`) reports that the converted PPTX omits the sidebar and includes a reference PDF, source HTML, and converted PPTX; it had no labels, assignees, or comments when inspected.
 - Issue #4 attachment: 12 `.slide` sections are declared at 1280x720, but `.slide { display:none }` and only `.slide.active { display:flex }`. The converter selects all 12 and throws on the second hidden slide because `getBoundingClientRect()` returns zero size. The attachment also generates agenda entries with a script that the converter sandbox intentionally blocks.
 - Issue #5 visual comparison: the one-page source PDF preserves multi-line table cells, while the generated PPTX flattens several cell lines and shifts/wraps text differently. The PPTX slide contains 98 `<p:sp>` objects, 40 text runs/paragraphs, zero explicit `<a:br>` breaks, and zero nested `<p:grpSp>` group objects; the overflow checker nevertheless passes because the problem is fidelity inside measured boxes rather than slide-canvas overflow.
 - Source inspection confirms the direct-text path joins text nodes with spaces and applies `/\s+/g`, discarding explicit whitespace/line-break intent, while `textOptions()` does not carry CSS line height or rendered browser line boundaries. PptxGenJS 4.x rich text runs, `breakLine`, `lineSpacing`, `lineSpacingMultiple`, and `fit: "shrink"` were checked through Context7 (`/gitbrent/pptxgenjs`).
