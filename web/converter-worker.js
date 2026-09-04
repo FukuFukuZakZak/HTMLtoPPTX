@@ -25,7 +25,10 @@ self.onmessage = async function (event) {
       }
 
       for (const item of model.texts) {
-        if (item.text) slide.addText(item.text, HtmlToPptxCore.textOptions(item));
+        const content = HtmlToPptxCore.richTextContent(item);
+        if ((Array.isArray(content) && content.length > 0) || (!Array.isArray(content) && content)) {
+          slide.addText(content, HtmlToPptxCore.textOptions(item));
+        }
       }
 
       self.postMessage({ type: "progress", completed: index + 1, total: slides.length });

@@ -40,8 +40,126 @@
     return Number.isFinite(result) ? result : fallback;
   }
 
-  function textOptions(item) {
+  function lineSpacingPoints(lineHeight, fontSizePixels) {
+    const value = String(lineHeight || "").trim().toLowerCase();
+    if (!value || value === "normal") return undefined;
+
+    const fontSize = Math.max(0, finiteNumber(fontSizePixels, 0));
+    const amount = Number.parseFloat(value);
+    if (!Number.isFinite(amount)) return undefined;
+    if (value.endsWith("px")) return Math.max(0.1, amount * 0.75);
+    if (value.endsWith("pt")) return Math.max(0.1, amount);
+    if (value.endsWith("%")) return Math.max(0.1, fontSize * amount / 100 * 0.75);
+
+    return fontSize > 0 ? Math.max(0.1, fontSize * amount * 0.75) : undefined;
+  }
+
+  function normalizeText(value, whiteSpace) {
+    const text = String(value || "").replace(/\r\n?/g, "\n");
+    const mode = String(whiteSpace || "normal").toLowerCase();
+    if (["pre", "pre-wrap", "break-spaces"].includes(mode)) return text;
+    if (mode === "pre-line") {
+      return text.split("\n").map((line) => line.replace(/[\t\f\v ]+/g, " ")).join("\n");
+    }
+    return text.replace(/\s+/g, " ");
+  }
+
+  function sameRunOptions(left, right) {
+    return JSON.stringify(left) === JSON.stringify(right);
+  }
+
+  function buildTextRuns(tokens) {
+    const runs = [];
+    let pendingBreaks = 0;
+    for (const token of Array.isArray(tokens) ? tokens : []) {
+      if (token && token.break) {
+        const previous = runs[runs.length - 1];
+        if (previous && !previous.preserve) previous.text = previous.text.replace(/ +$/, "");
+        pendingBreaks += 1;
+        continue;
+      }
+
+      const preserve = ["pre", "pre-wrap", "break-spaces"].includes(String(token && token.whiteSpace || "").toLowerCase());
+      const text = normalizeText(token && token.text, token && token.whiteSpace);
+      if (!text) continue;
+      const options = Object.assign({}, token && token.options);
+      while (pendingBreaks > 1) {
+        runs.push({ text: "", options: { softBreakBefore: true } });
+        pendingBreaks -= 1;
+      }
+      if (pendingBreaks === 1) options.softBreakBefore = true;
+      pendingBreaks = 0;
+      const previous = runs[runs.length - 1];
+      if (previous && !options.softBreakBefore && sameRunOptions(previous.options, options)) {
+        previous.text += text;
+        previous.preserve = previous.preserve || preserve;
+      } else {
+        runs.push({ text, options, preserve });
+      }
+    }
+
+    while (runs.length && !runs[0].preserve) {
+      runs[0].text = runs[0].text.replace(/^ +/, "");
+      if (runs[0].text || runs[0].options.softBreakBefore) break;
+      runs.shift();
+    }
+    while (runs.length && !runs[runs.length - 1].preserve) {
+      const last = runs[runs.length - 1];
+      last.text = last.text.replace(/ +$/, "");
+      if (last.text || last.options.softBreakBefore) break;
+      runs.pop();
+    }
+    return runs.map(({ text, options }) => ({ text, options }));
+  }
+
+  function richTextContent(item) {
+    if (!Array.isArray(item && item.runs) || item.runs.length === 0) return String(item && item.text || "");
+    return item.runs.map((run) => {
+      const options = Object.assign({}, run.options);
+      if (options.color) options.color = hexColor(options.color, "182333");
+      if (options.fontSize !== undefined) options.fontSize = Math.max(1, finiteNumber(options.fontSize, 12));
+      options.bold = Boolean(options.bold);
+      options.italic = Boolean(options.italic);
+      options.breakLine = Boolean(options.breakLine);
+      options.softBreakBefore = Boolean(options.softBreakBefore);
+      return { text: String(run.text || ""), options };
+    });
+  }
+
+  function captureElementState(element) {
     return {
+      classAttribute: element.getAttribute("class"),
+      styleAttribute: element.getAttribute("style"),
+      hiddenAttribute: element.getAttribute("hidden")
+    };
+  }
+
+  function restoreElementState(element, state) {
+    for (const [name, value] of [
+      ["class", state.classAttribute],
+      ["style", state.styleAttribute],
+      ["hidden", state.hiddenAttribute]
+    ]) {
+      if (value === null) element.removeAttribute(name);
+      else element.setAttribute(name, value);
+    }
+  }
+
+  function showOnlySlideForMeasurement(slides, target, display) {
+    const states = slides.map((slide) => captureElementState(slide));
+    slides.forEach((slide) => {
+      if (slide === target) {
+        slide.removeAttribute("hidden");
+        slide.style.setProperty("display", display || "block", "important");
+      } else {
+        slide.style.setProperty("display", "none", "important");
+      }
+    });
+    return () => slides.forEach((slide, index) => restoreElementState(slide, states[index]));
+  }
+
+  function textOptions(item) {
+    const options = {
       x: Math.max(0, finiteNumber(item.x, 0)),
       y: Math.max(0, finiteNumber(item.y, 0)),
       w: Math.max(0.01, finiteNumber(item.w, 0.01)),
@@ -54,9 +172,11 @@
       align: ["left", "center", "right", "justify"].includes(item.align) ? item.align : "left",
       valign: "top",
       margin: 0,
-      breakLine: false,
       fit: "shrink"
     };
+    const lineSpacing = finiteNumber(item.lineSpacing, 0);
+    if (lineSpacing > 0) options.lineSpacing = lineSpacing;
+    return options;
   }
 
   function shapeOptions(item) {
@@ -96,7 +216,7 @@
 
   function validateSlides(slides) {
     if (!Array.isArray(slides) || slides.length === 0) {
-      throw new Error(".slide 要素が見つかりません。HTML内に class=\"slide\" を追加してください。");
+      throw new Error(".slide 要素が見つかりません。例: <section class=\"slide\" style=\"width:1280px;height:720px\">...</section>");
     }
     return slides.map((slide) => ({
       background: hexColor(slide.background, "FFFFFF"),
@@ -105,5 +225,21 @@
     }));
   }
 
-  return { SLIDE_WIDTH_IN, SLIDE_HEIGHT_IN, outputFileName, hexColor, colorOptions, textOptions, shapeOptions, validateSlides };
+  return {
+    SLIDE_WIDTH_IN,
+    SLIDE_HEIGHT_IN,
+    outputFileName,
+    hexColor,
+    colorOptions,
+    lineSpacingPoints,
+    normalizeText,
+    buildTextRuns,
+    richTextContent,
+    captureElementState,
+    restoreElementState,
+    showOnlySlideForMeasurement,
+    textOptions,
+    shapeOptions,
+    validateSlides
+  };
 });

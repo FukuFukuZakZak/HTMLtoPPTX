@@ -1,5 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const JSZip = require("jszip");
 const PptxGenJS = require("pptxgenjs");
 const core = require("./converter-core.js");
 
@@ -19,6 +20,58 @@ test("RGBA alpha becomes PowerPoint transparency", () => {
     color: "CF552F",
     transparency: 75
   });
+});
+
+test("CSS line height becomes exact PowerPoint point spacing", () => {
+  assert.equal(core.lineSpacingPoints("32px", 20), 24);
+  assert.equal(core.lineSpacingPoints("150%", 20), 22.5);
+  assert.equal(core.lineSpacingPoints("1.5", 20), 22.5);
+  assert.equal(core.lineSpacingPoints("normal", 20), undefined);
+});
+
+test("rich text runs preserve hard and repeated line breaks", () => {
+  const runs = core.buildTextRuns([
+    { text: "  first  ", whiteSpace: "normal", options: { bold: true } },
+    { break: true },
+    { break: true },
+    { text: "second", whiteSpace: "normal", options: { italic: true } }
+  ]);
+  assert.deepEqual(runs, [
+    { text: "first", options: { bold: true } },
+    { text: "", options: { softBreakBefore: true } },
+    { text: "second", options: { italic: true, softBreakBefore: true } }
+  ]);
+});
+
+test("slide measurement state restores class style and hidden attributes", () => {
+  function fakeElement(attributes) {
+    const values = new Map(Object.entries(attributes));
+    return {
+      getAttribute: (name) => values.has(name) ? values.get(name) : null,
+      setAttribute: (name, value) => values.set(name, String(value)),
+      removeAttribute: (name) => values.delete(name),
+      style: {
+        setProperty(name, value, priority) {
+          values.set("style", `${name}:${value}${priority ? ` !${priority}` : ""}`);
+        }
+      },
+      attributes: values
+    };
+  }
+
+  const first = fakeElement({ class: "slide active", style: "display:flex" });
+  const second = fakeElement({ class: "slide", style: "display:none;color:red", hidden: "" });
+  const restore = core.showOnlySlideForMeasurement([first, second], second, "flex");
+  assert.match(first.getAttribute("style"), /display:none/);
+  assert.match(second.getAttribute("style"), /display:flex/);
+  assert.equal(second.getAttribute("hidden"), null);
+  restore();
+  assert.equal(first.getAttribute("class"), "slide active");
+  assert.equal(first.getAttribute("style"), "display:flex");
+  assert.equal(first.getAttribute("hidden"), null);
+  assert.equal(second.getAttribute("class"), "slide");
+  assert.equal(second.getAttribute("style"), "display:none;color:red");
+  assert.equal(second.getAttribute("hidden"), "");
 });
 
 test("shape options preserve editable fills and borders", () => {
@@ -53,6 +106,31 @@ test("PptxGenJS writes extracted fills and borders into OOXML", async () => {
   assert.match(packageText, /prstDash/);
 });
 
+test("PptxGenJS writes rich text breaks without nested group shapes", async () => {
+  const pptx = new PptxGenJS();
+  pptx.layout = "LAYOUT_WIDE";
+  const slide = pptx.addSlide();
+  const item = {
+    x: 1,
+    y: 1,
+    w: 5,
+    h: 2,
+    lineSpacing: 18,
+    runs: [
+      { text: "first", options: { bold: true } },
+      { text: "second", options: { italic: true, softBreakBefore: true } }
+    ]
+  };
+  slide.addText(core.richTextContent(item), core.textOptions(item));
+
+  const output = await pptx.write({ outputType: "nodebuffer" });
+  const zip = await JSZip.loadAsync(output);
+  const slideXml = await zip.file("ppt/slides/slide1.xml").async("string");
+  assert.match(slideXml, /<a:br\/>/);
+  assert.match(slideXml, /<a:spcPts val="1800"\/>/);
+  assert.doesNotMatch(slideXml, /<p:grpSp(?:\s|>)/);
+});
+
 test("slide validation preserves every slide in order", () => {
   const slides = core.validateSlides([
     { background: "rgb(255, 255, 255)", texts: [{ text: "one" }] },
@@ -65,5 +143,5 @@ test("slide validation preserves every slide in order", () => {
 });
 
 test("an empty slide list gives an actionable error", () => {
-  assert.throws(() => core.validateSlides([]), /\.slide 要素が見つかりません/);
+  assert.throws(() => core.validateSlides([]), /<section class="slide" style="width:1280px;height:720px">/);
 });

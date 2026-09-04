@@ -269,6 +269,20 @@ code {
   font-size: 0.76rem;
 }
 
+.input-contract {
+  display: grid;
+  gap: 5px;
+  margin: 14px 0 0;
+  padding-left: 1.3rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+.input-contract code {
+  color: inherit;
+}
+
 .file-glyph {
   position: relative;
   display: block;

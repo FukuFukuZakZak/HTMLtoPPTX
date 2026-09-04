@@ -6,6 +6,9 @@
   "scripts": {
     "test": "node --test web/converter-core.test.js"
   },
+  "devDependencies": {
+    "jszip": "3.10.1"
+  },
   "dependencies": {
     "pptxgenjs": "4.0.1"
   }

@@ -101,19 +101,25 @@
       frame = await createRenderFrame(html, controller.signal);
       const slideElements = Array.from(frame.contentDocument.querySelectorAll(".slide"));
       if (slideElements.length === 0) {
-        throw new Error(".slide 要素が見つかりません。HTML内に class=\"slide\" を追加してください。");
+        throw new Error(".slide 要素が見つかりません。例: <section class=\"slide\" style=\"width:1280px;height:720px\">...</section>");
       }
 
       progress.max = slideElements.length;
       progress.value = 0;
       progressCount.textContent = `0 / ${slideElements.length} 枚`;
       const slideModels = [];
+      const slideDisplay = preferredSlideDisplay(slideElements);
 
       for (let index = 0; index < slideElements.length; index += 1) {
         if (controller.signal.aborted) return;
         progressLabel.textContent = `スライド ${index + 1} を解析中`;
-        slideModels.push(extractSlide(slideElements[index]));
-        await nextFrame();
+        const restore = HtmlToPptxCore.showOnlySlideForMeasurement(slideElements, slideElements[index], slideDisplay);
+        try {
+          await nextFrame();
+          slideModels.push(extractSlide(slideElements[index]));
+        } finally {
+          restore();
+        }
       }
 
       frame.remove();
@@ -202,6 +208,14 @@
     });
   }
 
+  function preferredSlideDisplay(slides) {
+    for (const slide of slides) {
+      const style = slide.ownerDocument.defaultView.getComputedStyle(slide);
+      if (style.display !== "none" && slide.getBoundingClientRect().width > 0) return style.display;
+    }
+    return "block";
+  }
+
   function extractSlide(slideElement) {
     const view = slideElement.ownerDocument.defaultView;
     const slideRect = slideElement.getBoundingClientRect();
@@ -214,6 +228,7 @@
     const colorReader = createColorReader(slideElement.ownerDocument);
     const shapes = [];
     const texts = [];
+    const claimedTextNodes = new WeakSet();
 
     for (const element of [slideElement, ...slideElement.querySelectorAll("*")]) {
       const style = view.getComputedStyle(element);
@@ -224,26 +239,33 @@
         extractElementShapes(style, rect, slideRect, scaleX, scaleY, colorReader, shapes);
       }
 
-      const directText = Array.from(element.childNodes)
-        .filter((node) => node.nodeType === view.Node.TEXT_NODE)
-        .map((node) => node.textContent)
-        .join(" ")
-        .replace(/\s+/g, " ")
-        .trim();
-      if (!directText) continue;
+      const isTableCell = ["TD", "TH"].includes(element.tagName);
+      if (!isTableCell && !hasInlineText(element, view)) continue;
+      const extracted = extractRenderedText(element, view, colorReader, claimedTextNodes, isTableCell);
+      const runs = HtmlToPptxCore.buildTextRuns(extracted.tokens);
+      const plainText = runs.map((run) => `${run.options.softBreakBefore ? "\n" : ""}${run.text}`).join("").replace(/\n+$/, "");
+      if (!plainText) continue;
 
-      const x = (rect.left - slideRect.left) * scaleX;
-      const y = (rect.top - slideRect.top) * scaleY;
+      const paddingLeft = Number.parseFloat(style.paddingLeft) || 0;
+      const paddingRight = Number.parseFloat(style.paddingRight) || 0;
+      const paddingTop = Number.parseFloat(style.paddingTop) || 0;
+      const paddingBottom = Number.parseFloat(style.paddingBottom) || 0;
+      const x = (rect.left + paddingLeft - slideRect.left) * scaleX;
+      const y = (rect.top + paddingTop - slideRect.top) * scaleY;
+      const width = Math.max(1, rect.width - paddingLeft - paddingRight);
+      const height = Math.max(1, rect.height - paddingTop - paddingBottom);
       if (x >= HtmlToPptxCore.SLIDE_WIDTH_IN || y >= HtmlToPptxCore.SLIDE_HEIGHT_IN || x + rect.width * scaleX <= 0 || y + rect.height * scaleY <= 0) continue;
 
       texts.push({
-        text: directText,
+        text: plainText,
+        runs,
         x,
         y,
-        w: Math.min(rect.width * scaleX, HtmlToPptxCore.SLIDE_WIDTH_IN - Math.max(0, x)),
-        h: Math.min(rect.height * scaleY, HtmlToPptxCore.SLIDE_HEIGHT_IN - Math.max(0, y)),
+        w: Math.min(width * scaleX, HtmlToPptxCore.SLIDE_WIDTH_IN - Math.max(0, x)),
+        h: Math.min(height * scaleY, HtmlToPptxCore.SLIDE_HEIGHT_IN - Math.max(0, y)),
         fontFace: style.fontFamily.split(",")[0].replace(/["']/g, "").trim(),
         fontSize: Number.parseFloat(style.fontSize) * 0.75,
+        lineSpacing: extracted.lineSpacing || HtmlToPptxCore.lineSpacingPoints(style.lineHeight, Number.parseFloat(style.fontSize)),
         color: colorReader(style.color, Number(style.opacity)),
         bold: Number.parseInt(style.fontWeight, 10) >= 600,
         italic: style.fontStyle === "italic",
@@ -257,6 +279,108 @@
       shapes,
       texts
     };
+  }
+
+  function hasInlineText(element, view) {
+    for (const node of element.childNodes) {
+      if (node.nodeType === view.Node.TEXT_NODE && node.textContent.trim()) return true;
+      if (node.nodeType !== view.Node.ELEMENT_NODE) continue;
+      if (node.tagName === "BR") return true;
+      const display = view.getComputedStyle(node).display;
+      if ((display === "contents" || display.startsWith("inline")) && hasInlineText(node, view)) return true;
+    }
+    return false;
+  }
+
+  function extractRenderedText(element, view, colorReader, claimedTextNodes, includeBlockDescendants) {
+    const tokens = [];
+    const lineSpacings = [];
+    const layoutState = { lineTop: null };
+
+    function pushBreak(force) {
+      if (tokens.length === 0 || (!force && tokens[tokens.length - 1].break)) return;
+      tokens.push({ break: true });
+      layoutState.lineTop = null;
+    }
+
+    function visit(parent, allowBlocks) {
+      for (const node of parent.childNodes) {
+        if (node.nodeType === view.Node.TEXT_NODE) {
+          if (claimedTextNodes.has(node)) continue;
+          claimedTextNodes.add(node);
+          appendTextNodeTokens(node, view, colorReader, tokens, lineSpacings, layoutState, pushBreak);
+          continue;
+        }
+        if (node.nodeType !== view.Node.ELEMENT_NODE) continue;
+
+        const childStyle = view.getComputedStyle(node);
+        if (childStyle.display === "none" || childStyle.visibility === "hidden" || Number(childStyle.opacity) === 0) continue;
+        if (node.tagName === "BR") {
+          claimedTextNodes.add(node);
+          pushBreak(true);
+          continue;
+        }
+
+        const isInline = childStyle.display === "contents" || childStyle.display.startsWith("inline");
+        if (!isInline && !allowBlocks) continue;
+        if (!isInline) pushBreak();
+        visit(node, allowBlocks);
+        if (!isInline) pushBreak();
+      }
+    }
+
+    visit(element, includeBlockDescendants);
+    return { tokens, lineSpacing: lineSpacings.find((value) => Number.isFinite(value) && value > 0) };
+  }
+
+  function appendTextNodeTokens(node, view, colorReader, tokens, lineSpacings, layoutState, pushBreak) {
+    const style = view.getComputedStyle(node.parentElement);
+    const rawText = node.textContent || "";
+    const whiteSpace = style.whiteSpace;
+    const preservesNewlines = ["pre", "pre-wrap", "pre-line", "break-spaces"].includes(whiteSpace);
+    const range = node.ownerDocument.createRange();
+    const options = {
+      fontFace: style.fontFamily.split(",")[0].replace(/["']/g, "").trim(),
+      fontSize: Number.parseFloat(style.fontSize) * 0.75,
+      color: colorReader(style.color, Number(style.opacity)),
+      bold: Number.parseInt(style.fontWeight, 10) >= 600,
+      italic: style.fontStyle === "italic",
+      underline: style.textDecorationLine.includes("underline"),
+      lang: "ja-JP"
+    };
+    const spacing = HtmlToPptxCore.lineSpacingPoints(style.lineHeight, Number.parseFloat(style.fontSize));
+    if (spacing) lineSpacings.push(spacing);
+
+    let buffer = "";
+    function flush() {
+      if (buffer) tokens.push({ text: buffer, whiteSpace, options });
+      buffer = "";
+    }
+
+    for (let index = 0; index < rawText.length; index += 1) {
+      let character = rawText[index];
+      if (character === "\r") continue;
+      if (character === "\n" && preservesNewlines) {
+        flush();
+        pushBreak();
+        continue;
+      }
+      if (character === "\n") character = " ";
+
+      range.setStart(node, index);
+      range.setEnd(node, index + 1);
+      const characterRect = Array.from(range.getClientRects()).find((candidate) => candidate.width > 0 || candidate.height > 0);
+      if (!characterRect && /\s/.test(character) && !["pre", "pre-wrap", "break-spaces"].includes(whiteSpace)) continue;
+      if (characterRect) {
+        if (layoutState.lineTop !== null && Math.abs(characterRect.top - layoutState.lineTop) > 1) {
+          flush();
+          pushBreak();
+        }
+        layoutState.lineTop = characterRect.top;
+      }
+      buffer += character;
+    }
+    flush();
   }
 
   function createColorReader(document) {
