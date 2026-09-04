@@ -1,0 +1,29 @@
+{
+  "skill_name": "graphify",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "設計書の要件が converter-worker.js と converter-core.js のどこへ流れるか、リポジトリ全体の関係を説明して",
+      "expected_output": "Graphifyを発火し、既存グラフを1500トークン程度の予算でqueryして、根拠のsource_locationを示す。full-pipeline.mdは読まない。",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "validateSlides の定義と呼び出し元を探して",
+      "expected_output": "Graphifyを発火せず、Serenaのシンボル検索を第一選択にする。",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "/graphify . --update",
+      "expected_output": "Graphifyを発火し、update.mdだけを読み、既存グラフの増分更新を行う。通常のqueryや完全再構築は行わない。",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "/graphify C:\\GoDev\\HTMLtoPPTX --no-viz",
+      "expected_output": "Graphifyを発火し、full-pipeline.mdを完全に読み、可視化を省いた完全構築フローを行う。",
+      "files": []
+    }
+  ]
+}

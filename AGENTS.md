@@ -5,7 +5,8 @@ This project has a knowledge graph at graphify-out/ with god nodes, community st
 When the user types `/graphify`, use the installed graphify skill or instructions before doing anything else.
 
 Rules:
-- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
+- Use Graphify first only for an explicit `/graphify` request, a broad architecture question, or a question that connects code and documents. Routine code search, symbol lookup, change impact, and review use the tools in the routing table below.
+- When `graphify-out/graph.json` exists, start with `graphify query "<question>" --budget 1500`. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. Narrow the query before raising the budget.
 - Dirty graphify-out/ files are expected after hooks or incremental updates; dirty graph files are not a reason to skip graphify. Only skip graphify if the task is about stale or incorrect graph output, or the user explicitly says not to use it.
 - If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
@@ -13,7 +14,7 @@ Rules:
 
 ## Code analysis routing
 
-This repository exposes three MCP servers to Codex through `.codex/config.toml`.
+This repository keeps two interactive analysis MCP servers enabled through `.codex/config.toml`: Better Code Review Graph and Serena. The older Code Review Graph MCP is disabled to avoid duplicating its large tool schema; its repository hooks remain available independently.
 
 | Question or task | First choice |
 |---|---|
@@ -25,7 +26,19 @@ This repository exposes three MCP servers to Codex through `.codex/config.toml`.
 | Understand the repository or connect code and docs | `$graphify` / `graphify query` |
 | Review recent changes | `better-code-review-graph` review tools |
 
-At the start of a session, activate the current repository with Serena and read its initial instructions. Use `code-review-graph` primarily for its Git and edit hooks; prefer `better-code-review-graph` for interactive queries. If graph-backed lookup finds nothing, fall back in this order: Graphify, Serena partial symbol lookup, then `rg` and direct file reads.
+At the start of a session, activate the current repository with Serena and read its initial instructions. Use Code Review Graph only through its Git/edit hooks; prefer Better Code Review Graph for interactive queries. If the first-choice lookup finds nothing, fall back to the other scoped graph or symbolic lookup, then Graphify for broad relationships, and finally `rg` plus narrow file reads.
+
+## Context and tool-output budget
+
+The goal is to preserve implementation quality while preventing diagnostics and tool schemas from consuming the working context.
+
+- Keep one tool call's stored output under 6,000 tokens by default; `.codex/config.toml` enforces this globally and applies tighter limits to graph query/review tools.
+- For searches and reads, return names, matches, or the smallest relevant line ranges. Do not dump entire lockfiles, generated bundles, tool catalogs, `GRAPH_REPORT.md`, or large logs into the conversation.
+- Never enumerate every available tool merely to discover one. Search for the exact server/tool prefix and print names only, capped at 2,000 tokens.
+- When output is truncated or noisy, narrow the query, path, symbol, test, or time range before increasing a limit.
+- Prefer summaries plus file/line references over replaying raw output. Preserve the command and decisive evidence needed to reproduce a result.
+- Use full test output only for an unexplained failure. For passing suites, record the command, pass count, and duration or final status.
+- Treat plugin activation as project-specific. Keep one browser automation path and disable unrelated or duplicate plugin families in this repository's `.codex/config.toml`; re-enable a plugin only for a task that actually needs it.
 
 ## External documentation with Context7
 

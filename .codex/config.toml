@@ -1,8 +1,18 @@
+# Keep enough room for implementation while compacting before long tool traces
+# consume most of the model context window.
+model_auto_compact_token_limit = 120000
+model_auto_compact_token_limit_scope = "total"
+
+# Applies to shell/function output stored in conversation history. Individual
+# high-volume MCP tools below use tighter limits.
+tool_output_token_limit = 6000
+
 [features]
 multi_agent = true
 hooks = true
 
 [mcp_servers.code-review-graph]
+enabled = false
 command = "uvx"
 args = ["--from", "code-review-graph==2.3.7", "code-review-graph", "serve"]
 cwd = "C:\\GoDev\\HTMLtoPPTX"
@@ -13,15 +23,90 @@ tool_timeout_sec = 120
 command = "uvx"
 args = ["--python", "3.13", "--from", "better-code-review-graph[security]==3.21.0", "better-code-review-graph"]
 cwd = "C:\\GoDev\\HTMLtoPPTX"
+enabled_tools = ["graph", "query", "review", "security"]
 startup_timeout_sec = 60
 tool_timeout_sec = 120
 
 [mcp_servers.better-code-review-graph.env]
 MCP_TRANSPORT = "stdio"
 
+[mcp_servers.better-code-review-graph.tools.query]
+output_token_limit = 3500
+
+[mcp_servers.better-code-review-graph.tools.review]
+output_token_limit = 5000
+
+[mcp_servers.better-code-review-graph.tools.graph]
+output_token_limit = 3000
+
+[mcp_servers.better-code-review-graph.tools.security]
+output_token_limit = 4000
+
 [mcp_servers.serena]
-command = "serena"
+command = 'C:\Users\福家\.local\bin\serena.exe'
 args = ["start-mcp-server", "--project-from-cwd", "--context=codex"]
 cwd = "C:\\GoDev\\HTMLtoPPTX"
 startup_timeout_sec = 30
 tool_timeout_sec = 120
+
+# Project-local plugin profile. Keep the capabilities used by this converter and
+# suppress duplicate browser stacks plus unrelated document/app integrations.
+[plugins."presentations@openai-primary-runtime"]
+enabled = true
+
+[plugins."frontend-design@claude-plugins-official"]
+enabled = true
+
+[plugins."github@openai-curated"]
+enabled = true
+
+[plugins."browser@openai-bundled"]
+enabled = true
+
+[plugins."pdf@openai-primary-runtime"]
+enabled = true
+
+[plugins."unified-computer-use@openai-bundled"]
+enabled = true
+
+[plugins."documents@openai-primary-runtime"]
+enabled = false
+
+[plugins."spreadsheets@openai-primary-runtime"]
+enabled = false
+
+[plugins."feature-dev@claude-plugins-official"]
+enabled = false
+
+[plugins."playwright@claude-plugins-official"]
+enabled = false
+
+[plugins."canva@openai-curated"]
+enabled = false
+
+[plugins."game-studio@openai-curated"]
+enabled = false
+
+[plugins."chatgpt-apps@openai-curated"]
+enabled = false
+
+[plugins."github@claude-plugins-official"]
+enabled = false
+
+[plugins."chrome@openai-bundled"]
+enabled = false
+
+[plugins."computer-use@openai-bundled"]
+enabled = false
+
+[plugins."sites@openai-bundled"]
+enabled = false
+
+[plugins."visualize@openai-bundled"]
+enabled = false
+
+[plugins."template-creator@openai-primary-runtime"]
+enabled = false
+
+[plugins."codex-app-tools@openai-bundled"]
+enabled = false
