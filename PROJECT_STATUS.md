@@ -1,6 +1,6 @@
 # Project status
 
-Last updated: 2026-09-04
+Last updated: 2026-09-05
 Status owner: Codex and repository maintainers
 
 ## Objective
@@ -17,7 +17,7 @@ GitHub Issues #1-#7 are closed. Issues #3 and #4 are committed and pushed: the U
 
 Repository-scoped Codex context optimization is complete. Graphify now loads a 65-line router for normal use and keeps the complete 705-line build runbook behind an operation-specific reference. The project profile disables duplicate/unrelated plugins and the legacy Code Review Graph MCP, fixes Serena startup to an absolute executable path, limits stored tool output, and enables early context compaction.
 
-The batch-conversion implementation accepts multiple `.html`/`.htm` files, creates one independent PPTX per input, resolves case-insensitive duplicate output names, and packages the results into one browser-downloadable ZIP. Worker-level ZIP/PPTX structure tests and a two-file browser acceptance run are complete.
+The batch-conversion implementation accepts multiple `.html`/`.htm` files, creates one independent PPTX per input, resolves case-insensitive duplicate output names, and packages the results into one browser-downloadable ZIP. Worker-level ZIP/PPTX structure tests and a two-file browser acceptance run are complete. Commit `7e3fcbf` is pushed to `origin/main`, and prerelease `v0.1.0-alpha.1` now publishes the verified batch-ZIP Windows build.
 
 ## Completed
 
@@ -59,6 +59,7 @@ The batch-conversion implementation accepts multiple `.html`/`.htm` files, creat
 - Replaced GitHub prerelease `v0.1.0-alpha.1` with the verified Issue #3-#5 Windows executable and updated the public title, notes, validation checklist, commit, and checksum.
 - Implemented Issue #7 trusted embedded-script execution without weakening the default path: scripts remain off by default, the isolated runner has an opaque origin plus a deny-by-default CSP, cross-window messages validate origin/source/token, and only the resulting static DOM proceeds to slide extraction.
 - Rebuilt `v0.1.0-alpha.1` from a clean clone of product commit `2e298dc`, moved the annotated tag, replaced the Windows asset, and updated the public title, notes, validation checklist, commit, and checksum for Issue #7 field validation.
+- Rebuilt `v0.1.0-alpha.1` from a clean clone of batch product commit `7e3fcbf`, moved the annotated tag, safely replaced the Windows asset through a verified temporary upload, and updated the public title, notes, validation checklist, commit, and checksum for multi-HTML ZIP field validation.
 
 ## Next actions
 
@@ -110,8 +111,14 @@ The batch-conversion implementation accepts multiple `.html`/`.htm` files, creat
 - Pixel-identical browser-to-PowerPoint text layout cannot be guaranteed while keeping text editable because the browser and PowerPoint use different text engines. Measured line boundaries and explicit rich-text breaks materially improve fidelity but still need validation against the Issue #5 attachment in Microsoft PowerPoint.
 - Character-level `Range.getClientRects()` measurement favors Japanese line fidelity over extraction speed; very text-heavy decks may need a later performance optimization that preserves the same line-boundary result.
 - Issue #6 has no attachment or exact PowerPoint object example. Current code does not call a grouping API, and the inspected Issue #5 PPTX has zero nested PowerPoint group shapes, so the reported grouping is not yet reproducible.
+- `npm audit` reports two high-severity denial-of-service advisories in PptxGenJS's transitive `image-size` dependency. The current converter does not ingest or parse image formats, so the vulnerable parser path is not part of the implemented feature set; reassess and upgrade before enabling image conversion.
 
 ## Verification
+
+- Batch prerelease replacement on 2026-09-05: clean clone commit `7e3fcbfb37ef45ac8b8fa8566e918357b076175e`; `npm test` passed 14 tests; JavaScript syntax checks, `go test ./...`, `go vet ./...`, and the Windows build passed; embedded `/`, `/converter-worker.js`, `/vendor/jszip.min.js`, and `/script-runner.html` returned HTTP 200.
+- Published asset `HTMLtoPPTX-v0.1.0-alpha.1-windows-amd64.exe`: 9,359,872 bytes; SHA-256 `38FE040F2BB9E7452FA870B42B0A20C9316B790F1565598AF73D6EC0F93027FF`; PE32+ amd64 console subsystem `3`; embedded VCS revision `7e3fcbfb37ef45ac8b8fa8566e918357b076175e`; `vcs.modified=false`.
+- GitHub prerelease `https://github.com/divine261402-pixel/HTMLtoPPTX/releases/tag/v0.1.0-alpha.1` is marked prerelease, targets `7e3fcbf`, has title `HTMLtoPPTX v0.1.0-alpha.1（複数HTML・ZIP一括出力 実機検証版）`, and contains exactly one Windows asset. A fresh GitHub download matched the clean local candidate by size and SHA-256.
+- GitHub CLI release edit/upload/delete-asset behavior was rechecked through Context7 (`/websites/cli_github_manual`). The replacement first uploaded and verified a temporary recovery asset, then replaced the formal asset and removed the temporary copy.
 
 - Batch ZIP verification on 2026-09-04: `npm test` passed 14 tests, including opening the outer ZIP and each nested PPTX; `node --check` passed for the application and Worker; `go test ./...`, `go vet ./...`, `go build`, `git diff --check`, and `uv tool run pre-commit run --all-files` passed with the Go cache redirected inside the workspace.
 - Browser batch acceptance selected `testdata/multi-slide.html` and `testdata/hidden-slides.html` together, completed two independent PPTX conversions, exposed `html-to-pptx-2-files.zip`, reported `2 / 2 ファイル`, and produced no browser errors or warnings.
@@ -188,7 +195,7 @@ The batch-conversion implementation accepts multiple `.html`/`.htm` files, creat
 ## Working tree notes
 
 - `docs/` and `test-data/` are user-owned untracked directories as of 2026-09-03. Preserve them unless the user explicitly requests otherwise.
-- The batch-conversion implementation, tests, vendored JSZip browser bundle/license, and this status update are task-owned and belong together in the batch feature commit.
+- The batch-conversion implementation, tests, and vendored JSZip browser bundle/license are committed and pushed as `7e3fcbf`; the annotated prerelease tag and release asset now target that product commit.
 - `deliverables/HTMLtoPPTX_Issue3-6_改修方針書.docx` is the task-owned decision memo used as the implementation source on 2026-09-04; the document itself was not edited.
 - The Issue #7 implementation is committed as `2e298dc`, pushed to `origin/main`, the GitHub issue is closed, and prerelease `v0.1.0-alpha.1` plus the ignored local `dist` executable now contain the Issue #7 build. Only the preserved user-owned untracked `docs/` and `test-data/` directories remain untouched.
 
