@@ -13,7 +13,7 @@ Step 2 PoC: multi-slide HTML conversion with responsive progress feedback.
 
 ## Current work
 
-GitHub Issues #1 and #2 are fixed, published in the replaced prerelease `v0.1.0-alpha.1`, and closed. The Issue #3-#6 implementation pass started on 2026-09-04 from `deliverables/HTMLtoPPTX_Issue3-6_改修方針書.docx`. Issues #3 and #4 are committed and pushed: the UI states the static 16:9 `.slide` contract, the no-slide error includes a minimal correction example, and hidden slides are isolated, temporarily displayed, measured, and restored one at a time. Issue #5 stages 1 and 2 are also committed and pushed: text extraction preserves explicit/block/rendered line boundaries, inline styles, CSS whitespace, and computed line height through PptxGenJS rich text runs and soft line breaks. The annotated prerelease tag now targets product commit `69569fa`; the verified replacement EXE is ready, but deleting the old GitHub release asset and submitting the updated public release are awaiting the required action-time confirmation. Issue #6 remains sample-dependent; an OOXML regression test asserts that rich editable text does not introduce nested PowerPoint group objects.
+GitHub Issues #1 and #2 are fixed, published in the replaced prerelease `v0.1.0-alpha.1`, and closed. The Issue #3-#6 implementation pass started on 2026-09-04 from `deliverables/HTMLtoPPTX_Issue3-6_改修方針書.docx`. Issues #3 and #4 are committed and pushed: the UI states the static 16:9 `.slide` contract, the no-slide error includes a minimal correction example, and hidden slides are isolated, temporarily displayed, measured, and restored one at a time. Issue #5 stages 1 and 2 are also committed and pushed: text extraction preserves explicit/block/rendered line boundaries, inline styles, CSS whitespace, and computed line height through PptxGenJS rich text runs and soft line breaks. The annotated prerelease tag targets product commit `69569fa`, and GitHub prerelease `v0.1.0-alpha.1` now contains the verified Issue #3-#5 field-validation EXE and updated checksum. Issue #6 remains sample-dependent; an OOXML regression test asserts that rich editable text does not introduce nested PowerPoint group objects.
 
 Repository-scoped Codex context optimization is complete. Graphify now loads a 65-line router for normal use and keeps the complete 705-line build runbook behind an operation-specific reference. The project profile disables duplicate/unrelated plugins and the legacy Code Review Graph MCP, fixes Serena startup to an absolute executable path, limits stored tool output, and enables early context compaction.
 
@@ -53,15 +53,15 @@ Repository-scoped Codex context optimization is complete. Graphify now loads a 6
 - Added global and per-graph-tool output limits plus a 120,000-token automatic compaction threshold for this repository.
 - Committed and pushed the repository context optimization as `74c5dfd` and the Issue #3-#5 implementation as `69569fa`.
 - Force-updated annotated tag `v0.1.0-alpha.1` from product commit `c7eed34` to `69569fa` for the next field-machine validation build.
+- Replaced GitHub prerelease `v0.1.0-alpha.1` with the verified Issue #3-#5 Windows executable and updated the public title, notes, validation checklist, commit, and checksum.
 
 ## Next actions
 
 1. Validate Issue #5 against its attached PDF/PPTX pair in Microsoft PowerPoint, focusing on table-cell line order, explicit breaks, boundary containment, and logical edit units.
 2. Implement Issue #5 stage 3: surface material `fit: shrink` risk, detect/report font fallback where practical, and calibrate remaining PowerPoint-specific line-height differences.
 3. Obtain an Issue #6 PPTX or exact slide/object example, then compare the PowerPoint selection UI with OOXML while preserving independent objects.
-4. After action-time confirmation, remove the old GitHub release asset, upload the verified Issue #3-#5 EXE under the same filename, update the release notes/checksum, and verify that the release remains marked `Pre-release`.
-5. After Issues #3-#6, resume image conversion while preserving the current Worker progress protocol and explicit shape-before-text z-order.
-6. In the next fresh Codex task, confirm the project plugin/MCP profile is reloaded and compare the initial prompt/tool-schema token count with the previous approximately 40,000-token baseline.
+4. After Issues #3-#6, resume image conversion while preserving the current Worker progress protocol and explicit shape-before-text z-order.
+5. In the next fresh Codex task, confirm the project plugin/MCP profile is reloaded and compare the initial prompt/tool-schema token count with the previous approximately 40,000-token baseline.
 
 ## Decisions
 
@@ -158,7 +158,7 @@ Repository-scoped Codex context optimization is complete. Graphify now loads a 6
 - Release replacement verification on 2026-09-04: `npm test` passed 11 tests; `go test ./...`, `go vet ./...`, JavaScript syntax checks, `git diff --check`, and `uv tool run pre-commit run --all-files` passed.
 - Verified replacement EXE: `.tmp/release-candidate/HTMLtoPPTX-v0.1.0-alpha.1-windows-amd64.exe`; 6,606,336 bytes; SHA-256 `6899929B140AD0A72511E6D3EEFA86C1485750AB10418E0F4B3B663AE81C560C`; PE subsystem `3`.
 - GitHub `main` contains commits `74c5dfd` and `69569fa`. Remote annotated tag `v0.1.0-alpha.1` was force-updated to tag object `d82a26a`, dereferencing to product commit `69569fa`.
-- GitHub release UI confirmed the tag now shows commit `69569fa`, the release remains `Pre-release`, and the old 6.29 MB asset still has digest `sha256:8ff7593fd1b7a218b857d0895f897ec30c8eb8205e73d6c2c9268008357d3a59`; asset replacement is intentionally paused immediately before deletion pending confirmation.
+- Replaced GitHub prerelease: `https://github.com/divine261402-pixel/HTMLtoPPTX/releases/tag/v0.1.0-alpha.1`; the public UI shows title `HTMLtoPPTX v0.1.0-alpha.1（Issues #3〜#5 実機検証版）`, the `Pre-release` label, commit `69569fa`, one 6.3 MB Windows asset, and digest `sha256:6899929b140ad0a72511e6d3eefa86c1485750ab10418e0f4b3b663ae81c560c`.
 - `graphify update .` could not be rerun because the `graphify` executable was unavailable in the fresh shell; the pre-commit Code Review Graph hook passed and the previously updated Graphify output remains in place.
 
 ## Working tree notes
