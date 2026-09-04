@@ -7,6 +7,7 @@
   const fileName = document.getElementById("file-name");
   const fileSize = document.getElementById("file-size");
   const convertButton = document.getElementById("convert-button");
+  const downloadLink = document.getElementById("download-link");
   const progressCard = document.getElementById("progress-card");
   const progress = document.getElementById("conversion-progress");
   const progressLabel = document.getElementById("progress-label");
@@ -18,6 +19,7 @@
 
   let selectedFile = null;
   let activeJob = null;
+  let downloadUrl = null;
 
   function formatBytes(bytes) {
     if (bytes < 1024) return `${bytes} B`;
@@ -35,6 +37,7 @@
       setMessage("HTMLファイル（.html または .htm）を選択してください。", true);
       return;
     }
+    clearDownload();
     selectedFile = file;
     fileName.textContent = file.name;
     fileSize.textContent = formatBytes(file.size);
@@ -69,15 +72,19 @@
     const controller = new AbortController();
     let worker = null;
     let frame = null;
-
-    activeJob = {
+    const job = {
       abort() {
         controller.abort();
         if (worker) worker.terminate();
+        worker = null;
         if (frame) frame.remove();
-        finishJob("変換をキャンセルしました。", false);
+        frame = null;
+        finishJob(job, "変換をキャンセルしました。", false);
       }
     };
+
+    activeJob = job;
+    clearDownload();
 
     convertButton.disabled = true;
     progressCard.hidden = false;
@@ -117,6 +124,7 @@
 
       worker = new Worker("./converter-worker.js");
       worker.onmessage = (event) => {
+        if (activeJob !== job) return;
         const data = event.data || {};
         if (data.type === "progress") {
           progress.value = data.completed;
@@ -128,31 +136,34 @@
           progressLabel.textContent = "PPTXを仕上げています";
           progressDetail.textContent = "スライド変換は完了しました";
         } else if (data.type === "complete") {
-          downloadPptx(data.buffer, HtmlToPptxCore.outputFileName(sourceFile.name));
+          preparePptxDownload(data.buffer, HtmlToPptxCore.outputFileName(sourceFile.name));
           worker.terminate();
           worker = null;
-          finishJob(`${slideElements.length}枚のスライドをPPTXに変換しました。`, false);
+          finishJob(job, `${slideElements.length}枚のスライドをPPTXに変換しました。［PPTXを保存］を押してください。`, false);
         } else if (data.type === "error") {
           if (worker) worker.terminate();
           worker = null;
-          finishJob(data.message || "PPTXの生成に失敗しました。", true);
+          finishJob(job, data.message || "PPTXの生成に失敗しました。", true);
         }
       };
       worker.onerror = () => {
+        if (activeJob !== job) return;
         if (worker) worker.terminate();
         worker = null;
-        finishJob("変換処理を開始できませんでした。", true);
+        finishJob(job, "変換処理を開始できませんでした。", true);
       };
       worker.postMessage({ type: "convert", slides: slideModels, title: sourceFile.name });
     } catch (error) {
       if (!controller.signal.aborted) {
         if (frame) frame.remove();
-        finishJob(error instanceof Error ? error.message : String(error), true);
+        frame = null;
+        finishJob(job, error instanceof Error ? error.message : String(error), true);
       }
     }
   });
 
-  function finishJob(text, isError) {
+  function finishJob(job, text, isError) {
+    if (activeJob !== job) return;
     activeJob = null;
     convertButton.disabled = !selectedFile;
     cancelButton.hidden = true;
@@ -200,9 +211,19 @@
 
     const scaleX = HtmlToPptxCore.SLIDE_WIDTH_IN / slideRect.width;
     const scaleY = HtmlToPptxCore.SLIDE_HEIGHT_IN / slideRect.height;
+    const colorReader = createColorReader(slideElement.ownerDocument);
+    const shapes = [];
     const texts = [];
 
     for (const element of [slideElement, ...slideElement.querySelectorAll("*")]) {
+      const style = view.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      if (style.display === "none" || style.visibility === "hidden" || Number(style.opacity) === 0 || rect.width <= 0 || rect.height <= 0) continue;
+
+      if (element !== slideElement) {
+        extractElementShapes(style, rect, slideRect, scaleX, scaleY, colorReader, shapes);
+      }
+
       const directText = Array.from(element.childNodes)
         .filter((node) => node.nodeType === view.Node.TEXT_NODE)
         .map((node) => node.textContent)
@@ -210,10 +231,6 @@
         .replace(/\s+/g, " ")
         .trim();
       if (!directText) continue;
-
-      const style = view.getComputedStyle(element);
-      const rect = element.getBoundingClientRect();
-      if (style.display === "none" || style.visibility === "hidden" || Number(style.opacity) === 0 || rect.width <= 0 || rect.height <= 0) continue;
 
       const x = (rect.left - slideRect.left) * scaleX;
       const y = (rect.top - slideRect.top) * scaleY;
@@ -227,27 +244,112 @@
         h: Math.min(rect.height * scaleY, HtmlToPptxCore.SLIDE_HEIGHT_IN - Math.max(0, y)),
         fontFace: style.fontFamily.split(",")[0].replace(/["']/g, "").trim(),
         fontSize: Number.parseFloat(style.fontSize) * 0.75,
-        color: style.color,
+        color: colorReader(style.color, Number(style.opacity)),
         bold: Number.parseInt(style.fontWeight, 10) >= 600,
         italic: style.fontStyle === "italic",
         align: style.textAlign
       });
     }
 
-    return { background: view.getComputedStyle(slideElement).backgroundColor, texts };
+    const slideBackground = colorReader(view.getComputedStyle(slideElement).backgroundColor, 1);
+    return {
+      background: HtmlToPptxCore.colorOptions(slideBackground, "FFFFFF").transparency === 100 ? "FFFFFF" : slideBackground,
+      shapes,
+      texts
+    };
   }
 
-  function downloadPptx(buffer, name) {
-    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.presentationml.presentation" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = name;
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  function createColorReader(document) {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1;
+    canvas.height = 1;
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    if (!context) throw new Error("CSSの色を解析できませんでした。");
+    return (value, opacity) => {
+      context.clearRect(0, 0, 1, 1);
+      context.fillStyle = "rgba(0, 0, 0, 0)";
+      context.fillStyle = value || "rgba(0, 0, 0, 0)";
+      context.fillRect(0, 0, 1, 1);
+      const pixel = context.getImageData(0, 0, 1, 1).data;
+      const alpha = Math.min(1, Math.max(0, (pixel[3] / 255) * (Number.isFinite(opacity) ? opacity : 1)));
+      return `rgba(${pixel[0]}, ${pixel[1]}, ${pixel[2]}, ${alpha.toFixed(3)})`;
+    };
   }
+
+  function extractElementShapes(style, rect, slideRect, scaleX, scaleY, colorReader, shapes) {
+    const left = Math.max(0, (rect.left - slideRect.left) * scaleX);
+    const top = Math.max(0, (rect.top - slideRect.top) * scaleY);
+    const right = Math.min(HtmlToPptxCore.SLIDE_WIDTH_IN, (rect.right - slideRect.left) * scaleX);
+    const bottom = Math.min(HtmlToPptxCore.SLIDE_HEIGHT_IN, (rect.bottom - slideRect.top) * scaleY);
+    const width = right - left;
+    const height = bottom - top;
+    if (width <= 0 || height <= 0) return;
+
+    const opacity = Number.parseFloat(style.opacity);
+    const background = colorReader(style.backgroundColor, opacity);
+    const hasBackground = HtmlToPptxCore.colorOptions(background, "FFFFFF").transparency < 100;
+
+    const sides = [
+      ["Top", left, top, width, 0, scaleY],
+      ["Right", right, top, 0, height, scaleX],
+      ["Bottom", left, bottom, width, 0, scaleY],
+      ["Left", left, top, 0, height, scaleX]
+    ];
+    const borders = sides.map(([side, x, y, w, h, scale]) => {
+      const borderStyle = style[`border${side}Style`];
+      const borderWidth = Number.parseFloat(style[`border${side}Width`]);
+      if (borderStyle === "none" || borderStyle === "hidden" || !Number.isFinite(borderWidth) || borderWidth <= 0) return null;
+      const color = colorReader(style[`border${side}Color`], opacity);
+      if (HtmlToPptxCore.colorOptions(color, "000000").transparency === 100) return null;
+      const dashType = borderStyle === "dotted" ? "sysDot" : borderStyle === "dashed" ? "dash" : borderStyle === "double" ? "dashDot" : "solid";
+      return { kind: "line", x, y, w, h, color, width: Math.max(0.25, borderWidth * scale * 72), dashType };
+    });
+
+    const uniformBorder = borders.every(Boolean) && borders.slice(1).every((border) =>
+      border.color === borders[0].color && border.width === borders[0].width && border.dashType === borders[0].dashType
+    );
+    if (hasBackground || uniformBorder) {
+      const shape = {
+        kind: "rect",
+        x: left,
+        y: top,
+        w: width,
+        h: height,
+        color: background,
+        rounded: Number.parseFloat(style.borderTopLeftRadius) > 0
+      };
+      if (uniformBorder) {
+        shape.lineColor = borders[0].color;
+        shape.lineWidth = borders[0].width;
+        shape.dashType = borders[0].dashType;
+      }
+      shapes.push(shape);
+    }
+    if (!uniformBorder) {
+      for (const border of borders) {
+        if (border) shapes.push(border);
+      }
+    }
+  }
+
+  function preparePptxDownload(buffer, name) {
+    clearDownload();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.presentationml.presentation" });
+    downloadUrl = URL.createObjectURL(blob);
+    downloadLink.href = downloadUrl;
+    downloadLink.download = name;
+    downloadLink.hidden = false;
+  }
+
+  function clearDownload() {
+    if (downloadUrl) URL.revokeObjectURL(downloadUrl);
+    downloadUrl = null;
+    downloadLink.removeAttribute("href");
+    downloadLink.removeAttribute("download");
+    downloadLink.hidden = true;
+  }
+
+  window.addEventListener("pagehide", clearDownload, { once: true });
 
   function nextFrame() {
     return new Promise((resolve) => requestAnimationFrame(() => resolve()));

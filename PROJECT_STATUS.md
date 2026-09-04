@@ -13,7 +13,7 @@ Step 2 PoC: multi-slide HTML conversion with responsive progress feedback.
 
 ## Current work
 
-Private GitHub prerelease `v0.1.0-alpha.1` is published with the verified Windows executable attached. No release task remains active.
+GitHub Issues #1 and #2 are fixed and verified locally. The fixes have not yet been published as a new prerelease.
 
 ## Completed
 
@@ -34,12 +34,16 @@ Private GitHub prerelease `v0.1.0-alpha.1` is published with the verified Window
 - Persistent handoff rules were added to `AGENTS.md`.
 - Context7 was made mandatory in `AGENTS.md` for implementation work involving third-party libraries, frameworks, SDKs, APIs, or CLI tools.
 - Created private GitHub repository `divine261402-pixel/HTMLtoPPTX`, pushed `main`, and published prerelease `v0.1.0-alpha.1` with the Windows executable asset.
+- Fixed Issue #1 by extracting visible solid element backgrounds and CSS borders as editable PowerPoint rectangles, rounded rectangles, and lines beneath text.
+- Normalized browser CSS colors, including `oklch(...)`, through an sRGB canvas before passing colors and alpha transparency to PptxGenJS.
+- Fixed Issue #2 by keeping a persistent user-clicked PPTX save link, revoking only superseded Blob URLs, and ignoring stale Worker callbacks through per-job identity checks.
+- Added OOXML integration coverage for editable fill and dashed-border colors, plus shape-option and alpha-transparency tests.
 
 ## Next actions
 
-1. When a Microsoft PowerPoint environment becomes available, open the generated three-slide fixture and record compatibility results.
+1. Validate the Issue #1 source HTML and generated PPTX on the reporting field machine in Microsoft PowerPoint, then publish the fixes as the next prerelease.
 2. Implement image conversion while preserving the current Worker progress protocol.
-3. Preserve inline text runs and explicitly define z-order for shapes, tables, images, and text.
+3. Preserve inline text runs and extend the now-explicit shape-before-text z-order to tables and images.
 4. Add role-based normalization only where PowerPoint rendering proves that raw browser measurements are undesirable.
 
 ## Decisions
@@ -55,11 +59,16 @@ Private GitHub prerelease `v0.1.0-alpha.1` is published with the verified Window
 - Treat one HTML `.slide` element as one PowerPoint slide, per the current design.
 - Keep pre-commit checks language-neutral until implementation code establishes the Go and frontend toolchain.
 - Require Context7 before coding against third-party libraries, frameworks, SDKs, APIs, or CLI tools; fall back to official documentation only when Context7 is unavailable or has no relevant entry.
+- Preserve solid CSS fills and borders as native PowerPoint shapes and add them before text so content remains editable and readable.
+- Convert computed CSS colors to sRGB in the browser rather than trying to parse every current CSS color syntax in the Worker.
+- Require an explicit save click after conversion so each conversion has a fresh browser-authorized download gesture; keep the generated Blob URL valid until selection, reconversion, or page exit.
+- Bind every asynchronous conversion callback to its originating job so callbacks from a cancelled or superseded Worker cannot finish a newer conversion.
 
 ## Risks / blockers
 
 - LibreOffice Impress opens and renders the output correctly, but Microsoft PowerPoint-specific compatibility still requires later validation on a separate environment.
-- The current vertical slice converts direct text nodes and slide backgrounds; images, tables, SVG, shapes, and inline run styling are not implemented yet.
+- The current vertical slice converts direct text nodes, slide backgrounds, solid element fills, and CSS borders; gradients, box shadows, pseudo-elements, images, tables, SVG content, and inline run styling are not implemented yet.
+- Border radii are represented as PowerPoint rounded rectangles, so exact per-corner CSS radius values are approximated.
 - Browser measurements can be accurate but still undesirable across slides; header/font role normalization may be needed after visual comparison.
 - Font fallback and unsupported Japanese glyph detection are not implemented yet.
 - The initial design document is currently untracked and must not be added or modified without user intent.
@@ -73,7 +82,7 @@ Private GitHub prerelease `v0.1.0-alpha.1` is published with the verified Window
 - `go test ./...`: passed with the Go build cache redirected inside the workspace.
 - `go vet ./...`: passed.
 - `go build -o .tmp/Html2Pptx.exe .`: passed; the embedded Windows executable was 9,192,448 bytes.
-- `npm test`: 4 JavaScript core tests passed; `node --check` passed for all project JavaScript files.
+- `npm test`: 7 JavaScript core and OOXML integration tests passed; `node --check` passed for all project JavaScript files.
 - Browser integration: uploaded `testdata/multi-slide.html`, downloaded `multi-slide.pptx`, and observed local progress completion at `3 / 3 枚` with no current-page console errors.
 - Slow-worker browser check: the converter-card progress reached `2 / 3 枚` while the file input remained enabled, body pointer events remained `auto`, progress positioning remained `static`, and cancellation succeeded.
 - Generated OOXML contains exactly `ppt/slides/slide1.xml` through `slide3.xml`, with the expected Japanese text in document order.
@@ -87,6 +96,14 @@ Private GitHub prerelease `v0.1.0-alpha.1` is published with the verified Window
 - `pre-commit run --all-files`: passed, including the Windows-compatible Code Review Graph hook.
 - Graphify minimal query result: `.slide要素による複数スライド構造`.
 - Context7 MCP invocation verified by resolving `/gitbrent/pptxgenjs` and querying browser-side wide-layout PPTX generation, editable text boxes, local bundling, and file download; mandatory firing conditions are recorded in `AGENTS.md`.
+- GitHub Issues #1 (`変換前後で色や枠等が表示されない`) and #2 (`複数回の変換ができない`) were inspected through the authenticated GitHub UI on 2026-09-04.
+- The Issue #1 field HTML in user-owned `test-data/2026スマホ教室.html` was inspected and confirmed to use `oklch(...)`, colored fills, rounded cards, and CSS borders; the file was not modified.
+- Browser regression: converted `testdata/multi-slide.html` (3 slides), selected a different HTML, and converted again (1 slide); the second save link used `second-slide.pptx` and the current page had zero console errors or warnings.
+- The tracked browser fixture now exercises an editable teal fill and orange border; OOXML assertions verify `2F7C80`, `CF552F`, and dashed-line markup in a generated PPTX package.
+- Final issue-fix verification: `go test ./...`, `go vet ./...`, `go build`, `npm test`, JavaScript syntax checks, `git diff --check`, and `uv tool run pre-commit run --all-files` passed.
+- PptxGenJS 4.0.1 shape, fill, line, dash, transparency, and text options were checked through Context7 (`/gitbrent/pptxgenjs`) before implementation.
+- The mandatory modern-web-guidance lookup was attempted; its online command stalled and the offline package cache was unavailable, so no guidance result was used.
+- `graphify update .`: rebuilt the post-fix graph to 185 nodes, 412 edges, and 13 communities; `extractElementShapes`, `createColorReader`, `shapeOptions`, `preparePptxDownload`, and `clearDownload` are present in the updated graph.
 
 ## Working tree notes
 

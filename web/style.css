@@ -32,7 +32,8 @@ body {
 }
 
 button,
-input {
+input,
+.download-button {
   font: inherit;
 }
 
@@ -331,6 +332,8 @@ code {
 }
 
 .actions {
+  flex-direction: column;
+  gap: 10px;
   margin-top: 20px;
 }
 
@@ -364,6 +367,29 @@ button:focus-visible {
   color: #a4a8ac;
   background: #e2e2de;
   cursor: not-allowed;
+}
+
+.download-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 52px;
+  padding: 0 18px;
+  color: white;
+  background: var(--teal);
+  cursor: pointer;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.download-button:hover {
+  background: #245f62;
+}
+
+.download-button:focus-visible {
+  outline: 3px solid rgba(47, 124, 128, 0.42);
+  outline-offset: 3px;
 }
 
 .progress-card {
@@ -485,7 +511,8 @@ progress::-moz-progress-bar { background: var(--orange); }
 
 @media (prefers-reduced-motion: no-preference) {
   .drop-zone,
-  .primary-button {
+  .primary-button,
+  .download-button {
     transition: background-color 120ms ease, border-color 120ms ease;
   }
 }

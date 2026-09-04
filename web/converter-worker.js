@@ -19,6 +19,11 @@ self.onmessage = async function (event) {
       const slide = pptx.addSlide();
       slide.background = { color: model.background };
 
+      for (const item of model.shapes) {
+        const shapeType = item.kind === "line" ? pptx.ShapeType.line : item.rounded ? pptx.ShapeType.roundRect : pptx.ShapeType.rect;
+        slide.addShape(shapeType, HtmlToPptxCore.shapeOptions(item));
+      }
+
       for (const item of model.texts) {
         if (item.text) slide.addText(item.text, HtmlToPptxCore.textOptions(item));
       }
