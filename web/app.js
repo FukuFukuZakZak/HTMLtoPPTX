@@ -18,7 +18,7 @@
   const message = document.getElementById("message");
   const renderHost = document.getElementById("render-host");
 
-  let selectedFile = null;
+  let selectedFiles = [];
   let activeJob = null;
   let downloadUrl = null;
 
@@ -33,21 +33,25 @@
     message.classList.toggle("is-error", Boolean(isError));
   }
 
-  function selectFile(file) {
-    if (!file || !/\.html?$/i.test(file.name)) {
+  function selectFiles(fileList) {
+    const files = Array.from(fileList || []);
+    if (files.length === 0 || files.some((file) => !/\.html?$/i.test(file.name))) {
       setMessage("HTMLファイル（.html または .htm）を選択してください。", true);
       return;
     }
     clearDownload();
-    selectedFile = file;
-    fileName.textContent = file.name;
-    fileSize.textContent = formatBytes(file.size);
+    selectedFiles = files;
+    const totalBytes = files.reduce((sum, file) => sum + file.size, 0);
+    fileName.textContent = files.length === 1 ? files[0].name : `${files.length}件のHTMLを選択しました`;
+    fileSize.textContent = files.length === 1
+      ? formatBytes(totalBytes)
+      : `${formatBytes(totalBytes)} ・ ${files.map((file) => file.name).join(" / ")}`;
     fileRow.hidden = false;
     convertButton.disabled = Boolean(activeJob);
-    setMessage(activeJob ? "選択したファイルは次の変換に使われます。" : "変換の準備ができました。", false);
+    setMessage(activeJob ? "選択したファイルは次の一括変換に使われます。" : `${files.length}件の変換準備ができました。`, false);
   }
 
-  fileInput.addEventListener("change", () => selectFile(fileInput.files[0]));
+  fileInput.addEventListener("change", () => selectFiles(fileInput.files));
 
   for (const eventName of ["dragenter", "dragover"]) {
     dropZone.addEventListener(eventName, (event) => {
@@ -61,15 +65,16 @@
       dropZone.classList.remove("is-dragging");
     });
   }
-  dropZone.addEventListener("drop", (event) => selectFile(event.dataTransfer.files[0]));
+  dropZone.addEventListener("drop", (event) => selectFiles(event.dataTransfer.files));
 
   cancelButton.addEventListener("click", () => {
     if (activeJob) activeJob.abort();
   });
 
   convertButton.addEventListener("click", async () => {
-    if (!selectedFile || activeJob) return;
-    const sourceFile = selectedFile;
+    if (selectedFiles.length === 0 || activeJob) return;
+    const sourceFiles = selectedFiles.slice();
+    const outputNames = HtmlToPptxCore.uniqueOutputFileNames(sourceFiles.map((file) => file.name));
     const shouldExecuteScripts = executeScripts.checked;
     const controller = new AbortController();
     let worker = null;
@@ -93,49 +98,59 @@
     progressCard.hidden = false;
     cancelButton.hidden = false;
     progress.removeAttribute("value");
-    progressLabel.textContent = "スライドを解析中";
-    progressCount.textContent = "— / — 枚";
+    progressLabel.textContent = "HTMLを解析中";
+    progressCount.textContent = `0 / ${sourceFiles.length} ファイル`;
     progressDetail.textContent = "画面はそのまま操作できます";
     setMessage("", false);
 
     try {
-      const html = await sourceFile.text();
-      if (controller.signal.aborted) return;
-      let renderHtml = html;
-      if (shouldExecuteScripts) {
-        progressLabel.textContent = "埋め込みスクリプトを実行中";
-        progressDetail.textContent = "外部通信を遮断した隔離環境でDOMを生成しています";
-        renderHtml = await createScriptSnapshot(html, controller.signal);
-      }
-      frame = await createRenderFrame(renderHtml, controller.signal);
-      const slideElements = Array.from(frame.contentDocument.querySelectorAll(".slide"));
-      if (slideElements.length === 0) {
-        throw new Error(".slide 要素が見つかりません。例: <section class=\"slide\" style=\"width:1280px;height:720px\">...</section>");
-      }
-
-      progress.max = slideElements.length;
-      progress.value = 0;
-      progressCount.textContent = `0 / ${slideElements.length} 枚`;
-      const slideModels = [];
-      const slideDisplay = preferredSlideDisplay(slideElements);
-
-      for (let index = 0; index < slideElements.length; index += 1) {
+      const presentations = [];
+      let totalSlides = 0;
+      for (let fileIndex = 0; fileIndex < sourceFiles.length; fileIndex += 1) {
+        const sourceFile = sourceFiles[fileIndex];
         if (controller.signal.aborted) return;
-        progressLabel.textContent = `スライド ${index + 1} を解析中`;
-        const restore = HtmlToPptxCore.showOnlySlideForMeasurement(slideElements, slideElements[index], slideDisplay);
-        try {
-          await nextFrame();
-          slideModels.push(extractSlide(slideElements[index]));
-        } finally {
-          restore();
+        progressLabel.textContent = `${sourceFile.name} を解析中`;
+        progressCount.textContent = `${fileIndex + 1} / ${sourceFiles.length} ファイル`;
+        progressDetail.textContent = "HTMLを読み取っています";
+
+        const html = await sourceFile.text();
+        if (controller.signal.aborted) return;
+        let renderHtml = html;
+        if (shouldExecuteScripts) {
+          progressLabel.textContent = `${sourceFile.name} のスクリプトを実行中`;
+          progressDetail.textContent = "外部通信を遮断した隔離環境でDOMを生成しています";
+          renderHtml = await createScriptSnapshot(html, controller.signal);
         }
+        frame = await createRenderFrame(renderHtml, controller.signal);
+        const slideElements = Array.from(frame.contentDocument.querySelectorAll(".slide"));
+        if (slideElements.length === 0) {
+          throw new Error(`${sourceFile.name}: .slide 要素が見つかりません。例: <section class="slide" style="width:1280px;height:720px">...</section>`);
+        }
+
+        const slideModels = [];
+        const slideDisplay = preferredSlideDisplay(slideElements);
+        for (let slideIndex = 0; slideIndex < slideElements.length; slideIndex += 1) {
+          if (controller.signal.aborted) return;
+          progressLabel.textContent = `${sourceFile.name}: スライド ${slideIndex + 1} / ${slideElements.length} を解析中`;
+          const restore = HtmlToPptxCore.showOnlySlideForMeasurement(slideElements, slideElements[slideIndex], slideDisplay);
+          try {
+            await nextFrame();
+            slideModels.push(extractSlide(slideElements[slideIndex]));
+          } finally {
+            restore();
+          }
+        }
+        totalSlides += slideModels.length;
+        presentations.push({ title: sourceFile.name, outputName: outputNames[fileIndex], slides: slideModels });
+        frame.remove();
+        frame = null;
       }
 
-      frame.remove();
-      frame = null;
+      progress.max = totalSlides;
       progress.value = 0;
-      progressLabel.textContent = "PPTXへ変換中";
-      progressDetail.textContent = `${slideElements.length}枚のスライドを順番に変換します`;
+      progressLabel.textContent = "PPTXへ一括変換中";
+      progressCount.textContent = `0 / ${totalSlides} 枚`;
+      progressDetail.textContent = `${sourceFiles.length}件・合計${totalSlides}枚を順番に変換します`;
 
       worker = new Worker("./converter-worker.js");
       worker.onmessage = (event) => {
@@ -143,18 +158,21 @@
         const data = event.data || {};
         if (data.type === "progress") {
           progress.value = data.completed;
-          progressLabel.textContent = `スライド ${data.completed} を変換しました`;
+          progressLabel.textContent = `${data.fileName}: スライドを変換中`;
           progressCount.textContent = `${data.completed} / ${data.total} 枚`;
-          progressDetail.textContent = `残り ${data.total - data.completed} 枚`;
+          progressDetail.textContent = `${data.fileCompleted} / ${data.fileTotal} ファイル ・ 残り ${data.total - data.completed} 枚`;
         } else if (data.type === "packaging") {
-          progress.value = data.total;
-          progressLabel.textContent = "PPTXを仕上げています";
-          progressDetail.textContent = "スライド変換は完了しました";
+          progress.value = totalSlides;
+          progressLabel.textContent = "ZIPを仕上げています";
+          progressCount.textContent = `${sourceFiles.length} / ${sourceFiles.length} ファイル`;
+          progressDetail.textContent = "すべてのPPTXをZIPにまとめています";
+        } else if (data.type === "packaging-progress") {
+          progressDetail.textContent = `ZIPを作成中 ${Math.round(data.percent)}%`;
         } else if (data.type === "complete") {
-          preparePptxDownload(data.buffer, HtmlToPptxCore.outputFileName(sourceFile.name));
+          prepareZipDownload(data.buffer, HtmlToPptxCore.zipOutputFileName(sourceFiles.map((file) => file.name)));
           worker.terminate();
           worker = null;
-          finishJob(job, `${slideElements.length}枚のスライドをPPTXに変換しました。［PPTXを保存］を押してください。`, false);
+          finishJob(job, `${sourceFiles.length}件のPPTXをZIPにまとめました。［ZIPを保存］を押してください。`, false);
         } else if (data.type === "error") {
           if (worker) worker.terminate();
           worker = null;
@@ -167,7 +185,7 @@
         worker = null;
         finishJob(job, "変換処理を開始できませんでした。", true);
       };
-      worker.postMessage({ type: "convert", slides: slideModels, title: sourceFile.name });
+      worker.postMessage({ type: "convert-batch", presentations });
     } catch (error) {
       if (!controller.signal.aborted) {
         if (frame) frame.remove();
@@ -180,7 +198,7 @@
   function finishJob(job, text, isError) {
     if (activeJob !== job) return;
     activeJob = null;
-    convertButton.disabled = !selectedFile;
+    convertButton.disabled = selectedFiles.length === 0;
     executeScripts.disabled = false;
     cancelButton.hidden = true;
     if (isError) {
@@ -560,9 +578,9 @@
     }
   }
 
-  function preparePptxDownload(buffer, name) {
+  function prepareZipDownload(buffer, name) {
     clearDownload();
-    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.presentationml.presentation" });
+    const blob = new Blob([buffer], { type: "application/zip" });
     downloadUrl = URL.createObjectURL(blob);
     downloadLink.href = downloadUrl;
     downloadLink.download = name;

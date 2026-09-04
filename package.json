@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "description": "Development dependencies and tests for the embedded HTML to PPTX converter UI.",
   "scripts": {
-    "test": "node --test web/converter-core.test.js"
+    "test": "node --test web/*.test.js"
   },
   "devDependencies": {
     "jszip": "3.10.1"

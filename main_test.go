@@ -28,6 +28,9 @@ func TestEmbeddedWebUI(t *testing.T) {
 	if !strings.Contains(string(body), "HTML → PowerPoint") {
 		t.Fatal("embedded index page was not served")
 	}
+	if !strings.Contains(string(body), `id="html-file" type="file" accept=".html,.htm,text/html" multiple`) {
+		t.Fatal("HTML file input does not allow multiple files")
+	}
 	if response.Header.Get("Content-Security-Policy") == "" {
 		t.Fatal("Content-Security-Policy header is missing")
 	}
@@ -37,7 +40,7 @@ func TestEmbeddedWorkerAndBundleAreServed(t *testing.T) {
 	server := httptest.NewServer(newHandler())
 	defer server.Close()
 
-	for _, path := range []string{"/converter-worker.js", "/vendor/pptxgen.bundle.js"} {
+	for _, path := range []string{"/converter-worker.js", "/vendor/pptxgen.bundle.js", "/vendor/jszip.min.js"} {
 		response, err := http.Get(server.URL + path)
 		if err != nil {
 			t.Fatal(err)

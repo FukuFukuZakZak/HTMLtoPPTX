@@ -18,6 +18,30 @@
     return `${baseName || "presentation"}.pptx`;
   }
 
+  function uniqueOutputFileNames(inputNames) {
+    const used = new Set();
+    return Array.from(inputNames || [], (inputName) => {
+      const desired = outputFileName(inputName);
+      const baseName = desired.slice(0, -".pptx".length);
+      let candidate = desired;
+      let suffix = 2;
+      while (used.has(candidate.toLowerCase())) {
+        candidate = `${baseName} (${suffix}).pptx`;
+        suffix += 1;
+      }
+      used.add(candidate.toLowerCase());
+      return candidate;
+    });
+  }
+
+  function zipOutputFileName(inputNames) {
+    const names = Array.from(inputNames || []);
+    if (names.length === 1) {
+      return `${outputFileName(names[0]).slice(0, -".pptx".length)}.zip`;
+    }
+    return `html-to-pptx-${Math.max(1, names.length)}-files.zip`;
+  }
+
   function hexColor(value, fallback) {
     const hex = String(value || "").trim().match(/^#?([0-9a-f]{6})$/i);
     if (hex) return hex[1].toUpperCase();
@@ -229,6 +253,8 @@
     SLIDE_WIDTH_IN,
     SLIDE_HEIGHT_IN,
     outputFileName,
+    uniqueOutputFileNames,
+    zipOutputFileName,
     hexColor,
     colorOptions,
     lineSpacingPoints,

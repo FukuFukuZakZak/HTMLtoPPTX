@@ -23,11 +23,11 @@
       <section class="intro" aria-labelledby="intro-title">
         <p class="kicker">スライド変換</p>
         <h2 id="intro-title">HTMLのスライド束を、<br>編集できるPowerPointへ。</h2>
-        <p>1つのHTMLに含まれる <code>.slide</code> を順番に読み取り、1要素を1ページとして出力します。</p>
+        <p>複数のHTMLを順番に読み取り、HTMLごとに1つのPPTXを作成してZIPにまとめます。</p>
         <ol class="flow" aria-label="変換の流れ">
           <li><span>HTML</span><small>読み込み</small></li>
           <li><span>.slide</span><small>ページ化</small></li>
-          <li><span>PPTX</span><small>ダウンロード</small></li>
+          <li><span>ZIP</span><small>PPTXを保存</small></li>
         </ol>
       </section>
 
@@ -41,14 +41,14 @@
         </div>
 
         <label class="drop-zone" id="drop-zone" for="html-file">
-          <input id="html-file" type="file" accept=".html,.htm,text/html">
+          <input id="html-file" type="file" accept=".html,.htm,text/html" multiple>
           <span class="file-glyph" aria-hidden="true"><b></b><b></b><b></b></span>
-          <strong>ここにHTMLをドロップ</strong>
-          <span>またはクリックしてファイルを選択</span>
+          <strong>ここにHTMLをまとめてドロップ</strong>
+          <span>またはクリックして複数ファイルを選択</span>
         </label>
 
         <ul class="input-contract" aria-label="対応するHTMLの条件">
-          <li><code>.slide</code> を1個以上含む</li>
+          <li>各HTMLに <code>.slide</code> を1個以上含む</li>
           <li>各スライドは固定16:9（推奨1280 × 720）</li>
           <li>スクリプトは既定で実行しません（信頼できるHTMLのみ任意で実行できます）</li>
         </ul>
@@ -71,11 +71,11 @@
 
         <div class="actions">
           <button class="primary-button" id="convert-button" type="button" disabled>
-            PPTXへ変換
+            PPTXへ一括変換
             <span aria-hidden="true">→</span>
           </button>
           <a class="download-button" id="download-link" hidden>
-            PPTXを保存
+            ZIPを保存
             <span aria-hidden="true">↓</span>
           </a>
         </div>

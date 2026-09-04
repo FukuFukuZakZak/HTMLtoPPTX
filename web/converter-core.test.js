@@ -10,6 +10,19 @@ test("HTML filename becomes a safe PPTX filename", () => {
   assert.equal(core.outputFileName(""), "presentation.pptx");
 });
 
+test("PPTX filenames stay unique inside a case-insensitive ZIP", () => {
+  assert.deepEqual(
+    core.uniqueOutputFileNames(["meeting.html", "meeting.htm", "MEETING.HTML", "notes.html"]),
+    ["meeting.pptx", "meeting (2).pptx", "MEETING (3).pptx", "notes.pptx"]
+  );
+});
+
+test("ZIP filename describes single and multiple HTML batches", () => {
+  assert.equal(core.zipOutputFileName(["meeting.html"]), "meeting.zip");
+  assert.equal(core.zipOutputFileName(["one.html", "two.html"]), "html-to-pptx-2-files.zip");
+  assert.equal(core.zipOutputFileName([]), "html-to-pptx-1-files.zip");
+});
+
 test("RGB colors are converted to PowerPoint hex colors", () => {
   assert.equal(core.hexColor("rgb(207, 85, 47)", "000000"), "CF552F");
   assert.equal(core.hexColor("transparent", "FFFFFF"), "FFFFFF");

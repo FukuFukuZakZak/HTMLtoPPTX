@@ -9,13 +9,15 @@ Build the HTML-to-PPTX converter described in `docs/HTML_to_PPTX_converter_spec_
 
 ## Current milestone
 
-Step 2 PoC: multi-slide HTML conversion with responsive progress feedback.
+Step 2 PoC: multi-HTML batch conversion with responsive progress feedback and ZIP delivery.
 
 ## Current work
 
 GitHub Issues #1-#7 are closed. Issues #3 and #4 are committed and pushed: the UI states the static 16:9 `.slide` contract, the no-slide error includes a minimal correction example, and hidden slides are isolated, temporarily displayed, measured, and restored one at a time. Issue #5 stages 1 and 2 are also committed and pushed: text extraction preserves explicit/block/rendered line boundaries, inline styles, CSS whitespace, and computed line height through PptxGenJS rich text runs and soft line breaks. Issue #6 was closed at the user's direction while the sample-dependent PowerPoint selection-UI validation remains recorded as follow-up work; an OOXML regression test asserts that rich editable text does not introduce nested PowerPoint group objects. Issue #7 (`サイドバーの再現性について`) was implemented, pushed as `2e298dc`, and closed with a trusted-HTML usage note: the UI offers an explicit option that executes embedded scripts in an opaque-origin, network-blocked sandbox, freezes the resulting DOM, and then uses the existing script-disabled conversion path. The annotated prerelease tag now targets product commit `2e298dc`, and GitHub prerelease `v0.1.0-alpha.1` contains the verified Issues #3-#5 and #7 field-validation EXE with its updated checksum.
 
 Repository-scoped Codex context optimization is complete. Graphify now loads a 65-line router for normal use and keeps the complete 705-line build runbook behind an operation-specific reference. The project profile disables duplicate/unrelated plugins and the legacy Code Review Graph MCP, fixes Serena startup to an absolute executable path, limits stored tool output, and enables early context compaction.
+
+The batch-conversion implementation accepts multiple `.html`/`.htm` files, creates one independent PPTX per input, resolves case-insensitive duplicate output names, and packages the results into one browser-downloadable ZIP. Worker-level ZIP/PPTX structure tests and a two-file browser acceptance run are complete.
 
 ## Completed
 
@@ -25,6 +27,7 @@ Repository-scoped Codex context optimization is complete. Graphify now loads a 6
 - Added browser-rendered DOM bounding-box and computed-style extraction for editable text boxes.
 - Added a converter-card-local native progress bar with `completed / total` slide counts.
 - Moved PowerPoint creation and ZIP packaging to a Web Worker so the browser UI remains responsive.
+- Added multi-file HTML selection, one-PPTX-per-HTML generation, collision-safe PPTX names, and one ZIP download per batch.
 - Added cancellation and kept file selection available while a conversion is running.
 - Added Go embedding/security tests, JavaScript core tests, and a tracked three-slide browser fixture.
 - Git repository initialized.
@@ -88,6 +91,7 @@ Repository-scoped Codex context optimization is complete. Graphify now loads a 6
 - Define supported HTML as static 16:9 slide markup. A sidebar inside each slide is supported when it is present in the static DOM; runtime-only content generation is outside the default security model.
 - Treat text fidelity as a human-effort optimization problem: preserve explicit structure and measured line boundaries, prevent text from crossing its intended box, and leave only exceptional font/layout refinements for manual PowerPoint editing.
 - Keep generated PowerPoint objects ungrouped. Favor one editable text object per logical DOM element with measured line breaks/runs over a native PowerPoint table when independent object manipulation is required.
+- Package every conversion as a ZIP, including a single selected HTML; for multi-file batches, keep one PPTX per source HTML and suffix duplicate case-insensitive basenames with ` (2)`, ` (3)`, and so on.
 - Use PptxGenJS `softBreakBefore` for browser-rendered and authored soft line boundaries because version 4.0.1 serializes it as `<a:br/>`; `breakLine` creates a separate `<a:p>` paragraph instead.
 - Measure text at the logical DOM element level, except table cells, which own their descendant text so each cell remains one independently editable PowerPoint text box.
 - Route routine code work to Better Code Review Graph or Serena; invoke Graphify automatically only for explicit graph requests, broad architecture, or code-to-document relationships.
@@ -108,6 +112,11 @@ Repository-scoped Codex context optimization is complete. Graphify now loads a 6
 - Issue #6 has no attachment or exact PowerPoint object example. Current code does not call a grouping API, and the inspected Issue #5 PPTX has zero nested PowerPoint group shapes, so the reported grouping is not yet reproducible.
 
 ## Verification
+
+- Batch ZIP verification on 2026-09-04: `npm test` passed 14 tests, including opening the outer ZIP and each nested PPTX; `node --check` passed for the application and Worker; `go test ./...`, `go vet ./...`, `go build`, `git diff --check`, and `uv tool run pre-commit run --all-files` passed with the Go cache redirected inside the workspace.
+- Browser batch acceptance selected `testdata/multi-slide.html` and `testdata/hidden-slides.html` together, completed two independent PPTX conversions, exposed `html-to-pptx-2-files.zip`, reported `2 / 2 ファイル`, and produced no browser errors or warnings.
+- JSZip 3.10.1 browser-side `file(ArrayBuffer)` and `generateAsync({ type: "arraybuffer" })` usage was checked through Context7 (`/stuk/jszip`). The mandatory modern-web-guidance lookup covered accessible multi-file form feedback and yielding long browser work.
+- Graphify was updated through the interpreter recorded in `graphify-out/.graphify_python`; the post-batch graph contains 247 nodes, 543 edges, and 18 communities.
 
 - Replacement candidate `dist/HTMLtoPPTX-v0.1.0-alpha.1-windows-amd64.exe`: 6,592,000 bytes; SHA-256 `8FF7593FD1B7A218B857D0895F897EC30C8EB8205E73D6C2C9268008357D3A59`; PE subsystem matches the original console executable (`3`).
 - Replacement verification on 2026-09-04: `go test ./...`, `go vet ./...`, `npm test`, JavaScript syntax checks, and `uv tool run pre-commit run --all-files` passed.
@@ -179,6 +188,7 @@ Repository-scoped Codex context optimization is complete. Graphify now loads a 6
 ## Working tree notes
 
 - `docs/` and `test-data/` are user-owned untracked directories as of 2026-09-03. Preserve them unless the user explicitly requests otherwise.
+- The batch-conversion implementation, tests, vendored JSZip browser bundle/license, and this status update are task-owned and belong together in the batch feature commit.
 - `deliverables/HTMLtoPPTX_Issue3-6_改修方針書.docx` is the task-owned decision memo used as the implementation source on 2026-09-04; the document itself was not edited.
 - The Issue #7 implementation is committed as `2e298dc`, pushed to `origin/main`, the GitHub issue is closed, and prerelease `v0.1.0-alpha.1` plus the ignored local `dist` executable now contain the Issue #7 build. Only the preserved user-owned untracked `docs/` and `test-data/` directories remain untouched.
 
