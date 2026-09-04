@@ -13,7 +13,7 @@ Step 2 PoC: multi-slide HTML conversion with responsive progress feedback.
 
 ## Current work
 
-GitHub Issues #1-#7 are closed. Issues #3 and #4 are committed and pushed: the UI states the static 16:9 `.slide` contract, the no-slide error includes a minimal correction example, and hidden slides are isolated, temporarily displayed, measured, and restored one at a time. Issue #5 stages 1 and 2 are also committed and pushed: text extraction preserves explicit/block/rendered line boundaries, inline styles, CSS whitespace, and computed line height through PptxGenJS rich text runs and soft line breaks. The annotated prerelease tag targets product commit `69569fa`, and GitHub prerelease `v0.1.0-alpha.1` contains the verified Issue #3-#5 field-validation EXE and updated checksum. Issue #6 was closed at the user's direction while the sample-dependent PowerPoint selection-UI validation remains recorded as follow-up work; an OOXML regression test asserts that rich editable text does not introduce nested PowerPoint group objects. Issue #7 (`サイドバーの再現性について`) was implemented, pushed as `2e298dc`, and closed with a trusted-HTML usage note: the UI offers an explicit option that executes embedded scripts in an opaque-origin, network-blocked sandbox, freezes the resulting DOM, and then uses the existing script-disabled conversion path.
+GitHub Issues #1-#7 are closed. Issues #3 and #4 are committed and pushed: the UI states the static 16:9 `.slide` contract, the no-slide error includes a minimal correction example, and hidden slides are isolated, temporarily displayed, measured, and restored one at a time. Issue #5 stages 1 and 2 are also committed and pushed: text extraction preserves explicit/block/rendered line boundaries, inline styles, CSS whitespace, and computed line height through PptxGenJS rich text runs and soft line breaks. Issue #6 was closed at the user's direction while the sample-dependent PowerPoint selection-UI validation remains recorded as follow-up work; an OOXML regression test asserts that rich editable text does not introduce nested PowerPoint group objects. Issue #7 (`サイドバーの再現性について`) was implemented, pushed as `2e298dc`, and closed with a trusted-HTML usage note: the UI offers an explicit option that executes embedded scripts in an opaque-origin, network-blocked sandbox, freezes the resulting DOM, and then uses the existing script-disabled conversion path. The annotated prerelease tag now targets product commit `2e298dc`, and GitHub prerelease `v0.1.0-alpha.1` contains the verified Issues #3-#5 and #7 field-validation EXE with its updated checksum.
 
 Repository-scoped Codex context optimization is complete. Graphify now loads a 65-line router for normal use and keeps the complete 705-line build runbook behind an operation-specific reference. The project profile disables duplicate/unrelated plugins and the legacy Code Review Graph MCP, fixes Serena startup to an absolute executable path, limits stored tool output, and enables early context compaction.
 
@@ -55,6 +55,7 @@ Repository-scoped Codex context optimization is complete. Graphify now loads a 6
 - Force-updated annotated tag `v0.1.0-alpha.1` from product commit `c7eed34` to `69569fa` for the next field-machine validation build.
 - Replaced GitHub prerelease `v0.1.0-alpha.1` with the verified Issue #3-#5 Windows executable and updated the public title, notes, validation checklist, commit, and checksum.
 - Implemented Issue #7 trusted embedded-script execution without weakening the default path: scripts remain off by default, the isolated runner has an opaque origin plus a deny-by-default CSP, cross-window messages validate origin/source/token, and only the resulting static DOM proceeds to slide extraction.
+- Rebuilt `v0.1.0-alpha.1` from a clean clone of product commit `2e298dc`, moved the annotated tag, replaced the Windows asset, and updated the public title, notes, validation checklist, commit, and checksum for Issue #7 field validation.
 
 ## Next actions
 
@@ -169,12 +170,17 @@ Repository-scoped Codex context optimization is complete. Graphify now loads a 6
 - GitHub `main` contains commits `74c5dfd` and `69569fa`. Remote annotated tag `v0.1.0-alpha.1` was force-updated to tag object `d82a26a`, dereferencing to product commit `69569fa`.
 - Replaced GitHub prerelease: `https://github.com/divine261402-pixel/HTMLtoPPTX/releases/tag/v0.1.0-alpha.1`; the public UI shows title `HTMLtoPPTX v0.1.0-alpha.1（Issues #3〜#5 実機検証版）`, the `Pre-release` label, commit `69569fa`, one 6.3 MB Windows asset, and digest `sha256:6899929b140ad0a72511e6d3eefa86c1485750ab10418e0f4b3b663ae81c560c`.
 - `graphify update .` could not be rerun because the `graphify` executable was unavailable in the fresh shell; the pre-commit Code Review Graph hook passed and the previously updated Graphify output remains in place.
+- Issue #7 prerelease replacement verification on 2026-09-04: JavaScript syntax checks, `npm test` (11 tests), `go test ./...`, `go vet ./...`, and `uv tool run pre-commit run --all-files` passed.
+- Clean-clone candidate `.tmp/release-issue7/HTMLtoPPTX-v0.1.0-alpha.1-windows-amd64.exe`: 6,613,504 bytes; SHA-256 `FF2D7310C8E7E926D8196A2CA4D97624D63BF9BDF7076B5C9943F500115DA9DA`; PE32+ console subsystem `3`; embedded VCS revision `2e298dcf9eed25a350f3b9d65de267efd4bc3b7a`; `vcs.modified=false`.
+- Candidate runtime smoke test returned HTTP 200 for the main UI and isolated runner, exposed the Issue #7 script option, and served the runner with its deny-by-default sandbox CSP. The GitHub-downloaded replacement asset matched the local candidate byte-for-byte by SHA-256.
+- GitHub prerelease `https://github.com/divine261402-pixel/HTMLtoPPTX/releases/tag/v0.1.0-alpha.1` is marked `Pre-release`, targets `2e298dc`, has title `HTMLtoPPTX v0.1.0-alpha.1（Issues #3〜#5・#7 実機検証版）`, and publishes one 6,613,504-byte Windows asset with digest `sha256:ff2d7310c8e7e926d8196a2ca4d97624d63bf9bdf7076b5c9943f500115da9da`.
+- GitHub CLI release edit/upload/download behavior and the delete-first risk of `gh release upload --clobber` were rechecked through Context7 (`/websites/cli_github_manual`) before replacing the asset.
 
 ## Working tree notes
 
 - `docs/` and `test-data/` are user-owned untracked directories as of 2026-09-03. Preserve them unless the user explicitly requests otherwise.
 - `deliverables/HTMLtoPPTX_Issue3-6_改修方針書.docx` is the task-owned decision memo used as the implementation source on 2026-09-04; the document itself was not edited.
-- The Issue #7 implementation is committed as `2e298dc`, pushed to `origin/main`, and the GitHub issue is closed. Only the preserved user-owned untracked `docs/` and `test-data/` directories remain untouched.
+- The Issue #7 implementation is committed as `2e298dc`, pushed to `origin/main`, the GitHub issue is closed, and prerelease `v0.1.0-alpha.1` plus the ignored local `dist` executable now contain the Issue #7 build. Only the preserved user-owned untracked `docs/` and `test-data/` directories remain untouched.
 
 ## Handoff checklist
 
