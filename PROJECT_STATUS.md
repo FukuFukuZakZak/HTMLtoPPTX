@@ -13,7 +13,7 @@ Step 2 PoC: multi-slide HTML conversion with responsive progress feedback.
 
 ## Current work
 
-GitHub Issues #1 and #2 are fixed and verified locally. The fixes have not yet been published as a new prerelease.
+GitHub Issues #1 and #2 are fixed and published in the replaced prerelease `v0.1.0-alpha.1`. The tag and release point to fix commit `c7eed34`, and the verified replacement Windows asset is attached. No release task remains active.
 
 ## Completed
 
@@ -34,6 +34,7 @@ GitHub Issues #1 and #2 are fixed and verified locally. The fixes have not yet b
 - Persistent handoff rules were added to `AGENTS.md`.
 - Context7 was made mandatory in `AGENTS.md` for implementation work involving third-party libraries, frameworks, SDKs, APIs, or CLI tools.
 - Created private GitHub repository `divine261402-pixel/HTMLtoPPTX`, pushed `main`, and published prerelease `v0.1.0-alpha.1` with the Windows executable asset.
+- Replaced prerelease `v0.1.0-alpha.1` with the Issue #1/#2 fix build, moved the tag to `c7eed34`, and updated the release notes and checksum for field-machine validation.
 - Fixed Issue #1 by extracting visible solid element backgrounds and CSS borders as editable PowerPoint rectangles, rounded rectangles, and lines beneath text.
 - Normalized browser CSS colors, including `oklch(...)`, through an sRGB canvas before passing colors and alpha transparency to PptxGenJS.
 - Fixed Issue #2 by keeping a persistent user-clicked PPTX save link, revoking only superseded Blob URLs, and ignoring stale Worker callbacks through per-job identity checks.
@@ -41,7 +42,7 @@ GitHub Issues #1 and #2 are fixed and verified locally. The fixes have not yet b
 
 ## Next actions
 
-1. Validate the Issue #1 source HTML and generated PPTX on the reporting field machine in Microsoft PowerPoint, then publish the fixes as the next prerelease.
+1. Validate the Issue #1 source HTML and generated PPTX on the reporting field machine in Microsoft PowerPoint.
 2. Implement image conversion while preserving the current Worker progress protocol.
 3. Preserve inline text runs and extend the now-explicit shape-before-text z-order to tables and images.
 4. Add role-based normalization only where PowerPoint rendering proves that raw browser measurements are undesirable.
@@ -75,9 +76,14 @@ GitHub Issues #1 and #2 are fixed and verified locally. The fixes have not yet b
 
 ## Verification
 
+- Replacement candidate `dist/HTMLtoPPTX-v0.1.0-alpha.1-windows-amd64.exe`: 6,592,000 bytes; SHA-256 `8FF7593FD1B7A218B857D0895F897EC30C8EB8205E73D6C2C9268008357D3A59`; PE subsystem matches the original console executable (`3`).
+- Replacement verification on 2026-09-04: `go test ./...`, `go vet ./...`, `npm test`, JavaScript syntax checks, and `uv tool run pre-commit run --all-files` passed.
+- GitHub `main` and annotated tag `v0.1.0-alpha.1` were pushed to fix commit `c7eed34`.
+- Replaced prerelease: `https://github.com/divine261402-pixel/HTMLtoPPTX/releases/tag/v0.1.0-alpha.1`; GitHub showed the `Pre-release` label, commit `c7eed34`, replacement asset size 6.29 MB, and asset digest `sha256:8ff7593fd1b7a218b857d0895f897ec30c8eb8205e73d6c2c9268008357d3a59`.
+- GitHub CLI release upload/edit behavior, including the delete-first risk of `--clobber`, was checked through Context7 (`/websites/cli_github_manual`).
 - Prerelease candidate `dist/HTMLtoPPTX-v0.1.0-alpha.1-windows-amd64.exe`: 6,583,296 bytes; SHA-256 `FEEF9342F42E83BF1A3E4BD93EB32AE0B026510B3817C3AD1A3D5AD0AA9CF388`.
 - Private repository: `https://github.com/divine261402-pixel/HTMLtoPPTX`; GitHub UI showed the repository as Private before publication.
-- Published prerelease: `https://github.com/divine261402-pixel/HTMLtoPPTX/releases/tag/v0.1.0-alpha.1`; GitHub showed the `Pre-release` label, tag `v0.1.0-alpha.1`, commit `f651b3a`, and attached `HTMLtoPPTX-v0.1.0-alpha.1-windows-amd64.exe` (6.28 MB).
+- Initial prerelease publication: `https://github.com/divine261402-pixel/HTMLtoPPTX/releases/tag/v0.1.0-alpha.1`; before replacement, GitHub showed the `Pre-release` label, tag `v0.1.0-alpha.1`, commit `f651b3a`, and the original 6.28 MB Windows asset.
 - Prerelease candidate rebuild: `go test ./...`, `go vet ./...`, `npm test`, and JavaScript syntax checks passed.
 - `go test ./...`: passed with the Go build cache redirected inside the workspace.
 - `go vet ./...`: passed.
