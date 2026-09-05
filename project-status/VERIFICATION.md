@@ -4,6 +4,19 @@ Last updated: 2026-09-05
 
 This file is the detailed audit trail. The concise current result is in [`../PROJECT_STATUS.md`](../PROJECT_STATUS.md).
 
+## Editable text fidelity — 2026-09-05
+
+- Fixed a scale mismatch: text and rich runs previously used a fixed `px * 0.75`, while shape/text-box bounds followed page-to-slide scale. Font size and line spacing now use measured vertical scale; CSS letter spacing uses horizontal scale. At double source resolution, a 64 px font now becomes 24 pt on the equivalent slide instead of 48 pt.
+- Replaced top-edge-only line detection with vertical band overlap plus a direction-aware line-start check for equal-height glyphs on tightly spaced lines. Larger or smaller inline text can remain on the same baseline; authored breaks still take precedence.
+- Added `web/text-extraction.test.js`, which runs the production IIFE extractor against deterministic DOM/Range measurements. It checks wide, A4 portrait, and A4 landscape at 0.5x/1x/1.5x/2x source dimensions, mixed font sizes, positive/negative/normal letter spacing, actual wrapping, repeated `<br>`, preformatted newlines, and tightly spaced LTR/RTL lines.
+- A real PptxGenJS package built from the extracted model contains `sz="2400"`, `sz="3600"`, exact line spacing `3000`, character spacing `150` / `-75`, one intended break, and editable Japanese `<a:t>` text without image/group replacements.
+- `npm test`: 27/27 passed, 244 ms in the complete-suite run. `go test ./...` and `go vet ./...` passed. `node --check web/app.js`, `node --check web/converter-core.js`, `git diff --check`, and `go build -o .tmp/HTMLtoPPTX-text-quality.exe .` passed.
+- Context7 was consulted for PptxGenJS text/rich-run options and exact `lineSpacing` in points. No version-specific documentation entry was exposed. For the undocumented `charSpacing` units, the pinned 4.0.1 `types/index.d.ts` and `dist/pptxgen.cjs.js` serializer were checked: `spc` is `Math.round(opts.charSpacing * 100)`. No dependency versions or vendor bundles changed.
+- Modern Web Guidance search/retrieve consulted `visually-stable-mixed-fonts` and `prevent-text-wrapping`; these concern authoring CSS, so they were not applied to user-owned source styles. [MDN Range.getClientRects](https://developer.mozilla.org/en-US/docs/Web/API/Range/getClientRects) confirms the measured rectangle API used by the extractor.
+- Graphify was updated through its recorded interpreter: 331 nodes, 677 edges, 17 communities, AST-only. Better Code Review Graph context included the previous broad commit, so review was narrowed to the current diff and the known extractor callers.
+- The existing local-URL browser permission denial was respected. No browser was launched or alternate browser automation used. Actual browser/PowerPoint visual acceptance is pending; synthetic measurements and OOXML checks cannot establish font substitution or pixel-identical rendering.
+- All applicable pre-commit hooks passed after their initial normalization of `web/converter-core.js` to LF. The existing uv cache required an approved execution outside the filesystem sandbox.
+
 ## Plain-language script-setting guidance — 2026-09-05
 
 - Replaced the technical “run embedded scripts / trusted HTML” label with the effect-based wording “reflect content added when the HTML opens,” plus a short example covering menus and charts.

@@ -173,6 +173,33 @@
     return fontSize > 0 ? Math.max(0.1, fontSize * amount * 0.75) : undefined;
   }
 
+  // CSS coordinates are pixels; slide coordinates are inches. Text must use
+  // the same measured scale as its box, including high-resolution HTML pages.
+  function textMetrics(style, scaleX = 1 / 96, scaleY = 1 / 96) {
+    const fontSizePixels = finiteNumber(Number.parseFloat(style.fontSize), 16);
+    const lineSpacing = lineSpacingPoints(style.lineHeight, fontSizePixels);
+    return {
+      fontSize: fontSizePixels * scaleY * 72,
+      lineSpacing: lineSpacing === undefined ? undefined : lineSpacing * scaleY * 96,
+      charSpacing: finiteNumber(Number.parseFloat(style.letterSpacing), 0) * scaleX * 72
+    };
+  }
+
+  function startsNewRenderedLine(lineRect, previousRect, nextRect, direction) {
+    if (!lineRect || !previousRect) return false;
+    // Different font sizes on a shared baseline have different top edges.
+    // Their vertical bands still overlap; a genuinely separate line does not.
+    if (nextRect.top >= lineRect.bottom - 1 || nextRect.bottom <= lineRect.top + 1) return true;
+    // Tight line-height can make successive lines overlap. A return toward
+    // the line start with an equal-height glyph distinguishes this from an
+    // inline font-size change (for both LTR and RTL text).
+    const returnsToStart = direction === "rtl"
+      ? nextRect.right > previousRect.right + 1
+      : nextRect.left < previousRect.left - 1;
+    return returnsToStart && Math.abs(nextRect.height - previousRect.height) <= 1 &&
+      nextRect.top > previousRect.top + 1;
+  }
+
   function normalizeText(value, whiteSpace) {
     const text = String(value || "").replace(/\r\n?/g, "\n");
     const mode = String(whiteSpace || "normal").toLowerCase();
@@ -295,6 +322,7 @@
     };
     const lineSpacing = finiteNumber(item.lineSpacing, 0);
     if (lineSpacing > 0) options.lineSpacing = lineSpacing;
+    if (Number.isFinite(item.charSpacing)) options.charSpacing = item.charSpacing;
     return options;
   }
 
@@ -362,6 +390,8 @@
     hexColor,
     colorOptions,
     lineSpacingPoints,
+    textMetrics,
+    startsNewRenderedLine,
     normalizeText,
     buildTextRuns,
     richTextContent,

@@ -668,7 +668,8 @@
 
       const isTableCell = ["TD", "TH"].includes(element.tagName);
       if (!isTableCell && !hasInlineText(element, view)) continue;
-      const extracted = extractRenderedText(element, view, colorReader, claimedTextNodes, isTableCell);
+      const extracted = extractRenderedText(element, view, colorReader, claimedTextNodes, isTableCell, scaleX, scaleY);
+      const metrics = HtmlToPptxCore.textMetrics(style, scaleX, scaleY);
       const runs = HtmlToPptxCore.buildTextRuns(extracted.tokens);
       const plainText = runs.map((run) => `${run.options.softBreakBefore ? "\n" : ""}${run.text}`).join("").replace(/\n+$/, "");
       if (!plainText) continue;
@@ -701,8 +702,8 @@
         w: Math.min(width, layout.width - Math.max(0, x)),
         h: Math.min(height * scaleY, layout.height - Math.max(0, y)),
         fontFace: style.fontFamily.split(",")[0].replace(/["']/g, "").trim(),
-        fontSize: Number.parseFloat(style.fontSize) * 0.75,
-        lineSpacing: extracted.lineSpacing || HtmlToPptxCore.lineSpacingPoints(style.lineHeight, Number.parseFloat(style.fontSize)),
+        ...metrics,
+        lineSpacing: extracted.lineSpacing || metrics.lineSpacing,
         color: colorReader(style.color, Number(style.opacity)),
         bold: Number.parseInt(style.fontWeight, 10) >= 600,
         italic: style.fontStyle === "italic",
@@ -875,15 +876,16 @@
     return hasDirectText && hasPositionedChild;
   }
 
-  function extractRenderedText(element, view, colorReader, claimedTextNodes, includeBlockDescendants) {
+  function extractRenderedText(element, view, colorReader, claimedTextNodes, includeBlockDescendants, scaleX, scaleY) {
     const tokens = [];
     const lineSpacings = [];
-    const layoutState = { lineTop: null, bounds: null };
+    const layoutState = { lineRect: null, previousRect: null, bounds: null };
 
     function pushBreak(force) {
       if (tokens.length === 0 || (!force && tokens[tokens.length - 1].break)) return;
       tokens.push({ break: true });
-      layoutState.lineTop = null;
+      layoutState.lineRect = null;
+      layoutState.previousRect = null;
     }
 
     function visit(parent, allowBlocks) {
@@ -891,7 +893,7 @@
         if (node.nodeType === view.Node.TEXT_NODE) {
           if (claimedTextNodes.has(node)) continue;
           claimedTextNodes.add(node);
-          appendTextNodeTokens(node, view, colorReader, tokens, lineSpacings, layoutState, pushBreak);
+          appendTextNodeTokens(node, view, colorReader, tokens, lineSpacings, layoutState, pushBreak, scaleX, scaleY);
           continue;
         }
         if (node.nodeType !== view.Node.ELEMENT_NODE) continue;
@@ -920,22 +922,24 @@
     };
   }
 
-  function appendTextNodeTokens(node, view, colorReader, tokens, lineSpacings, layoutState, pushBreak) {
+  function appendTextNodeTokens(node, view, colorReader, tokens, lineSpacings, layoutState, pushBreak, scaleX, scaleY) {
     const style = view.getComputedStyle(node.parentElement);
     const rawText = node.textContent || "";
     const whiteSpace = style.whiteSpace;
     const preservesNewlines = ["pre", "pre-wrap", "pre-line", "break-spaces"].includes(whiteSpace);
     const range = node.ownerDocument.createRange();
+    const metrics = HtmlToPptxCore.textMetrics(style, scaleX, scaleY);
     const options = {
       fontFace: style.fontFamily.split(",")[0].replace(/["']/g, "").trim(),
-      fontSize: Number.parseFloat(style.fontSize) * 0.75,
+      fontSize: metrics.fontSize,
+      charSpacing: metrics.charSpacing,
       color: colorReader(style.color, Number(style.opacity)),
       bold: Number.parseInt(style.fontWeight, 10) >= 600,
       italic: style.fontStyle === "italic",
       underline: style.textDecorationLine.includes("underline"),
       lang: "ja-JP"
     };
-    const spacing = HtmlToPptxCore.lineSpacingPoints(style.lineHeight, Number.parseFloat(style.fontSize));
+    const spacing = metrics.lineSpacing;
     if (spacing) lineSpacings.push(spacing);
 
     let buffer = "";
@@ -960,11 +964,12 @@
       if (!characterRect && /\s/.test(character) && !["pre", "pre-wrap", "break-spaces"].includes(whiteSpace)) continue;
       if (characterRect) {
         layoutState.bounds = unionRects(layoutState.bounds, characterRect);
-        if (layoutState.lineTop !== null && Math.abs(characterRect.top - layoutState.lineTop) > 1) {
+        if (HtmlToPptxCore.startsNewRenderedLine(layoutState.lineRect, layoutState.previousRect, characterRect, style.direction)) {
           flush();
           pushBreak();
         }
-        layoutState.lineTop = characterRect.top;
+        layoutState.lineRect = unionRects(layoutState.lineRect, characterRect);
+        layoutState.previousRect = characterRect;
       }
       buffer += character;
     }
