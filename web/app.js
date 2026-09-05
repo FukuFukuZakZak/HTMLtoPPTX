@@ -74,7 +74,6 @@
   convertButton.addEventListener("click", async () => {
     if (selectedFiles.length === 0 || activeJob) return;
     const sourceFiles = selectedFiles.slice();
-    const outputNames = HtmlToPptxCore.uniqueOutputFileNames(sourceFiles.map((file) => file.name));
     const shouldExecuteScripts = executeScripts.checked;
     const controller = new AbortController();
     let worker = null;
@@ -104,8 +103,9 @@
     setMessage("", false);
 
     try {
-      const presentations = [];
+      const presentationDrafts = [];
       let totalSlides = 0;
+      let hasMixedA4Orientation = false;
       for (let fileIndex = 0; fileIndex < sourceFiles.length; fileIndex += 1) {
         const sourceFile = sourceFiles[fileIndex];
         if (controller.signal.aborted) return;
@@ -125,7 +125,7 @@
         const pageSet = resolveConvertiblePages(frame.contentDocument);
         const slideElements = pageSet.elements;
 
-        const slideModels = [];
+        const pageSlides = [];
         const slideDisplay = preferredSlideDisplay(slideElements);
         for (let slideIndex = 0; slideIndex < slideElements.length; slideIndex += 1) {
           if (controller.signal.aborted) return;
@@ -133,22 +133,45 @@
           const restore = HtmlToPptxCore.showOnlySlideForMeasurement(slideElements, slideElements[slideIndex], slideDisplay);
           try {
             await nextFrame();
-            slideModels.push(extractSlide(slideElements[slideIndex], pageSet.layout));
+            const layout = pageSet.layouts[slideIndex];
+            pageSlides.push({ layout, slide: extractSlide(slideElements[slideIndex], layout) });
           } finally {
             restore();
           }
         }
-        totalSlides += slideModels.length;
-        presentations.push({ title: sourceFile.name, outputName: outputNames[fileIndex], layout: pageSet.layout, slides: slideModels });
+        totalSlides += pageSlides.length;
+        const groups = HtmlToPptxCore.groupSlidesByLayout(pageSlides);
+        const groupLayoutIds = new Set(groups.map((group) => group.layout.id));
+        hasMixedA4Orientation = hasMixedA4Orientation || (
+          groupLayoutIds.has("a4-portrait") && groupLayoutIds.has("a4-landscape")
+        );
+        for (const group of groups) {
+          presentationDrafts.push({
+            title: sourceFile.name,
+            desiredOutputName: groups.length > 1
+              ? HtmlToPptxCore.layoutOutputFileName(sourceFile.name, group.layout)
+              : HtmlToPptxCore.outputFileName(sourceFile.name),
+            layout: group.layout,
+            slides: group.slides
+          });
+        }
         frame.remove();
         frame = null;
       }
+
+      const outputNames = HtmlToPptxCore.uniquePptxFileNames(presentationDrafts.map((item) => item.desiredOutputName));
+      const presentations = presentationDrafts.map((item, index) => ({
+        title: item.title,
+        outputName: outputNames[index],
+        layout: item.layout,
+        slides: item.slides
+      }));
 
       progress.max = totalSlides;
       progress.value = 0;
       progressLabel.textContent = "PPTXへ一括変換中";
       progressCount.textContent = `0 / ${totalSlides} 枚`;
-      progressDetail.textContent = `${sourceFiles.length}件・合計${totalSlides}枚を順番に変換します`;
+      progressDetail.textContent = `${presentations.length}個のPPTX・合計${totalSlides}枚を順番に変換します`;
 
       worker = new Worker("./converter-worker.js");
       worker.onmessage = (event) => {
@@ -158,11 +181,11 @@
           progress.value = data.completed;
           progressLabel.textContent = `${data.fileName}: スライドを変換中`;
           progressCount.textContent = `${data.completed} / ${data.total} 枚`;
-          progressDetail.textContent = `${data.fileCompleted} / ${data.fileTotal} ファイル ・ 残り ${data.total - data.completed} 枚`;
+          progressDetail.textContent = `${data.fileCompleted} / ${data.fileTotal} PPTX ・ 残り ${data.total - data.completed} 枚`;
         } else if (data.type === "packaging") {
           progress.value = totalSlides;
           progressLabel.textContent = "ZIPを仕上げています";
-          progressCount.textContent = `${sourceFiles.length} / ${sourceFiles.length} ファイル`;
+          progressCount.textContent = `${presentations.length} / ${presentations.length} PPTX`;
           progressDetail.textContent = "すべてのPPTXをZIPにまとめています";
         } else if (data.type === "packaging-progress") {
           progressDetail.textContent = `ZIPを作成中 ${Math.round(data.percent)}%`;
@@ -170,7 +193,10 @@
           prepareZipDownload(data.buffer, HtmlToPptxCore.zipOutputFileName(sourceFiles.map((file) => file.name)));
           worker.terminate();
           worker = null;
-          finishJob(job, `${sourceFiles.length}件のPPTXをZIPにまとめました。［ZIPを保存］を押してください。`, false);
+          const integrationNote = hasMixedA4Orientation
+            ? " A4縦・横のPPTXはPowerPointで手動統合してください。"
+            : "";
+          finishJob(job, `${presentations.length}件のPPTXをZIPにまとめました。［ZIPを保存］を押してください。${integrationNote}`, false);
         } else if (data.type === "error") {
           if (worker) worker.terminate();
           worker = null;
@@ -350,13 +376,13 @@
     return HtmlToPptxCore.a4LayoutFromCss(cssText);
   }
 
-  function a4PageCandidates(document, expectedLayout) {
+  function a4PageCandidates(document) {
     const body = document.body;
     if (!body) return [];
     const preferred = Array.from(body.querySelectorAll(".page, [data-page], [role='document'], main"));
     const candidates = Array.from(new Set([...body.children, ...preferred])).filter((element) => {
       const layout = elementA4Layout(element);
-      return layout && (!expectedLayout || layout.id === expectedLayout.id);
+      return Boolean(layout);
     });
     return candidates.filter((candidate) => !candidates.some((other) => other !== candidate && candidate.contains(other)));
   }
@@ -364,22 +390,14 @@
   function resolveConvertiblePages(document) {
     const slides = Array.from(document.querySelectorAll(".slide"));
     if (slides.length > 0) {
-      const inferredLayouts = slides.map(elementA4Layout);
-      const inferred = inferredLayouts[0];
-      const layout = inferred && inferredLayouts.every((item) => item && item.id === inferred.id)
-        ? inferred
-        : HtmlToPptxCore.PRESENTATION_LAYOUTS.wide;
-      return { elements: slides, layout };
+      const layouts = slides.map((slide) => elementA4Layout(slide) || HtmlToPptxCore.PRESENTATION_LAYOUTS.wide);
+      return { elements: slides, layouts };
     }
 
     const authored = authoredA4Layout(document);
-    const candidates = a4PageCandidates(document, authored);
+    const candidates = a4PageCandidates(document);
     if (candidates.length > 0) {
-      const candidateLayouts = candidates.map(elementA4Layout);
-      if (new Set(candidateLayouts.map((layout) => layout.id)).size > 1) {
-        throw new Error("1つのPPTXではページの向きを統一してください。A4縦とA4横は別々のHTMLに分けて変換できます。");
-      }
-      return { elements: candidates, layout: authored || candidateLayouts[0] };
+      return { elements: candidates, layouts: candidates.map(elementA4Layout) };
     }
 
     if (authored && document.body) {
@@ -388,9 +406,9 @@
         const style = document.defaultView.getComputedStyle(element);
         return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
       });
-      if (visibleChildren.length === 1) return { elements: visibleChildren, layout: authored };
+      if (visibleChildren.length === 1) return { elements: visibleChildren, layouts: [authored] };
       const bodyLayout = elementA4Layout(document.body);
-      if (bodyLayout && bodyLayout.id === authored.id) return { elements: [document.body], layout: authored };
+      if (bodyLayout && bodyLayout.id === authored.id) return { elements: [document.body], layouts: [authored] };
     }
 
     throw new Error(".slide 要素、またはA4横・A4縦と判断できるページが見つかりません。@page の size かページ要素の寸法を指定してください。");

@@ -17,6 +17,26 @@ test("PPTX filenames stay unique inside a case-insensitive ZIP", () => {
   );
 });
 
+test("mixed A4 layouts get orientation-specific unique PPTX filenames", () => {
+  assert.equal(core.layoutOutputFileName("report.html", "a4-portrait"), "report-A4縦.pptx");
+  assert.equal(core.layoutOutputFileName("report.html", "a4-landscape"), "report-A4横.pptx");
+  assert.deepEqual(
+    core.uniquePptxFileNames(["report-A4縦.pptx", "REPORT-A4縦.pptx", "report-A4横.pptx"]),
+    ["report-A4縦.pptx", "REPORT-A4縦 (2).pptx", "report-A4横.pptx"]
+  );
+});
+
+test("slides are grouped by page layout while preserving order", () => {
+  const groups = core.groupSlidesByLayout([
+    { layout: "a4-portrait", slide: { id: 1 } },
+    { layout: "a4-landscape", slide: { id: 2 } },
+    { layout: "a4-portrait", slide: { id: 3 } }
+  ]);
+  assert.deepEqual(groups.map((group) => group.layout.id), ["a4-portrait", "a4-landscape"]);
+  assert.deepEqual(groups[0].slides.map((slide) => slide.id), [1, 3]);
+  assert.deepEqual(groups[1].slides.map((slide) => slide.id), [2]);
+});
+
 test("ZIP filename describes single and multiple HTML batches", () => {
   assert.equal(core.zipOutputFileName(["meeting.html"]), "meeting.zip");
   assert.equal(core.zipOutputFileName(["one.html", "two.html"]), "html-to-pptx-2-files.zip");

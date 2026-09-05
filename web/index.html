@@ -23,7 +23,7 @@
       <section class="intro" aria-labelledby="intro-title">
         <p class="kicker">スライド変換</p>
         <h2 id="intro-title">HTMLのスライド束を、<br>編集できるPowerPointへ。</h2>
-        <p>複数のHTMLを順番に読み取り、HTMLごとに1つのPPTXを作成してZIPにまとめます。</p>
+        <p>複数のHTMLを順番に読み取り、PPTXを作成してZIPにまとめます。A4の縦・横が混在するHTMLは向き別に分けます。</p>
         <ol class="flow" aria-label="変換の流れ">
           <li><span>HTML</span><small>読み込み</small></li>
           <li><span>ページ</span><small>サイズ判定</small></li>
@@ -39,6 +39,17 @@
           </div>
           <span class="format-badge">16:9 / A4</span>
         </div>
+
+        <aside class="orientation-notice" aria-labelledby="orientation-notice-title">
+          <p class="kicker">A4の縦・横が混在する場合</p>
+          <h3 id="orientation-notice-title">向き別に出力後、手動で統合</h3>
+          <ol class="orientation-flow" role="list" aria-label="縦横混在時の変換の流れ">
+            <li><strong>ページごと</strong><small>向きを判定</small></li>
+            <li><strong>縦・横別</strong><small>PPTXを生成</small></li>
+            <li><strong>PowerPoint</strong><small>手動で統合</small></li>
+          </ol>
+          <p>PowerPointでは1つのファイル内に縦向きと横向きを混在できません。生成された縦・横のPPTXは、変換後に手動で1つへ統合してください。</p>
+        </aside>
 
         <label class="drop-zone" id="drop-zone" for="html-file">
           <input id="html-file" type="file" accept=".html,.htm,text/html" multiple>

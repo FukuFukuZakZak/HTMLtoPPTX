@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <title>Mixed A4</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; }
+      .slide {
+        display: none;
+        padding: 20mm;
+        font-family: "Yu Gothic UI", sans-serif;
+        background: white;
+      }
+      .slide:first-child { display: block; }
+      .portrait { width: 210mm; height: 297mm; }
+      .landscape { width: 297mm; height: 210mm; }
+    </style>
+  </head>
+  <body>
+    <section class="slide portrait"><h1>縦 1</h1></section>
+    <section class="slide landscape"><h1>横 1</h1></section>
+    <section class="slide portrait"><h1>縦 2</h1></section>
+  </body>
+</html>

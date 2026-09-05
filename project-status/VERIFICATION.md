@@ -4,6 +4,18 @@ Last updated: 2026-09-05
 
 This file is the detailed audit trail. The concise current result is in [`../PROJECT_STATUS.md`](../PROJECT_STATUS.md).
 
+## Mixed-orientation A4 split and workflow notice — 2026-09-05
+
+- Every rendered page now retains its detected layout. Mixed pages are grouped into separate A4 portrait and A4 landscape presentations while preserving their source order within each group.
+- A single mixed HTML produces `元名-A4縦.pptx` and `元名-A4横.pptx` in the ZIP. Case-insensitive duplicate names still receive numeric suffixes.
+- The converter screen presents the required sequence as an ordered, labelled flow: classify each page, generate portrait and landscape PPTX files separately, then combine them manually in PowerPoint. The completion message repeats the manual-combination instruction when both A4 orientations were detected.
+- The notice uses semantic `<aside>` and `<ol role="list">` markup and switches from a horizontal arrow flow to a vertical flow below 480px.
+- `go test ./...`, JavaScript syntax checks, and `npm test` passed (18 JavaScript tests). The worker integration still verifies the exact A4 portrait and landscape OOXML sizes and one PPTX per orientation.
+- The embedded-page Go test guards the notice heading and all three workflow stages; core tests guard layout grouping, order preservation, orientation-specific names, and duplicate-name handling.
+- Headless Microsoft Edge converted `testdata/mixed-a4.html` (portrait, landscape, portrait) into `mixed-a4-A4縦.pptx` with two slides and `mixed-a4-A4横.pptx` with one slide. The test opened the outer ZIP and both PPTX packages, confirmed exact OOXML page sizes, the visible notice, the completion message, and zero page errors.
+- PptxGenJS custom layouts and ArrayBuffer output were rechecked through Context7 (`/gitbrent/pptxgenjs`); JSZip ArrayBuffer insertion and ZIP generation were rechecked through Context7 (`/stuk/jszip`).
+- Modern Web Guidance search returned no direct match; its accessibility catalogue was used to preserve ordered-list semantics with the grid styling. Headless Edge covered functional browser acceptance; interactive Orca visual inspection remained unavailable because its runtime could not be reached.
+
 ## Status structure — 2026-09-05
 
 - The former 211-line status file was split into a short current-state entry point plus completed-history, decision, and verification documents.

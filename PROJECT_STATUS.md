@@ -20,6 +20,7 @@ Step 2 PoC: multi-HTML batch conversion with responsive progress feedback and ZI
 ## Current state
 
 - GitHub Issues #1-#7 are closed.
+- A mixed A4 HTML is classified page by page and split into `元名-A4縦.pptx` and `元名-A4横.pptx` inside the ZIP while preserving page order within each orientation. The converter screen explains that the files must then be combined manually in PowerPoint.
 - Multiple `.html`/`.htm` files can be selected. Each source becomes an independent PPTX, case-insensitive duplicate names receive ` (2)`, ` (3)`, and so on, and every conversion is delivered as one ZIP.
 - Hidden `.slide` elements are measured in isolation and restored. Text extraction preserves authored and rendered line boundaries, inline styles, CSS whitespace, and computed line height as editable PowerPoint text.
 - Embedded scripts remain disabled by default. A trusted-HTML option can execute inline scripts in a network-blocked, opaque-origin sandbox and snapshot the resulting DOM before conversion.
@@ -38,18 +39,17 @@ Step 2 PoC: multi-HTML batch conversion with responsive progress feedback and ZI
 
 ## Next actions
 
-1. Add mixed-orientation handling: classify every A4 page, split portrait and landscape pages into separate PPTX files while preserving order, and show that the outputs must be combined manually after conversion.
-2. Validate the closed Issue #5 against its attached PDF/PPTX pair in Microsoft PowerPoint, focusing on table-cell line order, explicit breaks, boundary containment, and logical edit units.
-3. Open representative A4 portrait and landscape output in Microsoft PowerPoint and confirm page setup and editable-object placement against the source HTML.
-4. Implement Issue #5 stage 3: surface material `fit: shrink` risk, detect/report font fallback where practical, and calibrate remaining PowerPoint-specific line-height differences.
-5. If Issue #6 needs further follow-up, obtain an exact slide/object example and compare the PowerPoint selection UI with OOXML while preserving independent objects.
-6. Resume image conversion while preserving the current Worker progress protocol and explicit shape-before-text z-order.
-7. In a fresh Codex task, confirm the project plugin/MCP profile is reloaded and compare the initial prompt/tool-schema token count with the previous approximately 40,000-token baseline.
+1. Validate the closed Issue #5 against its attached PDF/PPTX pair in Microsoft PowerPoint, focusing on table-cell line order, explicit breaks, boundary containment, and logical edit units.
+2. Open representative mixed A4 output in Microsoft PowerPoint and confirm both page setups, editable-object placement, and the documented manual-combination workflow.
+3. Implement Issue #5 stage 3: surface material `fit: shrink` risk, detect/report font fallback where practical, and calibrate remaining PowerPoint-specific line-height differences.
+4. If Issue #6 needs further follow-up, obtain an exact slide/object example and compare the PowerPoint selection UI with OOXML while preserving independent objects.
+5. Resume image conversion while preserving the current Worker progress protocol and explicit shape-before-text z-order.
+6. In a fresh Codex task, confirm the project plugin/MCP profile is reloaded and compare the initial prompt/tool-schema token count with the previous approximately 40,000-token baseline.
 
 ## Active risks / blockers
 
 - Microsoft PowerPoint-specific compatibility still requires validation on a separate environment; LibreOffice and OOXML checks have passed.
-- PowerPoint uses one page size per presentation. Mixed A4 portrait and landscape pages must be supplied as separate HTML files; batch conversion can place both resulting PPTX files in the same ZIP.
+- PowerPoint uses one page size per presentation. The converter splits mixed A4 portrait and landscape pages into separate PPTX files; the user must combine their slides manually in PowerPoint when one deliverable is required.
 - Gradients, box shadows, pseudo-elements, images, semantic PowerPoint tables, and SVG content are not implemented.
 - Pixel-identical browser-to-PowerPoint text layout cannot be guaranteed while keeping text editable. Issue #5 still needs PowerPoint validation.
 - Font fallback and unsupported Japanese glyph detection are not implemented.
@@ -60,6 +60,7 @@ Step 2 PoC: multi-HTML batch conversion with responsive progress feedback and ZI
 
 ## Latest verification
 
+- Mixed-orientation grouping, output naming, exact A4 OOXML dimensions, and the screen notice are covered by automated tests. `npm test` passes 18 tests, and JavaScript syntax checks plus `go test ./...` pass. Headless Edge also converted the tracked mixed-A4 fixture into portrait and landscape PPTX files with the expected slide counts and sizes.
 - Clean-clone batch build at `7e3fcbf`: `npm test` passed 14 tests; JavaScript syntax checks, `go test ./...`, `go vet ./...`, and the Windows build passed.
 - Browser acceptance converted `testdata/multi-slide.html` and `testdata/hidden-slides.html` together, exposed `html-to-pptx-2-files.zip`, reported `2 / 2 ファイル`, and logged no browser errors or warnings.
 - Tests open the outer ZIP and each nested PPTX. Embedded `/`, `/converter-worker.js`, `/vendor/jszip.min.js`, and `/script-runner.html` returned HTTP 200.

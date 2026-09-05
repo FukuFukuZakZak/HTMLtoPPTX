@@ -70,10 +70,24 @@
     return `${baseName || "presentation"}.pptx`;
   }
 
-  function uniqueOutputFileNames(inputNames) {
+  function layoutOutputFileName(inputName, layout) {
+    const baseName = outputFileName(inputName).slice(0, -".pptx".length);
+    const resolved = presentationLayout(layout);
+    const labels = {
+      "a4-portrait": "A4縦",
+      "a4-landscape": "A4横",
+      wide: "ワイド"
+    };
+    return `${baseName}-${labels[resolved.id] || resolved.id}.pptx`;
+  }
+
+  function uniquePptxFileNames(outputNames) {
     const used = new Set();
-    return Array.from(inputNames || [], (inputName) => {
-      const desired = outputFileName(inputName);
+    return Array.from(outputNames || [], (outputName) => {
+      const sanitized = String(outputName || "presentation.pptx")
+        .replace(/[<>:"/\\|?*\u0000-\u001f]/g, "_")
+        .trim();
+      const desired = /\.pptx$/i.test(sanitized) ? sanitized : `${sanitized || "presentation"}.pptx`;
       const baseName = desired.slice(0, -".pptx".length);
       let candidate = desired;
       let suffix = 2;
@@ -84,6 +98,20 @@
       used.add(candidate.toLowerCase());
       return candidate;
     });
+  }
+
+  function uniqueOutputFileNames(inputNames) {
+    return uniquePptxFileNames(Array.from(inputNames || [], outputFileName));
+  }
+
+  function groupSlidesByLayout(pageSlides) {
+    const groups = new Map();
+    for (const pageSlide of Array.from(pageSlides || [])) {
+      const layout = presentationLayout(pageSlide && pageSlide.layout);
+      if (!groups.has(layout.id)) groups.set(layout.id, { layout, slides: [] });
+      groups.get(layout.id).slides.push(pageSlide && pageSlide.slide);
+    }
+    return Array.from(groups.values());
   }
 
   function zipOutputFileName(inputNames) {
@@ -309,7 +337,10 @@
     a4LayoutFromDimensions,
     a4LayoutFromCss,
     outputFileName,
+    layoutOutputFileName,
+    uniquePptxFileNames,
     uniqueOutputFileNames,
+    groupSlidesByLayout,
     zipOutputFileName,
     hexColor,
     colorOptions,
