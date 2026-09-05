@@ -292,7 +292,25 @@
   }
 
   function showOnlySlideForMeasurement(slides, target, display) {
-    const states = slides.map((slide) => captureElementState(slide));
+    const pageAncestors = [];
+    for (let element = target; element; element = element.parentElement) pageAncestors.push(element);
+    const elements = Array.from(new Set([...slides, ...pageAncestors]));
+    const states = elements.map((element) => captureElementState(element));
+    const view = target.ownerDocument?.defaultView;
+    for (const element of pageAncestors) {
+      if (!view) continue;
+      const style = view.getComputedStyle(element);
+      const transformed = [style.transform, style.translate, style.rotate, style.scale]
+        .some((value) => value && value !== "none");
+      if (transformed) {
+        // Presentation viewers scale their entire page to the current viewport.
+        // Measure the authored page; keep an identity transform so descendants
+        // retain the same containing block and stacking context.
+        element.style.setProperty("transform", "matrix(1, 0, 0, 1, 0, 0)", "important");
+        for (const property of ["translate", "rotate", "scale"]) element.style.setProperty(property, "none", "important");
+      }
+      if (style.zoom && !["normal", "1"].includes(style.zoom)) element.style.setProperty("zoom", "1", "important");
+    }
     slides.forEach((slide) => {
       if (slide === target) {
         slide.removeAttribute("hidden");
@@ -301,7 +319,7 @@
         slide.style.setProperty("display", "none", "important");
       }
     });
-    return () => slides.forEach((slide, index) => restoreElementState(slide, states[index]));
+    return () => elements.forEach((element, index) => restoreElementState(element, states[index]));
   }
 
   function textOptions(item) {
@@ -347,6 +365,8 @@
 
     const fillColor = colorOptions(item.color, "FFFFFF");
     options.fill = fillColor;
+    if (item.rounded && Number.isFinite(item.rectRadius)) options.rectRadius = Math.max(0, item.rectRadius);
+    if (item.kind === "custom" && Array.isArray(item.points)) options.points = item.points;
     if (item.lineColor) {
       const lineColor = colorOptions(item.lineColor, "000000");
       options.line = {

@@ -650,8 +650,11 @@
     const images = [];
     const texts = [];
     const claimedTextNodes = new WeakSet();
+    const elements = [slideElement, ...slideElement.querySelectorAll("*")];
+    const elementOrder = new Map(elements.map((element, index) => [element, index]));
+    const shapeLayers = [];
 
-    for (const element of [slideElement, ...slideElement.querySelectorAll("*")]) {
+    for (const element of elements) {
       const rasterRoot = element.closest("img, canvas, svg");
       if (rasterRoot && rasterRoot !== element) continue;
       const style = view.getComputedStyle(element);
@@ -659,7 +662,9 @@
       if (style.display === "none" || style.visibility === "hidden" || Number(style.opacity) === 0 || rect.width <= 0 || rect.height <= 0 || isVisuallyClipped(style, rect)) continue;
 
       if (element !== slideElement) {
-        extractElementShapes(style, rect, slideRect, scaleX, scaleY, layout, colorReader, shapes);
+        const elementShapes = [];
+        extractElementShapes(style, rect, slideRect, scaleX, scaleY, layout, colorReader, elementShapes);
+        if (elementShapes.length) shapeLayers.push({ key: shapePaintKey(element, slideElement, view, elementOrder), shapes: elementShapes });
         const image = extractElementImage(element, style, rect, slideRect, scaleX, scaleY, layout);
         if (image) images.push(image);
       }
@@ -668,50 +673,72 @@
 
       const isTableCell = ["TD", "TH"].includes(element.tagName);
       if (!isTableCell && !hasInlineText(element, view)) continue;
-      const extracted = extractRenderedText(element, view, colorReader, claimedTextNodes, isTableCell, scaleX, scaleY);
-      const metrics = HtmlToPptxCore.textMetrics(style, scaleX, scaleY);
-      const runs = HtmlToPptxCore.buildTextRuns(extracted.tokens);
-      const plainText = runs.map((run) => `${run.options.softBreakBefore ? "\n" : ""}${run.text}`).join("").replace(/\n+$/, "");
-      if (!plainText) continue;
+      const fragments = extractRenderedText(element, view, colorReader, claimedTextNodes, isTableCell, scaleX, scaleY);
+      for (const extracted of fragments) {
+        const metrics = HtmlToPptxCore.textMetrics(style, scaleX, scaleY);
+        const runs = HtmlToPptxCore.buildTextRuns(extracted.tokens);
+        const plainText = runs.map((run) => `${run.options.softBreakBefore ? "\n" : ""}${run.text}`).join("").replace(/\n+$/, "");
+        if (!plainText) continue;
 
-      const useRenderedBounds = shouldUseRenderedTextBounds(element, style, view, extracted.bounds);
-      const textRect = useRenderedBounds ? extracted.bounds : rect;
-      const paddingLeft = useRenderedBounds ? 0 : Number.parseFloat(style.paddingLeft) || 0;
-      const paddingRight = useRenderedBounds ? 0 : Number.parseFloat(style.paddingRight) || 0;
-      const paddingTop = useRenderedBounds ? 0 : Number.parseFloat(style.paddingTop) || 0;
-      const paddingBottom = useRenderedBounds ? 0 : Number.parseFloat(style.paddingBottom) || 0;
-      let x = (textRect.left + paddingLeft - slideRect.left) * scaleX;
-      const y = (textRect.top + paddingTop - slideRect.top) * scaleY;
-      let width = Math.max(1, textRect.width - paddingLeft - paddingRight) * scaleX;
-      const height = Math.max(1, textRect.height - paddingTop - paddingBottom);
-      if (x >= layout.width || y >= layout.height || x + rect.width * scaleX <= 0 || y + rect.height * scaleY <= 0) continue;
-      const alignment = textBoxAlignment(style);
-      if (!plainText.includes("\n")) {
-        const expandedWidth = width * 1.18;
-        const extraWidth = expandedWidth - width;
-        if (alignment.horizontal === "right") x = Math.max(0, x - extraWidth);
-        else if (alignment.horizontal === "center") x = Math.max(0, x - extraWidth / 2);
-        width = Math.min(expandedWidth, layout.width - x);
+        const useRenderedBounds = extracted.positioned || shouldUseRenderedTextBounds(element, style, view, extracted.bounds);
+        const textRect = useRenderedBounds ? extracted.bounds : rect;
+        const paddingLeft = useRenderedBounds ? 0 : Number.parseFloat(style.paddingLeft) || 0;
+        const paddingRight = useRenderedBounds ? 0 : Number.parseFloat(style.paddingRight) || 0;
+        const paddingTop = useRenderedBounds ? 0 : Number.parseFloat(style.paddingTop) || 0;
+        const paddingBottom = useRenderedBounds ? 0 : Number.parseFloat(style.paddingBottom) || 0;
+        let x = (textRect.left + paddingLeft - slideRect.left) * scaleX;
+        let y = (textRect.top + paddingTop - slideRect.top) * scaleY;
+        let width = Math.max(1, textRect.width - paddingLeft - paddingRight) * scaleX;
+        let height = Math.max(1, textRect.height - paddingTop - paddingBottom);
+        const trimsTextBox = style.textBoxTrim && style.textBoxTrim !== "none";
+        if (trimsTextBox && extracted.bounds) {
+          y = (extracted.bounds.top - slideRect.top) * scaleY;
+          height = extracted.bounds.height;
+        }
+        if (useRenderedBounds || style.display === "inline" || trimsTextBox) {
+          const lineHeight = (extracted.lineSpacing || metrics.lineSpacing || metrics.fontSize * 1.2) / (72 * scaleY);
+          // Range and inline-element rectangles describe glyphs, not line boxes.
+          // Give PowerPoint the CSS line height so fit: shrink cannot collapse it.
+          const extraHeight = Math.max(0, lineHeight - height);
+          y -= extraHeight * scaleY / 2;
+          height += extraHeight;
+        }
+        if (x >= layout.width || y >= layout.height || x + rect.width * scaleX <= 0 || y + rect.height * scaleY <= 0) continue;
+        const alignment = extracted.positioned ? { horizontal: "left", vertical: "top" } : textBoxAlignment(style);
+        if (!plainText.includes("\n")) {
+          const expandedWidth = width * 1.18;
+          const extraWidth = expandedWidth - width;
+          if (alignment.horizontal === "right") x = Math.max(0, x - extraWidth);
+          else if (alignment.horizontal === "center") x = Math.max(0, x - extraWidth / 2);
+          width = Math.min(expandedWidth, layout.width - x);
+        }
+
+        texts.push({
+          text: plainText,
+          runs,
+          x,
+          y,
+          w: Math.min(width, layout.width - Math.max(0, x)),
+          h: Math.min(height * scaleY, layout.height - Math.max(0, y)),
+          fontFace: style.fontFamily.split(",")[0].replace(/["']/g, "").trim(),
+          ...metrics,
+          lineSpacing: extracted.lineSpacing || metrics.lineSpacing,
+          color: colorReader(style.color, Number(style.opacity)),
+          bold: Number.parseInt(style.fontWeight, 10) >= 600,
+          italic: style.fontStyle === "italic",
+          align: alignment.horizontal,
+          valign: alignment.vertical
+        });
       }
-
-      texts.push({
-        text: plainText,
-        runs,
-        x,
-        y,
-        w: Math.min(width, layout.width - Math.max(0, x)),
-        h: Math.min(height * scaleY, layout.height - Math.max(0, y)),
-        fontFace: style.fontFamily.split(",")[0].replace(/["']/g, "").trim(),
-        ...metrics,
-        lineSpacing: extracted.lineSpacing || metrics.lineSpacing,
-        color: colorReader(style.color, Number(style.opacity)),
-        bold: Number.parseInt(style.fontWeight, 10) >= 600,
-        italic: style.fontStyle === "italic",
-        align: alignment.horizontal,
-        valign: alignment.vertical
-      });
     }
 
+    shapeLayers.sort((a, b) => {
+      for (let index = 0; index < Math.min(a.key.length, b.key.length); index++) {
+        if (a.key[index] !== b.key[index]) return a.key[index] - b.key[index];
+      }
+      return a.key.length - b.key.length;
+    });
+    for (const layer of shapeLayers) shapes.push(...layer.shapes);
     const slideBackground = colorReader(view.getComputedStyle(slideElement).backgroundColor, 1);
     return {
       background: HtmlToPptxCore.colorOptions(slideBackground, "FFFFFF").transparency === 100 ? "FFFFFF" : slideBackground,
@@ -719,6 +746,22 @@
       images,
       texts
     };
+  }
+
+  function shapePaintKey(element, slideElement, view, elementOrder) {
+    const key = [];
+    for (let node = element; node && node !== slideElement; node = node.parentElement) {
+      const style = view.getComputedStyle(node);
+      const parentDisplay = node.parentElement ? view.getComputedStyle(node.parentElement).display : "";
+      const positioned = style.position && style.position !== "static";
+      const zIndex = positioned || /flex|grid/.test(parentDisplay) ? Number.parseInt(style.zIndex, 10) : NaN;
+      const createsContext = Number.isFinite(zIndex) || ["fixed", "sticky"].includes(style.position)
+        || Number(style.opacity) < 1 || style.isolation === "isolate"
+        || (style.transform && style.transform !== "none") || (style.filter && style.filter !== "none");
+      if (node === element || createsContext) key.unshift(Number.isFinite(zIndex) ? zIndex : 0, elementOrder.get(node));
+    }
+    // A stacking context's own background precedes even its negative-z children.
+    return [...key, -Infinity];
   }
 
   function isVisuallyClipped(style, rect) {
@@ -842,13 +885,18 @@
         hasDirectText = true;
         continue;
       }
-      const display = view.getComputedStyle(node).display;
+      const childStyle = view.getComputedStyle(node);
+      if (childStyle.display === "none" || ["absolute", "fixed"].includes(childStyle.position)) continue;
+      const display = childStyle.display;
       if (display !== "contents" && !display.startsWith("inline")) hasBlockChild = true;
     }
 
     if (hasDirectText) return true;
     if (hasBlockChild) return false;
-    return [...element.children].some((child) => hasInlineText(child, view));
+    return [...element.children].some((child) => {
+      const childStyle = view.getComputedStyle(child);
+      return childStyle.display !== "none" && !["absolute", "fixed"].includes(childStyle.position) && hasInlineText(child, view);
+    });
   }
 
   function textBoxAlignment(style) {
@@ -880,6 +928,7 @@
     const tokens = [];
     const lineSpacings = [];
     const layoutState = { lineRect: null, previousRect: null, bounds: null };
+    let hasSeparateInlineBoxes = false;
 
     function pushBreak(force) {
       if (tokens.length === 0 || (!force && tokens[tokens.length - 1].break)) return;
@@ -899,14 +948,23 @@
         if (node.nodeType !== view.Node.ELEMENT_NODE) continue;
 
         const childStyle = view.getComputedStyle(node);
-        if (childStyle.display === "none" || childStyle.visibility === "hidden" || Number(childStyle.opacity) === 0) continue;
+        if (childStyle.display === "none" || childStyle.visibility === "hidden" || Number(childStyle.opacity) === 0
+          || ["absolute", "fixed"].includes(childStyle.position)) continue;
         if (node.tagName === "BR") {
           claimedTextNodes.add(node);
           pushBreak(true);
           continue;
         }
 
-        const isInline = childStyle.display === "contents" || childStyle.display.startsWith("inline");
+        // Atomic inline boxes own their width, padding and internal alignment.
+        // Extract them separately, retaining the measured position of each
+        // surrounding line (including lines that wrap back below a badge).
+        if (childStyle.display.startsWith("inline-")) {
+          hasSeparateInlineBoxes = true;
+          pushBreak();
+          continue;
+        }
+        const isInline = childStyle.display === "contents" || childStyle.display === "inline";
         if (!isInline && !allowBlocks) continue;
         if (!isInline) pushBreak();
         visit(node, allowBlocks);
@@ -915,11 +973,26 @@
     }
 
     visit(element, includeBlockDescendants);
-    return {
-      tokens,
-      bounds: layoutState.bounds,
-      lineSpacing: lineSpacings.find((value) => Number.isFinite(value) && value > 0)
-    };
+    const lineSpacing = lineSpacings.find((value) => Number.isFinite(value) && value > 0);
+    if (!hasSeparateInlineBoxes) return [{ tokens, bounds: layoutState.bounds, lineSpacing }];
+
+    const fragments = [];
+    let fragment = { tokens: [], bounds: null, lineSpacing: 0, positioned: true };
+    function finishFragment() {
+      if (fragment.tokens.length && fragment.bounds) fragments.push(fragment);
+      fragment = { tokens: [], bounds: null, lineSpacing: 0, positioned: true };
+    }
+    for (const token of tokens) {
+      if (token.break) {
+        finishFragment();
+      } else {
+        fragment.tokens.push(token);
+        if (token.bounds) fragment.bounds = unionRects(fragment.bounds, token.bounds);
+        fragment.lineSpacing = Math.max(fragment.lineSpacing, token.lineSpacing || 0);
+      }
+    }
+    finishFragment();
+    return fragments;
   }
 
   function appendTextNodeTokens(node, view, colorReader, tokens, lineSpacings, layoutState, pushBreak, scaleX, scaleY) {
@@ -943,9 +1016,11 @@
     if (spacing) lineSpacings.push(spacing);
 
     let buffer = "";
+    let bufferBounds = null;
     function flush() {
-      if (buffer) tokens.push({ text: buffer, whiteSpace, options });
+      if (buffer) tokens.push({ text: buffer, whiteSpace, options, bounds: bufferBounds, lineSpacing: spacing });
       buffer = "";
+      bufferBounds = null;
     }
 
     for (let index = 0; index < rawText.length; index += 1) {
@@ -970,6 +1045,7 @@
         }
         layoutState.lineRect = unionRects(layoutState.lineRect, characterRect);
         layoutState.previousRect = characterRect;
+        bufferBounds = unionRects(bufferBounds, characterRect);
       }
       buffer += character;
     }
@@ -1028,25 +1104,27 @@
       const color = colorReader(style[`border${side}Color`], opacity);
       if (HtmlToPptxCore.colorOptions(color, "000000").transparency === 100) return null;
       const dashType = borderStyle === "dotted" ? "sysDot" : borderStyle === "dashed" ? "dash" : borderStyle === "double" ? "dashDot" : "solid";
-      return { kind: "line", x, y, w, h, color, width: Math.max(0.25, borderWidth * scale * 72), dashType };
+      return { kind: "line", x, y, w, h, color, cssWidth: borderWidth, width: Math.max(0.25, borderWidth * scale * 72), dashType };
     });
 
     const uniformBorder = borders.every(Boolean) && borders.slice(1).every((border) =>
-      border.color === borders[0].color && border.width === borders[0].width && border.dashType === borders[0].dashType
+      border.color === borders[0].color && border.cssWidth === borders[0].cssWidth && border.dashType === borders[0].dashType
     );
     if (hasBackground || uniformBorder) {
+      const geometry = roundedShapeGeometry(style, rect, slideRect, scaleX, scaleY, bounds);
+      if (geometry.kind === "custom" && geometry.points.length < 4) return;
       const shape = {
-        kind: isEllipse(style, rect) ? "ellipse" : "rect",
+        kind: "rect",
         x: left,
         y: top,
         w: width,
         h: height,
         color: background,
-        rounded: Number.parseFloat(style.borderTopLeftRadius) > 0
+        ...geometry
       };
       if (uniformBorder) {
         shape.lineColor = borders[0].color;
-        shape.lineWidth = borders[0].width;
+        shape.lineWidth = borders.reduce((sum, border) => sum + border.width, 0) / borders.length;
         shape.dashType = borders[0].dashType;
       }
       shapes.push(shape);
@@ -1056,6 +1134,54 @@
         if (border) shapes.push(border);
       }
     }
+  }
+
+  function roundedShapeGeometry(style, rect, slideRect, scaleX, scaleY, bounds) {
+    const radii = ["TopLeft", "TopRight", "BottomRight", "BottomLeft"].map((corner) => {
+      const parts = String(style[`border${corner}Radius`] || "0").split(/\s+/);
+      const length = (value, size) => Math.max(0, Number.parseFloat(value) || 0) * (value.endsWith("%") ? size / 100 : 1);
+      return [length(parts[0], rect.width), length(parts[1] || parts[0], rect.height)];
+    });
+    if (radii.every(([rx, ry]) => rx === 0 || ry === 0)) return {};
+    const ratio = Math.min(1,
+      rect.width / (radii[0][0] + radii[1][0]), rect.width / (radii[3][0] + radii[2][0]),
+      rect.height / (radii[0][1] + radii[3][1]), rect.height / (radii[1][1] + radii[2][1]));
+    for (const radius of radii) { radius[0] *= ratio; radius[1] *= ratio; }
+    const clipped = rect.left < slideRect.left || rect.top < slideRect.top || rect.right > slideRect.right || rect.bottom > slideRect.bottom;
+    if (!clipped && isEllipse(style, rect)) return { kind: "ellipse" };
+    const uniform = radii.every(([rx, ry]) => Math.abs(rx - radii[0][0]) < 0.01 && Math.abs(ry - rx) < 0.01);
+    if (!clipped && uniform) return { rounded: true, rectRadius: radii[0][0] * Math.min(scaleX, scaleY) };
+
+    // Clipping a rounded bounding box would reshape the decoration. Clip the
+    // actual contour instead; retain it as an editable native freeform shape.
+    const centers = [[radii[0][0], radii[0][1]], [rect.width - radii[1][0], radii[1][1]],
+      [rect.width - radii[2][0], rect.height - radii[2][1]], [radii[3][0], rect.height - radii[3][1]]];
+    let points = [];
+    for (let corner = 0; corner < 4; corner++) {
+      for (let step = 0; step <= 24; step++) {
+        const angle = Math.PI + corner * Math.PI / 2 + step * Math.PI / 48;
+        points.push({
+          x: (rect.left - slideRect.left + centers[corner][0] + radii[corner][0] * Math.cos(angle)) * scaleX - bounds.x,
+          y: (rect.top - slideRect.top + centers[corner][1] + radii[corner][1] * Math.sin(angle)) * scaleY - bounds.y
+        });
+      }
+    }
+    for (const [axis, limit, sign] of [["x", 0, 1], ["x", bounds.w, -1], ["y", 0, 1], ["y", bounds.h, -1]]) {
+      const output = [];
+      for (let index = 0; index < points.length; index++) {
+        const previous = points[(index + points.length - 1) % points.length];
+        const current = points[index];
+        const previousInside = (previous[axis] - limit) * sign >= 0;
+        const currentInside = (current[axis] - limit) * sign >= 0;
+        if (previousInside !== currentInside) {
+          const fraction = (limit - previous[axis]) / (current[axis] - previous[axis]);
+          output.push({ x: previous.x + fraction * (current.x - previous.x), y: previous.y + fraction * (current.y - previous.y) });
+        }
+        if (currentInside) output.push(current);
+      }
+      points = output;
+    }
+    return { kind: "custom", points: [...points, { close: true }] };
   }
 
   function scaledBounds(rect, slideRect, scaleX, scaleY, layout) {

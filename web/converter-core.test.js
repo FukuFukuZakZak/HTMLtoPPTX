@@ -144,6 +144,40 @@ test("slide measurement state restores class style and hidden attributes", () =>
   assert.equal(second.getAttribute("hidden"), "");
 });
 
+test("measurement neutralizes page viewport transforms and restores all ancestors", () => {
+  const view = { getComputedStyle: (element) => element.computed };
+  function element(css, parentElement, computed) {
+    const attributes = new Map(css === null ? [] : [["style", css]]);
+    const writes = new Map();
+    return {
+      parentElement, computed, ownerDocument: { defaultView: view }, writes,
+      getAttribute: (name) => attributes.get(name) ?? null,
+      setAttribute: (name, value) => attributes.set(name, value),
+      removeAttribute: (name) => attributes.delete(name),
+      style: { setProperty: (name, value, priority) => {
+        writes.set(name, [value, priority]);
+        attributes.set("style", `${attributes.get("style") || ""};${name}:${value} !${priority}`);
+      } }
+    };
+  }
+  for (const transform of ["scale(0.5)", "scale(1.25)", "scale(-0.0833333)", "scale(0)"]) {
+    const parent = element(`transform:${transform} !important`, null, { transform, zoom: "2" });
+    const target = element(null, parent, { scale: "0.5", transform: "none" });
+    const child = element("transform:rotate(15deg)", target, { transform: "rotate(15deg)" });
+    const restore = core.showOnlySlideForMeasurement([target], target, "flex");
+    for (const node of [target, parent]) {
+      assert.deepEqual(node.writes.get("transform"), ["matrix(1, 0, 0, 1, 0, 0)", "important"]);
+      assert.deepEqual(node.writes.get("scale"), ["none", "important"]);
+    }
+    assert.deepEqual(parent.writes.get("zoom"), ["1", "important"]);
+    assert.equal(child.writes.size, 0);
+    restore();
+    assert.equal(parent.getAttribute("style"), `transform:${transform} !important`);
+    assert.equal(target.getAttribute("style"), null);
+    assert.equal(child.getAttribute("style"), "transform:rotate(15deg)");
+  }
+});
+
 test("shape options preserve editable fills and borders", () => {
   assert.deepEqual(core.shapeOptions({ kind: "rect", x: 1, y: 2, w: 3, h: 4, color: "rgba(47, 124, 128, 0.5)" }), {
     x: 1,

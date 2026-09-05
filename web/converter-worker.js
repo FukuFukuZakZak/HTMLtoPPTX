@@ -2,6 +2,22 @@
 
 importScripts("./vendor/pptxgen.bundle.js", "./vendor/jszip.min.js", "./converter-core.js");
 
+async function removeMissingMasterOverrides(buffer) {
+  // PptxGenJS 4.0.1 declares a master for every slide but writes only the
+  // actual master parts. Remove only those stale declarations; leave real
+  // masters, relationships, media and slide content untouched.
+  const archive = await JSZip.loadAsync(buffer);
+  const contentTypes = archive.file("[Content_Types].xml");
+  const xml = await contentTypes.async("string");
+  const corrected = xml.replace(
+    /<Override PartName="\/(ppt\/slideMasters\/slideMaster\d+\.xml)" ContentType="application\/vnd\.openxmlformats-officedocument\.presentationml\.slideMaster\+xml"\s*\/>/g,
+    (declaration, part) => archive.file(part) ? declaration : ""
+  );
+  if (corrected === xml) return buffer;
+  archive.file("[Content_Types].xml", corrected);
+  return archive.generateAsync({ type: "arraybuffer" });
+}
+
 self.onmessage = async function (event) {
   if (!event.data || event.data.type !== "convert-batch") return;
 
@@ -41,7 +57,9 @@ self.onmessage = async function (event) {
         slide.background = { color: model.background };
 
         for (const item of model.shapes) {
-          const shapeType = item.kind === "line"
+          const shapeType = item.kind === "custom"
+            ? pptx.ShapeType.custGeom
+            : item.kind === "line"
             ? pptx.ShapeType.line
             : item.kind === "ellipse"
               ? pptx.ShapeType.ellipse
@@ -83,7 +101,7 @@ self.onmessage = async function (event) {
       }
 
       const pptxBuffer = await pptx.write({ outputType: "arraybuffer" });
-      zip.file(presentation.outputName, pptxBuffer);
+      zip.file(presentation.outputName, await removeMissingMasterOverrides(pptxBuffer));
     }
 
     self.postMessage({ type: "packaging", total });

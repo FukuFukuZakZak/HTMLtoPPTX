@@ -155,6 +155,128 @@ test("normal character spacing and automatic line-height are not turned into inv
   assert.equal(metrics.lineSpacing, undefined);
 });
 
+test("negative-z decorations stay behind content within their own stacking context", () => {
+  const fixture = scene();
+  const background = { backgroundColor: "rgb(0, 0, 0)" };
+  const decoration = fixture.element("SPAN", [20, 20, 100, 100], { ...background, position: "absolute", zIndex: "-1" });
+  const card = fixture.element("DIV", [40, 40, 100, 100], background);
+  const nestedDecoration = fixture.element("SPAN", [80, 80, 100, 100], { ...background, position: "absolute", zIndex: "-2" });
+  const nestedContext = fixture.element("DIV", [60, 60, 200, 200], { ...background, isolation: "isolate" }, [nestedDecoration]);
+  fixture.root.childNodes.push(card, nestedContext, decoration);
+  for (const child of fixture.root.children) child.parentElement = fixture.root;
+  const shapes = extract(fixture).shapes;
+  assert.deepEqual(Array.from(shapes, (shape) => Math.round(shape.x * 96)), [20, 40, 60, 80]);
+});
+
+test("uniform rounded borders remain one outline despite slight A4 axis scaling differences", () => {
+  const fixture = scene(1, "a4-portrait");
+  fixture.root.getBoundingClientRect = () => rect(0, 0, 793.6875, 1122.515625);
+  const style = { backgroundColor: "rgb(0, 0, 0)" };
+  for (const side of ["Top", "Right", "Bottom", "Left"]) {
+    style[`border${side}Width`] = "3px";
+    style[`border${side}Style`] = "solid";
+    style[`border${side}Color`] = "rgb(0, 0, 0)";
+  }
+  for (const corner of ["TopLeft", "TopRight", "BottomRight", "BottomLeft"]) style[`border${corner}Radius`] = "24px";
+  fixture.root.childNodes.push(fixture.element("DIV", [96, 80, 640, 160], style));
+  const shapes = extract(fixture, "a4-portrait").shapes;
+  assert.equal(shapes.length, 1);
+  assert.equal(shapes[0].rounded, true);
+  close(shapes[0].rectRadius, 0.25);
+  assert.ok(shapes[0].lineWidth > 2.2 && shapes[0].lineWidth < 2.3);
+});
+
+test("partly off-page rounded decoration clips its contour without becoming a rectangle", () => {
+  const fixture = scene();
+  const style = { backgroundColor: "rgb(0, 0, 0)", borderTopLeftRadius: "0", borderTopRightRadius: "58%", borderBottomRightRadius: "45%", borderBottomLeftRadius: "0" };
+  fixture.root.childNodes.push(fixture.element("SPAN", [-100, 600, 300, 240], style));
+  const [shape] = extract(fixture).shapes;
+  assert.equal(shape.kind, "custom");
+  assert.ok(shape.points.length > 10);
+  assert.deepEqual(Object.keys(shape.points.at(-1)), ["close"]);
+  const points = shape.points.slice(0, -1);
+  for (const point of points) {
+    assert.ok(point.x >= -1e-8 && point.x <= shape.w + 1e-8);
+    assert.ok(point.y >= -1e-8 && point.y <= shape.h + 1e-8);
+  }
+  assert.ok(!points.some((point) => Math.abs(point.x - shape.w) < 1e-8 && Math.abs(point.y) < 1e-8));
+  const emptyCorner = scene();
+  const circle = { backgroundColor: "rgb(0, 0, 0)" };
+  for (const corner of ["TopLeft", "TopRight", "BottomRight", "BottomLeft"]) circle[`border${corner}Radius`] = "50%";
+  emptyCorner.root.childNodes.push(emptyCorner.element("SPAN", [-190, -190, 200, 200], circle));
+  assert.equal(extract(emptyCorner).shapes.length, 0);
+});
+
+test("an absolute checkbox does not steal the line box from a bold-only list item", () => {
+  const fixture = scene();
+  const checkbox = fixture.element("SPAN", [76, 84, 14, 14], { position: "absolute" }, []);
+  const bold = fixture.element("B", [96, 92, 224, 28], {
+    display: "inline", fontWeight: "700"
+  }, [fixture.text("機密情報を含まない", 96, 92, 28)]);
+  const li = fixture.element("LI", [96, 80, 640, 40], {}, [checkbox, bold]);
+  fixture.root.childNodes.push(li);
+  const [item] = extract(fixture).texts;
+  assert.equal(item.text, "機密情報を含まない");
+  close(item.y, 80 / 96);
+  close(item.h, 40 / 96);
+  assert.ok(item.h * 72 + 1e-6 >= item.lineSpacing);
+  assert.equal(item.runs[0].options.bold, true);
+});
+
+test("inline-block badges retain padding while adjacent wrapped text uses its measured positions", () => {
+  const fixture = scene();
+  const badge = fixture.element("SPAN", [96, 80, 84, 40], {
+    display: "inline-block", paddingLeft: "10px", paddingRight: "10px"
+  }, [fixture.text("不可", 106, 84)]);
+  const emphasis = fixture.element("B", [212, 84, 64, 32], {
+    display: "inline", fontWeight: "700"
+  }, [fixture.text("本文", 212, 84)]);
+  fixture.paragraph([badge, emphasis, fixture.text("続き", 276, 84), fixture.text("次行", 96, 124)]);
+  const items = extract(fixture).texts;
+  assert.equal(items.length, 3);
+  const label = items.find((item) => item.text === "不可");
+  const first = items.find((item) => item.text === "本文続き");
+  const second = items.find((item) => item.text === "次行");
+  close(label.x, 106 / 96);
+  close(first.x, 212 / 96);
+  close(second.x, 96 / 96);
+  close(second.y - first.y, 40 / 96);
+  assert.ok(first.h * 72 + 1e-6 >= first.lineSpacing);
+  assert.equal(first.runs[0].options.bold, true);
+  assert.equal(first.runs[1].options.bold, false);
+});
+
+test("fixed-width metadata and table badges are not flattened into surrounding text", () => {
+  const fixture = scene();
+  const label = fixture.element("B", [96, 80, 192, 40], {
+    display: "inline-block", fontWeight: "700"
+  }, [fixture.text("対象", 96, 84)]);
+  fixture.paragraph([label, fixture.text("全職員", 288, 84)]);
+  const badge = fixture.element("SPAN", [106, 290, 180, 40], {
+    display: "inline-block", paddingLeft: "10px", paddingRight: "10px"
+  }, [fixture.text("機密性3A", 116, 294)]);
+  const td = fixture.element("TD", [96, 280, 240, 60], {
+    paddingLeft: "10px", paddingTop: "10px"
+  }, [badge]);
+  fixture.root.childNodes.push(td);
+  const items = extract(fixture).texts;
+  assert.equal(items.length, 3);
+  close(items.find((item) => item.text === "全職員").x, 288 / 96);
+  close(items.find((item) => item.text === "機密性3A").x, 116 / 96);
+});
+
+test("CSS text-box trimming keeps readable font size inside a full PowerPoint line box", () => {
+  const fixture = scene();
+  const p = fixture.element("P", [96, 96, 480, 20], {
+    textBoxTrim: "trim-both", paddingTop: "4px", paddingBottom: "4px"
+  }, [fixture.text("香南市からのお知らせ", 96, 88)]);
+  fixture.root.childNodes.push(p);
+  const [item] = extract(fixture).texts;
+  close(item.fontSize, 24);
+  close(item.h, 40 / 96);
+  close(item.y, 84 / 96);
+});
+
 test("PPTX retains measured font sizes, line spacing and positive/negative letter spacing as editable text", async () => {
   const fixture = scene(2);
   const emphasis = fixture.element("STRONG", [160, 88, 96, 48], {

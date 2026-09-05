@@ -1,6 +1,6 @@
 # Architecture and product decisions
 
-Last updated: 2026-09-05
+Last updated: 2026-09-06
 
 These are durable choices. Active work and exceptions belong in [`../PROJECT_STATUS.md`](../PROJECT_STATUS.md).
 
@@ -9,6 +9,9 @@ These are durable choices. Active work and exceptions belong in [`../PROJECT_STA
 - Keep DOM measurement on the browser main thread and yield between slides; perform PPTX construction and ZIP compression in a Web Worker.
 - Treat measured browser bounding boxes and computed styles as the starting point. Add semantic normalization only for verified cross-renderer differences.
 - Preserve solid CSS fills and borders as native PowerPoint shapes and add them before text so content remains editable and readable.
+- Order background shapes by their stacking contexts, z-index and document order; keep a context's descendants together so a negative-z pseudo-element cannot cover later foreground backgrounds. This is background ordering, not a complete CSS paint engine for interleaved text and images.
+- Compare uniform borders in CSS pixels before page-axis conversion, avoiding false separate edges from A4 rounding. Carry the measured radius into native roundRect shapes; use clipped native freeform contours for asymmetric or partially off-page rounded decoration instead of resizing its bounding box. Approximate curved freeform edges with 24 segments per corner.
+- Normalize page-level viewer transforms and zoom only during measurement, including the page root and its ancestors. Use an identity transform to preserve containing blocks and stacking contexts, leave transformations inside the page alone, and restore original attributes afterward. Output uses authored page dimensions rather than a viewport-dependent display scale.
 - Use each detected presentation layout as the clipping boundary; never clip A4 portrait content against widescreen constants.
 - Wait for document fonts and images before measurement. Embed loaded `img` elements as PNG snapshots that retain CSS `object-fit`/`object-position`, preserve `canvas` pixels and inline SVG data, and skip unreadable or canvas-tainting sources without failing the rest of the deck.
 - Materialize visible CSS `::before` and `::after` content as measured proxy elements, then suppress the originals so pseudo-element decoration and text are extracted once.
@@ -16,6 +19,9 @@ These are durable choices. Active work and exceptions belong in [`../PROJECT_STA
 - Reserve a small width tolerance for browser-single-line text because PowerPoint and Chromium font metrics differ; keep the measured origin stable for left alignment and compensate the origin for centered or right-aligned text.
 - Convert computed CSS colors to sRGB in the browser instead of parsing every current CSS color syntax in the Worker.
 - Keep generated PowerPoint objects ungrouped. Favor one editable text object per logical DOM element; table cells own their descendant text so each cell remains independently editable.
+- Preserve atomic inline boxes (inline-block/flex/grid) as separate editable objects because their width and padding position adjacent text. Split surrounding text only at those boxes and measured line boundaries; ordinary inline emphasis stays in rich-text runs. Absolutely positioned pseudo-element proxies do not determine the owning paragraph's line box.
+- Use a full CSS line-height box for glyph-only Range/inline bounds and text-box-trimmed text to avoid unintended PowerPoint autofit collapse. Preserve measured glyph placement when reconstructing that box.
+- Normalize only nonexistent slide-master content-type overrides emitted by pinned PptxGenJS 4.0.1. Keep actual master parts, relationships and slide/media data intact; regression-check all declared parts in generated multi-slide packages.
 - Use PptxGenJS `softBreakBefore` for authored and rendered soft line boundaries because version 4.0.1 serializes it as `<a:br/>`; `breakLine` creates a separate `<a:p>` paragraph.
 
 ## Input and fidelity contract
