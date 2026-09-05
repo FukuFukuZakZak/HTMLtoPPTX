@@ -19,7 +19,7 @@
       <p class="local-note"><span aria-hidden="true"></span>このPC内だけで変換</p>
     </header>
 
-    <main class="workspace">
+    <main class="workspace" id="file-workspace">
       <section class="intro" aria-labelledby="intro-title">
         <p class="kicker">スライド変換</p>
         <h2 id="intro-title">HTMLのスライド束を、<br>編集できるPowerPointへ。</h2>
@@ -61,8 +61,16 @@
         <ul class="input-contract" aria-label="対応するHTMLの条件">
           <li><code>.slide</code>、またはA4横・A4縦と判断できるページを含む</li>
           <li>A4は <code>@page</code> の <code>size</code> またはページ要素の寸法から判定</li>
-          <li>スクリプトは既定で実行しません（信頼できるHTMLのみ任意で実行できます）</li>
+          <li>読み込み後に追加表示される内容は、作成元を確認できるHTMLに限り任意で反映できます</li>
         </ul>
+
+        <button class="mode-button" id="open-editor-button" type="button" aria-controls="editor-workspace">
+          <span>
+            <strong>HTMLコードを貼り付けて変換</strong>
+            <small>ファイルを保存できない場合はこちら</small>
+          </span>
+          <span aria-hidden="true">→</span>
+        </button>
 
         <div class="file-row" id="file-row" hidden>
           <span class="file-type" aria-hidden="true">HTML</span>
@@ -72,13 +80,25 @@
           </span>
         </div>
 
-        <label class="script-option" for="execute-scripts">
-          <input id="execute-scripts" type="checkbox">
-          <span>
-            <strong>埋め込みスクリプトを実行して変換</strong>
-            <small>信頼できるHTML専用です。外部通信を遮断した隔離環境で実行します。</small>
-          </span>
-        </label>
+        <section class="script-setting" aria-label="追加表示される内容の変換設定">
+          <label class="script-option" for="execute-scripts">
+            <input id="execute-scripts" type="checkbox" aria-describedby="execute-scripts-description file-script-notice">
+            <span>
+              <strong>HTMLを開いたときに追加表示される内容も反映する</strong>
+              <small id="execute-scripts-description">メニューやグラフなどをPowerPointにも含めます。</small>
+            </span>
+          </label>
+          <p class="script-notice" id="file-script-notice" role="status" aria-live="polite" hidden></p>
+          <details class="script-help">
+            <summary><span class="help-mark" aria-hidden="true">?</span>この設定について</summary>
+            <div class="script-help-body">
+              <p>オンにすると、HTML内のプログラム（JavaScript）をこのツールの隔離領域で実行します。</p>
+              <p><strong>オンにしてよい例</strong> 自分で作成したHTML、庁内で作成され、作成元を確認できるHTML</p>
+              <p><strong>オフにする例</strong> メール添付や外部サイトから取得したHTML、作成元が分からないHTML、判断に迷うHTML</p>
+              <p>オンの場合も外部通信は遮断されます。</p>
+            </div>
+          </details>
+        </section>
 
         <div class="actions">
           <button class="primary-button" id="convert-button" type="button" disabled>
@@ -107,6 +127,95 @@
         </section>
 
         <p class="message" id="message" role="status" aria-live="polite"></p>
+      </section>
+    </main>
+
+    <main class="editor-workspace" id="editor-workspace" hidden>
+      <div class="editor-heading">
+        <div>
+          <p class="kicker">HTML貼り付け変換</p>
+          <h2 id="editor-title">コードを貼り付けて、見た目を確認</h2>
+          <p>左側にHTMLコードを貼り付けると、右側のプレビューが自動更新されます。</p>
+        </div>
+        <button class="back-button" id="back-to-file-button" type="button" aria-controls="file-workspace">
+          ← ファイル変換へ戻る
+        </button>
+      </div>
+
+      <div class="editor-grid" aria-labelledby="editor-title">
+        <section class="editor-pane" aria-labelledby="html-editor-label">
+          <div class="pane-heading">
+            <div>
+              <p class="kicker">HTMLコード</p>
+              <h3 id="html-editor-label">貼り付け欄</h3>
+            </div>
+            <span id="editor-size">0 B</span>
+          </div>
+          <textarea id="html-editor" name="html-code" spellcheck="false" aria-describedby="html-editor-help" placeholder="ここにAIなどで生成したHTMLコードを貼り付けてください"></textarea>
+          <p class="pane-help" id="html-editor-help">入力内容はこのPC内だけで処理され、ファイルとして保存しなくても変換できます。</p>
+        </section>
+
+        <section class="editor-pane preview-pane" aria-labelledby="html-preview-label">
+          <div class="pane-heading">
+            <div>
+              <p class="kicker">HTMLプレビュー</p>
+              <h3 id="html-preview-label">表示イメージ</h3>
+            </div>
+            <span>スクリプト停止</span>
+          </div>
+          <iframe id="html-preview" title="貼り付けたHTMLのプレビュー" sandbox="" referrerpolicy="no-referrer"></iframe>
+          <p class="pane-help">プレビューでは安全のためスクリプトを実行しません。変換時は下の設定を使用します。</p>
+        </section>
+      </div>
+
+      <section class="editor-conversion" aria-label="貼り付けHTMLの変換操作">
+        <section class="script-setting" aria-label="追加表示される内容の変換設定">
+          <label class="script-option" for="editor-execute-scripts">
+            <input id="editor-execute-scripts" type="checkbox" aria-describedby="editor-execute-scripts-description editor-script-notice">
+            <span>
+              <strong>HTMLを開いたときに追加表示される内容も反映する</strong>
+              <small id="editor-execute-scripts-description">メニューやグラフなどをPowerPointにも含めます。プレビューには反映されません。</small>
+            </span>
+          </label>
+          <p class="script-notice" id="editor-script-notice" role="status" aria-live="polite" hidden></p>
+          <details class="script-help">
+            <summary><span class="help-mark" aria-hidden="true">?</span>この設定について</summary>
+            <div class="script-help-body">
+              <p>オンにすると、HTML内のプログラム（JavaScript）をこのツールの隔離領域で実行します。</p>
+              <p><strong>オンにしてよい例</strong> 自分で作成したHTML、庁内で作成され、作成元を確認できるHTML</p>
+              <p><strong>オフにする例</strong> メール添付や外部サイトから取得したHTML、作成元が分からないHTML、判断に迷うHTML</p>
+              <p>オンの場合も外部通信は遮断されます。</p>
+            </div>
+          </details>
+        </section>
+
+        <div class="editor-actions">
+          <button class="primary-button" id="editor-convert-button" type="button" disabled>
+            PPTXへ変換
+            <span aria-hidden="true">→</span>
+          </button>
+          <a class="download-button" id="editor-download-link" hidden>
+            ZIPを保存
+            <span aria-hidden="true">↓</span>
+          </a>
+        </div>
+
+        <section class="progress-card" id="editor-progress-card" aria-labelledby="editor-progress-title" hidden>
+          <div class="progress-copy">
+            <div>
+              <p class="kicker" id="editor-progress-title">変換状況</p>
+              <strong id="editor-progress-label">準備しています</strong>
+            </div>
+            <span id="editor-progress-count">0 / 0 枚</span>
+          </div>
+          <progress id="editor-conversion-progress" max="1" aria-describedby="editor-progress-detail"></progress>
+          <div class="progress-footer" role="status" aria-live="polite" aria-atomic="true">
+            <span id="editor-progress-detail">HTMLを読み取っています</span>
+            <button class="text-button" id="editor-cancel-button" type="button">キャンセル</button>
+          </div>
+        </section>
+
+        <p class="message" id="editor-message" role="status" aria-live="polite"></p>
       </section>
     </main>
 

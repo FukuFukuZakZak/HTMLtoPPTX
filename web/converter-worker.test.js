@@ -21,7 +21,19 @@ test("worker creates one PPTX per presentation inside one ZIP", async () => {
   delete require.cache[workerPath];
   require(workerPath);
 
-  const slide = { background: "FFFFFF", shapes: [], texts: [] };
+  const slide = {
+    background: "FFFFFF",
+    shapes: [{ kind: "ellipse", x: 1, y: 1, w: 1, h: 1, color: "008F80" }],
+    images: [{
+      data: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAF/gL+XwV+AAAAAElFTkSuQmCC",
+      x: 2,
+      y: 1,
+      w: 1,
+      h: 1,
+      altText: "sample image"
+    }],
+    texts: []
+  };
   await global.self.onmessage({
     data: {
       type: "convert-batch",
@@ -54,6 +66,10 @@ test("worker creates one PPTX per presentation inside one ZIP", async () => {
     assert.ok(pptx.file("ppt/presentation.xml"));
     assert.ok(pptx.file("ppt/slides/slide1.xml"));
     assert.equal(pptx.file("ppt/slides/slide2.xml"), null);
+    const slideXml = await pptx.file("ppt/slides/slide1.xml").async("string");
+    assert.match(slideXml, /<a:prstGeom prst="ellipse"/);
+    assert.match(slideXml, /<p:pic>/);
+    assert.ok(Object.keys(pptx.files).some((path) => path.startsWith("ppt/media/image-")));
     if (expectedSize) {
       const presentationXml = await pptx.file("ppt/presentation.xml").async("string");
       assert.match(presentationXml, new RegExp(`<p:sldSz cx="${expectedSize[0]}" cy="${expectedSize[1]}"`));

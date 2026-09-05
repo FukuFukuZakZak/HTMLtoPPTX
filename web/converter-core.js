@@ -22,6 +22,21 @@
     return PRESENTATION_LAYOUTS[id] || PRESENTATION_LAYOUTS.wide;
   }
 
+  function hasExecutableScripts(html) {
+    const openingTag = /<script\b([^>]*)>/gi;
+    let match;
+    while ((match = openingTag.exec(String(html || ""))) !== null) {
+      const typeAttribute = match[1].match(/\btype\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/i);
+      if (!typeAttribute) return true;
+      const type = String(typeAttribute[1] || typeAttribute[2] || typeAttribute[3] || "")
+        .split(";", 1)[0]
+        .trim()
+        .toLowerCase();
+      if (!type || type === "module" || /^(?:text|application)\/(?:java|ecma)script$/.test(type)) return true;
+    }
+    return false;
+  }
+
   function a4LayoutFromDimensions(width, height, tolerance) {
     const measuredWidth = Number(width);
     const measuredHeight = Number(height);
@@ -274,7 +289,7 @@
       bold: Boolean(item.bold),
       italic: Boolean(item.italic),
       align: ["left", "center", "right", "justify"].includes(item.align) ? item.align : "left",
-      valign: "top",
+      valign: ["top", "middle", "bottom"].includes(item.valign) ? item.valign : "top",
       margin: 0,
       fit: "shrink"
     };
@@ -325,6 +340,7 @@
     return slides.map((slide) => ({
       background: hexColor(slide.background, "FFFFFF"),
       shapes: Array.isArray(slide.shapes) ? slide.shapes : [],
+      images: Array.isArray(slide.images) ? slide.images : [],
       texts: Array.isArray(slide.texts) ? slide.texts : []
     }));
   }
@@ -334,6 +350,7 @@
     SLIDE_HEIGHT_IN,
     PRESENTATION_LAYOUTS,
     presentationLayout,
+    hasExecutableScripts,
     a4LayoutFromDimensions,
     a4LayoutFromCss,
     outputFileName,

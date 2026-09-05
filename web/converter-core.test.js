@@ -1,5 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
 const JSZip = require("jszip");
 const PptxGenJS = require("pptxgenjs");
 const core = require("./converter-core.js");
@@ -8,6 +10,25 @@ test("HTML filename becomes a safe PPTX filename", () => {
   assert.equal(core.outputFileName("meeting.HTML"), "meeting.pptx");
   assert.equal(core.outputFileName("bad:name.html"), "bad_name.pptx");
   assert.equal(core.outputFileName(""), "presentation.pptx");
+});
+
+test("executable scripts are distinguished from static data scripts", () => {
+  assert.equal(core.hasExecutableScripts("<script>document.body.append('menu')</script>"), true);
+  assert.equal(core.hasExecutableScripts('<script type="">document.body.append("menu")</script>'), true);
+  assert.equal(core.hasExecutableScripts("<script type=\"module\">document.body.append('chart')</script>"), true);
+  assert.equal(core.hasExecutableScripts("<script type=\"application/ld+json\">{}</script>"), false);
+  assert.equal(core.hasExecutableScripts("<main>static content</main>"), false);
+});
+
+test("the actual AI guideline training HTML is detected as dynamic content", (t) => {
+  const fixture = path.join(__dirname, "..", "test-data", "香南市生成AIガイドライン研修_投影スライド案_文字多め版.html");
+  if (!fs.existsSync(fixture)) {
+    t.skip("user-owned test-data fixture is not present in this checkout");
+    return;
+  }
+  const html = fs.readFileSync(fixture, "utf8");
+  assert.equal(core.hasExecutableScripts(html), true);
+  assert.match(html, /document\.querySelectorAll\('\[id\^="agenda-"\]'\)/);
 });
 
 test("PPTX filenames stay unique inside a case-insensitive ZIP", () => {
@@ -141,6 +162,11 @@ test("shape options preserve editable fills and borders", () => {
   }).line, { color: "2F7C80", transparency: 0, width: 2, dashType: "solid" });
 });
 
+test("text options preserve supported vertical alignment", () => {
+  assert.equal(core.textOptions({ valign: "middle" }).valign, "middle");
+  assert.equal(core.textOptions({ valign: "unsupported" }).valign, "top");
+});
+
 test("PptxGenJS writes extracted fills and borders into OOXML", async () => {
   const pptx = new PptxGenJS();
   pptx.layout = "LAYOUT_WIDE";
@@ -182,13 +208,15 @@ test("PptxGenJS writes rich text breaks without nested group shapes", async () =
 
 test("slide validation preserves every slide in order", () => {
   const slides = core.validateSlides([
-    { background: "rgb(255, 255, 255)", texts: [{ text: "one" }] },
+    { background: "rgb(255, 255, 255)", images: [{ data: "data:image/png;base64,AA==" }], texts: [{ text: "one" }] },
     { background: "rgb(0, 0, 0)", texts: [{ text: "two" }] }
   ]);
   assert.equal(slides.length, 2);
   assert.equal(slides[0].texts[0].text, "one");
   assert.equal(slides[1].texts[0].text, "two");
   assert.deepEqual(slides[0].shapes, []);
+  assert.equal(slides[0].images.length, 1);
+  assert.deepEqual(slides[1].images, []);
 });
 
 test("an empty slide list gives an actionable error", () => {

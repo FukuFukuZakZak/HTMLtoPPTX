@@ -31,6 +31,32 @@ func TestEmbeddedWebUI(t *testing.T) {
 	if !strings.Contains(string(body), `id="html-file" type="file" accept=".html,.htm,text/html" multiple`) {
 		t.Fatal("HTML file input does not allow multiple files")
 	}
+	for _, fragment := range []string{
+		`id="open-editor-button"`,
+		`id="editor-workspace" hidden`,
+		`id="html-editor"`,
+		`id="html-preview"`,
+		`id="editor-convert-button"`,
+		`id="editor-download-link"`,
+		`id="file-script-notice"`,
+		`id="editor-script-notice"`,
+		"HTMLを開いたときに追加表示される内容も反映する",
+		"この設定について",
+		"作成元を確認できるHTML",
+		"外部通信は遮断されます",
+	} {
+		if !strings.Contains(string(body), fragment) {
+			t.Errorf("pasted HTML conversion UI is missing %q", fragment)
+		}
+	}
+	for _, confusingLabel := range []string{"信頼できるHTML", "埋め込みスクリプトを実行して変換"} {
+		if strings.Contains(string(body), confusingLabel) {
+			t.Errorf("embedded page still exposes technical wording %q", confusingLabel)
+		}
+	}
+	if !strings.Contains(string(body), `id="html-preview" title="貼り付けたHTMLのプレビュー" sandbox=""`) {
+		t.Fatal("HTML preview is not sandboxed")
+	}
 	if !strings.Contains(string(body), `id="orientation-notice-title"`) ||
 		!strings.Contains(string(body), "ページごと") ||
 		!strings.Contains(string(body), "縦・横別") ||

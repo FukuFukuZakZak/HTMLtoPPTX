@@ -4,6 +4,50 @@ Last updated: 2026-09-05
 
 This file is the detailed audit trail. The concise current result is in [`../PROJECT_STATUS.md`](../PROJECT_STATUS.md).
 
+## Plain-language script-setting guidance — 2026-09-05
+
+- Replaced the technical “run embedded scripts / trusted HTML” label with the effect-based wording “reflect content added when the HTML opens,” plus a short example covering menus and charts.
+- Added a keyboard-accessible native disclosure with a question-mark cue. It explains isolated JavaScript execution, examples that may be enabled (self-created or confirmed in-house sources), examples that should remain disabled (mail attachments, external or unknown sources, and uncertain cases), and the blocked-network boundary.
+- HTML files and pasted content are checked for executable `<script>` elements without running them. When one is present and the option is off, an ARIA live warning explains that menus or charts may be omitted; the checkbox is not enabled automatically. Data-only scripts such as JSON-LD do not trigger the warning.
+- The JavaScript regression reads the actual user-owned `test-data/香南市生成AIガイドライン研修_投影スライド案_文字多め版.html`, confirms that its agenda-population code is present, and classifies it as requiring the optional runtime-content path. The fixture was read only and not modified.
+- `npm test` passed 21 tests; `go test ./...`, `go vet ./...`, syntax checks for `web/app.js` and `web/converter-core.js`, and all pre-commit hooks passed.
+- The required Modern Web Guidance search was attempted for accessible checkbox help, disclosure, and dynamic warnings, but the local command returned no guidance. The implementation therefore uses the native `<details>/<summary>` disclosure and existing project accessibility patterns. No Context7 lookup was required because no external library or dependency API changed.
+- A fresh visible-browser conversion is still required to confirm the warning interaction and the 12 populated sidebar agendas together. The earlier accepted browser run already converted this exact 12-slide fixture successfully with script execution enabled.
+- The user authorized the fresh browser retest. `orca status --json` twice reported the runtime as `starting` and unreachable, while `orca computer capabilities --json` returned `Could not connect to the running Orca app. Restart Orca and try again.` No browser action was attempted after that tool-required stop condition.
+- At the user's request, the retry switched away from Orca and explicitly requested Chrome. The computer-use provider returned `Browser is not available: chrome`; its inventory showed only the Codex in-app browser, so no file upload or conversion was attempted. The temporary local converter server was stopped cleanly.
+- The user then requested the Codex in-app browser. The converter started successfully on a fresh loopback port, but the browser security prompt reported that permission to access the local URL was declined. In accordance with the browser-use stop condition, no retry, alternate surface, or indirect browser automation was attempted; the temporary server was stopped cleanly.
+- Graphify was refreshed through its recorded Python environment after the code change; the updated graph contains 314 nodes, 658 edges, and 16 communities.
+
+## Smartphone flyer conversion fidelity — 2026-09-05
+
+- Real browser acceptance selected both user-owned files in `test-data` together and exercised the visible file chooser, DOM measurement, Worker conversion, ZIP packaging, and save flow. It completed at `2 / 2 PPTX` and 13 total slides.
+- `test-data/2026スマホ教室.html` produced one exact A4 portrait PPTX (`7560000 x 10692000` EMU). Rendered output retains the complete lower footer, decorative background shapes, section rules, rounded course cards, elliptical badges, flex/grid centering, single-line capacity text, and separated telephone badge/number. Visually clipped `時間` and `会場` accessibility labels no longer appear as vertical text.
+- The source HTML references `assets/smartphone-class-irasutoya.png`, but no such asset is present under `test-data` and the browser upload contains only the HTML file. The absent hero illustration is therefore a missing/unselected-input limitation rather than a remaining embedded-image conversion failure.
+- `test-data/香南市生成AIガイドライン研修_投影スライド案_文字多め版.html` produced one 12-slide widescreen PPTX. A rendered 3-by-4 montage was inspected for every slide; sidebars, tables, two-column content, rules, page numbering, and footer placement remained intact.
+- Both generated PPTX files passed the presentation overflow checker with `No overflow detected`. All 13 slides also rendered successfully to PNG.
+- `npm test` passed 19 tests. The worker integration asserts an OOXML ellipse, `<p:pic>`, and packaged `ppt/media/image-*`; core tests cover image-model preservation and supported vertical alignment. `go test ./...`, `go vet ./...`, JavaScript syntax checks, `git diff --check`, and `uv tool run pre-commit run --all-files` passed.
+- PptxGenJS documentation was consulted through Context7 (`/gitbrent/pptxgenjs`) for `addImage` data URLs and image sizing/cropping behavior. Modern Web Guidance was consulted before modifying browser-side HTML/CSS extraction behavior.
+- Better Code Review Graph identified `web/app.js` as the broad impact boundary. Review and regression testing therefore covered both the one-page A4 portrait flyer and all 12 existing widescreen slides.
+- `graphify update .` was run through the interpreter recorded in `graphify-out/.graphify_python` because the shell alias was unavailable; it rebuilt the graph to 308 nodes, 648 edges, and 16 communities.
+
+## Existing file-upload regression after paste mode — 2026-09-05
+
+- Tested the original file-selection control in the running embedded web app. Each case selected a real on-disk HTML file through the browser file chooser, confirmed the enabled conversion button, completed the conversion, and saved the generated ZIP.
+- Landscape: `testdata/multi-slide.html` produced `multi-slide.zip` containing `multi-slide.pptx`; the PPTX has 3 slides and widescreen dimensions `12192000 x 6858000` EMU.
+- Portrait: user-owned `test-data/2026スマホ教室.html` produced `2026スマホ教室.zip` containing one 1-slide PPTX with exact A4 portrait dimensions `7560000 x 10692000` EMU.
+- Mixed: `testdata/mixed-a4.html` produced `mixed-a4.zip` containing `mixed-a4-A4縦.pptx` (2 slides, `7560000 x 10692000` EMU, only `縦 1` and `縦 2`) and `mixed-a4-A4横.pptx` (1 slide, `10692000 x 7560000` EMU, only `横 1`).
+- The mixed completion message reported two PPTX files and repeated the manual PowerPoint integration instruction. Browser diagnostics contained no errors or warnings across the three conversions.
+
+## Direct HTML paste mode — 2026-09-05
+
+- Added a separate lightweight screen with a labelled plain textarea, a debounced right-hand iframe preview, a return-to-file button, conversion settings, progress/cancellation controls, and a ZIP save action. No code-editor package or other runtime dependency was added.
+- Pasted content becomes an in-memory `貼り付けHTML.html` `File` and calls the same `startConversion` path as selected files. Both screens therefore share DOM measurement, optional trusted-script snapshotting, page/layout detection, Worker conversion, cancellation, and ZIP delivery.
+- The preview iframe has no sandbox capabilities and receives a deny-by-default CSP. Scripts, connections, forms, child frames, objects, and base-URL changes are blocked; inline styles and `data:`/`blob:` visual assets remain available for local preview.
+- Browser acceptance pasted a 1600 x 900 Japanese `.slide`, observed `貼り付け変換テスト` in the preview and `347 B` in the size display, completed conversion, and exposed `貼り付けHTML.zip`. Switching back to file mode preserved the same save link.
+- `npm test` passed 18 tests; `go test ./...`, `go vet ./...`, JavaScript syntax checks, `git diff --check`, and `uv tool run pre-commit run --all-files` passed. The embedded-page test asserts the paste controls and script-disabled preview sandbox; Better Code Review Graph's heuristic security scan reported zero findings.
+- Modern Web Guidance was consulted for accessible form labelling, focus visibility, textarea resizing, and responsive split-pane behavior. No Context7 consultation was required because the implementation uses only standard browser APIs and existing repository dependencies.
+- Better Code Review Graph identified the shared conversion function as the broad impact boundary; review focused on the two UI adapters, active-job locking, cancellation, and shared Blob URL lifecycle. Graphify refreshed the repository graph to 291 nodes, 615 edges, and 17 communities.
+
 ## Mixed-orientation A4 split and workflow notice — 2026-09-05
 
 - Every rendered page now retains its detected layout. Mixed pages are grouped into separate A4 portrait and A4 landscape presentations while preserving their source order within each group.

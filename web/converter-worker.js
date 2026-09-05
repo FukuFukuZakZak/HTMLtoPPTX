@@ -41,8 +41,26 @@ self.onmessage = async function (event) {
         slide.background = { color: model.background };
 
         for (const item of model.shapes) {
-          const shapeType = item.kind === "line" ? pptx.ShapeType.line : item.rounded ? pptx.ShapeType.roundRect : pptx.ShapeType.rect;
+          const shapeType = item.kind === "line"
+            ? pptx.ShapeType.line
+            : item.kind === "ellipse"
+              ? pptx.ShapeType.ellipse
+              : item.rounded
+                ? pptx.ShapeType.roundRect
+                : pptx.ShapeType.rect;
           slide.addShape(shapeType, HtmlToPptxCore.shapeOptions(item));
+        }
+
+        for (const item of model.images) {
+          if (!item.data) continue;
+          slide.addImage({
+            data: item.data,
+            x: Math.max(0, Number(item.x) || 0),
+            y: Math.max(0, Number(item.y) || 0),
+            w: Math.max(0, Number(item.w) || 0),
+            h: Math.max(0, Number(item.h) || 0),
+            altText: item.altText || ""
+          });
         }
 
         for (const item of model.texts) {

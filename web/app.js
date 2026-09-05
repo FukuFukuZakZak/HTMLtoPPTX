@@ -16,11 +16,64 @@
   const progressDetail = document.getElementById("progress-detail");
   const cancelButton = document.getElementById("cancel-button");
   const message = document.getElementById("message");
+  const fileScriptNotice = document.getElementById("file-script-notice");
   const renderHost = document.getElementById("render-host");
+  const fileWorkspace = document.getElementById("file-workspace");
+  const editorWorkspace = document.getElementById("editor-workspace");
+  const openEditorButton = document.getElementById("open-editor-button");
+  const backToFileButton = document.getElementById("back-to-file-button");
+  const htmlEditor = document.getElementById("html-editor");
+  const htmlPreview = document.getElementById("html-preview");
+  const editorSize = document.getElementById("editor-size");
+  const editorExecuteScripts = document.getElementById("editor-execute-scripts");
+  const editorConvertButton = document.getElementById("editor-convert-button");
+  const editorDownloadLink = document.getElementById("editor-download-link");
+  const editorProgressCard = document.getElementById("editor-progress-card");
+  const editorProgress = document.getElementById("editor-conversion-progress");
+  const editorProgressLabel = document.getElementById("editor-progress-label");
+  const editorProgressCount = document.getElementById("editor-progress-count");
+  const editorProgressDetail = document.getElementById("editor-progress-detail");
+  const editorCancelButton = document.getElementById("editor-cancel-button");
+  const editorMessage = document.getElementById("editor-message");
+  const editorScriptNotice = document.getElementById("editor-script-notice");
+
+  const fileUi = {
+    convertButton,
+    downloadLink,
+    executeScripts,
+    progressCard,
+    progress,
+    progressLabel,
+    progressCount,
+    progressDetail,
+    cancelButton,
+    message,
+    scriptNotice: fileScriptNotice,
+    scriptSubject: "選択したHTML",
+    hasExecutableScripts: false
+  };
+  const editorUi = {
+    convertButton: editorConvertButton,
+    downloadLink: editorDownloadLink,
+    executeScripts: editorExecuteScripts,
+    progressCard: editorProgressCard,
+    progress: editorProgress,
+    progressLabel: editorProgressLabel,
+    progressCount: editorProgressCount,
+    progressDetail: editorProgressDetail,
+    cancelButton: editorCancelButton,
+    message: editorMessage,
+    scriptNotice: editorScriptNotice,
+    scriptSubject: "入力したHTML",
+    hasExecutableScripts: false
+  };
+  const conversionUis = [fileUi, editorUi];
 
   let selectedFiles = [];
   let activeJob = null;
   let downloadUrl = null;
+  let previewTimer = null;
+  let fileInspectionToken = 0;
 
   function formatBytes(bytes) {
     if (bytes < 1024) return `${bytes} B`;
@@ -28,15 +81,47 @@
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }
 
-  function setMessage(text, isError) {
-    message.textContent = text;
-    message.classList.toggle("is-error", Boolean(isError));
+  function setMessage(ui, text, isError) {
+    ui.message.textContent = text;
+    ui.message.classList.toggle("is-error", Boolean(isError));
+  }
+
+  function updateConversionControls() {
+    convertButton.disabled = Boolean(activeJob) || selectedFiles.length === 0;
+    editorConvertButton.disabled = Boolean(activeJob) || htmlEditor.value.trim().length === 0;
+    executeScripts.disabled = Boolean(activeJob);
+    editorExecuteScripts.disabled = Boolean(activeJob);
+    openEditorButton.disabled = Boolean(activeJob);
+    backToFileButton.disabled = Boolean(activeJob);
+  }
+
+  function updateScriptNotice(ui) {
+    const shouldWarn = ui.hasExecutableScripts && !ui.executeScripts.checked;
+    ui.scriptNotice.hidden = !shouldWarn;
+    if (shouldWarn) {
+      ui.scriptNotice.textContent = `${ui.scriptSubject}には、読み込み後に内容を追加する仕組みがあります。オフのままでは、メニューやグラフなどが欠ける可能性があります。`;
+    }
+  }
+
+  async function inspectSelectedFilesForScripts(files) {
+    const inspectionToken = ++fileInspectionToken;
+    let hasExecutableScripts = false;
+    for (const file of files) {
+      const html = await file.text();
+      if (HtmlToPptxCore.hasExecutableScripts(html)) {
+        hasExecutableScripts = true;
+        break;
+      }
+    }
+    if (inspectionToken !== fileInspectionToken) return;
+    fileUi.hasExecutableScripts = hasExecutableScripts;
+    updateScriptNotice(fileUi);
   }
 
   function selectFiles(fileList) {
     const files = Array.from(fileList || []);
     if (files.length === 0 || files.some((file) => !/\.html?$/i.test(file.name))) {
-      setMessage("HTMLファイル（.html または .htm）を選択してください。", true);
+      setMessage(fileUi, "HTMLファイル（.html または .htm）を選択してください。", true);
       return;
     }
     clearDownload();
@@ -47,8 +132,11 @@
       ? formatBytes(totalBytes)
       : `${formatBytes(totalBytes)} ・ ${files.map((file) => file.name).join(" / ")}`;
     fileRow.hidden = false;
-    convertButton.disabled = Boolean(activeJob);
-    setMessage(activeJob ? "選択したファイルは次の一括変換に使われます。" : `${files.length}件の変換準備ができました。`, false);
+    updateConversionControls();
+    setMessage(fileUi, activeJob ? "選択したファイルは次の一括変換に使われます。" : `${files.length}件の変換準備ができました。`, false);
+    fileUi.hasExecutableScripts = false;
+    updateScriptNotice(fileUi);
+    inspectSelectedFilesForScripts(files).catch(() => {});
   }
 
   fileInput.addEventListener("change", () => selectFiles(fileInput.files));
@@ -67,14 +155,75 @@
   }
   dropZone.addEventListener("drop", (event) => selectFiles(event.dataTransfer.files));
 
-  cancelButton.addEventListener("click", () => {
-    if (activeJob) activeJob.abort();
+  function showEditorWorkspace() {
+    fileWorkspace.hidden = true;
+    editorWorkspace.hidden = false;
+    refreshPreview();
+    htmlEditor.focus();
+  }
+
+  function showFileWorkspace() {
+    editorWorkspace.hidden = true;
+    fileWorkspace.hidden = false;
+    openEditorButton.focus();
+  }
+
+  function previewDocument(html) {
+    if (!html.trim()) {
+      return "<!doctype html><html lang=\"ja\"><head><meta charset=\"utf-8\"><style>body{display:grid;place-items:center;min-height:100vh;margin:0;color:#647080;background:#f8f7f2;font:16px 'Yu Gothic UI','Meiryo',sans-serif}p{padding:24px;text-align:center}</style></head><body><p>左側にHTMLコードを貼り付けると、ここに表示されます。</p></body></html>";
+    }
+    const parsed = new DOMParser().parseFromString(html, "text/html");
+    const policy = parsed.createElement("meta");
+    policy.httpEquiv = "Content-Security-Policy";
+    policy.content = "default-src 'none'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data: blob:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'";
+    parsed.head.prepend(policy);
+    return `<!doctype html>\n${parsed.documentElement.outerHTML}`;
+  }
+
+  function refreshPreview() {
+    const html = htmlEditor.value;
+    editorSize.textContent = formatBytes(new Blob([html]).size);
+    htmlPreview.srcdoc = previewDocument(html);
+    editorUi.hasExecutableScripts = HtmlToPptxCore.hasExecutableScripts(html);
+    updateScriptNotice(editorUi);
+    updateConversionControls();
+  }
+
+  openEditorButton.addEventListener("click", showEditorWorkspace);
+  backToFileButton.addEventListener("click", showFileWorkspace);
+  htmlEditor.addEventListener("input", () => {
+    window.clearTimeout(previewTimer);
+    if (!activeJob) {
+      clearDownload();
+      editorProgressCard.hidden = true;
+      setMessage(editorUi, "", false);
+    }
+    editorSize.textContent = formatBytes(new Blob([htmlEditor.value]).size);
+    updateConversionControls();
+    previewTimer = window.setTimeout(refreshPreview, 350);
   });
 
-  convertButton.addEventListener("click", async () => {
-    if (selectedFiles.length === 0 || activeJob) return;
-    const sourceFiles = selectedFiles.slice();
-    const shouldExecuteScripts = executeScripts.checked;
+  for (const ui of conversionUis) ui.cancelButton.addEventListener("click", () => {
+    if (activeJob) activeJob.abort();
+  });
+  for (const ui of conversionUis) ui.executeScripts.addEventListener("change", () => updateScriptNotice(ui));
+
+  convertButton.addEventListener("click", () => {
+    startConversion(selectedFiles.slice(), executeScripts.checked, fileUi);
+  });
+  editorConvertButton.addEventListener("click", () => {
+    const html = htmlEditor.value;
+    if (!html.trim()) {
+      setMessage(editorUi, "HTMLコードを貼り付けてください。", true);
+      htmlEditor.focus();
+      return;
+    }
+    const source = new File([html], "貼り付けHTML.html", { type: "text/html" });
+    startConversion([source], editorExecuteScripts.checked, editorUi);
+  });
+
+  async function startConversion(sourceFiles, shouldExecuteScripts, ui) {
+    if (sourceFiles.length === 0 || activeJob) return;
     const controller = new AbortController();
     let worker = null;
     let frame = null;
@@ -85,22 +234,21 @@
         worker = null;
         if (frame) frame.remove();
         frame = null;
-        finishJob(job, "変換をキャンセルしました。", false);
+        finishJob(job, ui, "変換をキャンセルしました。", false);
       }
     };
 
     activeJob = job;
     clearDownload();
 
-    convertButton.disabled = true;
-    executeScripts.disabled = true;
-    progressCard.hidden = false;
-    cancelButton.hidden = false;
-    progress.removeAttribute("value");
-    progressLabel.textContent = "HTMLを解析中";
-    progressCount.textContent = `0 / ${sourceFiles.length} ファイル`;
-    progressDetail.textContent = "画面はそのまま操作できます";
-    setMessage("", false);
+    updateConversionControls();
+    ui.progressCard.hidden = false;
+    ui.cancelButton.hidden = false;
+    ui.progress.removeAttribute("value");
+    ui.progressLabel.textContent = "HTMLを解析中";
+    ui.progressCount.textContent = `0 / ${sourceFiles.length} ファイル`;
+    ui.progressDetail.textContent = "画面はそのまま操作できます";
+    setMessage(ui, "", false);
 
     try {
       const presentationDrafts = [];
@@ -109,16 +257,16 @@
       for (let fileIndex = 0; fileIndex < sourceFiles.length; fileIndex += 1) {
         const sourceFile = sourceFiles[fileIndex];
         if (controller.signal.aborted) return;
-        progressLabel.textContent = `${sourceFile.name} を解析中`;
-        progressCount.textContent = `${fileIndex + 1} / ${sourceFiles.length} ファイル`;
-        progressDetail.textContent = "HTMLを読み取っています";
+        ui.progressLabel.textContent = `${sourceFile.name} を解析中`;
+        ui.progressCount.textContent = `${fileIndex + 1} / ${sourceFiles.length} ファイル`;
+        ui.progressDetail.textContent = "HTMLを読み取っています";
 
         const html = await sourceFile.text();
         if (controller.signal.aborted) return;
         let renderHtml = html;
         if (shouldExecuteScripts) {
-          progressLabel.textContent = `${sourceFile.name} のスクリプトを実行中`;
-          progressDetail.textContent = "外部通信を遮断した隔離環境でDOMを生成しています";
+          ui.progressLabel.textContent = `${sourceFile.name} のスクリプトを実行中`;
+          ui.progressDetail.textContent = "外部通信を遮断した隔離環境でDOMを生成しています";
           renderHtml = await createScriptSnapshot(html, controller.signal);
         }
         frame = await createRenderFrame(renderHtml, controller.signal);
@@ -129,7 +277,7 @@
         const slideDisplay = preferredSlideDisplay(slideElements);
         for (let slideIndex = 0; slideIndex < slideElements.length; slideIndex += 1) {
           if (controller.signal.aborted) return;
-          progressLabel.textContent = `${sourceFile.name}: スライド ${slideIndex + 1} / ${slideElements.length} を解析中`;
+          ui.progressLabel.textContent = `${sourceFile.name}: スライド ${slideIndex + 1} / ${slideElements.length} を解析中`;
           const restore = HtmlToPptxCore.showOnlySlideForMeasurement(slideElements, slideElements[slideIndex], slideDisplay);
           try {
             await nextFrame();
@@ -167,28 +315,28 @@
         slides: item.slides
       }));
 
-      progress.max = totalSlides;
-      progress.value = 0;
-      progressLabel.textContent = "PPTXへ一括変換中";
-      progressCount.textContent = `0 / ${totalSlides} 枚`;
-      progressDetail.textContent = `${presentations.length}個のPPTX・合計${totalSlides}枚を順番に変換します`;
+      ui.progress.max = totalSlides;
+      ui.progress.value = 0;
+      ui.progressLabel.textContent = "PPTXへ一括変換中";
+      ui.progressCount.textContent = `0 / ${totalSlides} 枚`;
+      ui.progressDetail.textContent = `${presentations.length}個のPPTX・合計${totalSlides}枚を順番に変換します`;
 
       worker = new Worker("./converter-worker.js");
       worker.onmessage = (event) => {
         if (activeJob !== job) return;
         const data = event.data || {};
         if (data.type === "progress") {
-          progress.value = data.completed;
-          progressLabel.textContent = `${data.fileName}: スライドを変換中`;
-          progressCount.textContent = `${data.completed} / ${data.total} 枚`;
-          progressDetail.textContent = `${data.fileCompleted} / ${data.fileTotal} PPTX ・ 残り ${data.total - data.completed} 枚`;
+          ui.progress.value = data.completed;
+          ui.progressLabel.textContent = `${data.fileName}: スライドを変換中`;
+          ui.progressCount.textContent = `${data.completed} / ${data.total} 枚`;
+          ui.progressDetail.textContent = `${data.fileCompleted} / ${data.fileTotal} PPTX ・ 残り ${data.total - data.completed} 枚`;
         } else if (data.type === "packaging") {
-          progress.value = totalSlides;
-          progressLabel.textContent = "ZIPを仕上げています";
-          progressCount.textContent = `${presentations.length} / ${presentations.length} PPTX`;
-          progressDetail.textContent = "すべてのPPTXをZIPにまとめています";
+          ui.progress.value = totalSlides;
+          ui.progressLabel.textContent = "ZIPを仕上げています";
+          ui.progressCount.textContent = `${presentations.length} / ${presentations.length} PPTX`;
+          ui.progressDetail.textContent = "すべてのPPTXをZIPにまとめています";
         } else if (data.type === "packaging-progress") {
-          progressDetail.textContent = `ZIPを作成中 ${Math.round(data.percent)}%`;
+          ui.progressDetail.textContent = `ZIPを作成中 ${Math.round(data.percent)}%`;
         } else if (data.type === "complete") {
           prepareZipDownload(data.buffer, HtmlToPptxCore.zipOutputFileName(sourceFiles.map((file) => file.name)));
           worker.terminate();
@@ -196,42 +344,41 @@
           const integrationNote = hasMixedA4Orientation
             ? " A4縦・横のPPTXはPowerPointで手動統合してください。"
             : "";
-          finishJob(job, `${presentations.length}件のPPTXをZIPにまとめました。［ZIPを保存］を押してください。${integrationNote}`, false);
+          finishJob(job, ui, `${presentations.length}件のPPTXをZIPにまとめました。［ZIPを保存］を押してください。${integrationNote}`, false);
         } else if (data.type === "error") {
           if (worker) worker.terminate();
           worker = null;
-          finishJob(job, data.message || "PPTXの生成に失敗しました。", true);
+          finishJob(job, ui, data.message || "PPTXの生成に失敗しました。", true);
         }
       };
       worker.onerror = () => {
         if (activeJob !== job) return;
         if (worker) worker.terminate();
         worker = null;
-        finishJob(job, "変換処理を開始できませんでした。", true);
+        finishJob(job, ui, "変換処理を開始できませんでした。", true);
       };
       worker.postMessage({ type: "convert-batch", presentations });
     } catch (error) {
       if (!controller.signal.aborted) {
         if (frame) frame.remove();
         frame = null;
-        finishJob(job, error instanceof Error ? error.message : String(error), true);
+        finishJob(job, ui, error instanceof Error ? error.message : String(error), true);
       }
     }
-  });
+  }
 
-  function finishJob(job, text, isError) {
+  function finishJob(job, ui, text, isError) {
     if (activeJob !== job) return;
     activeJob = null;
-    convertButton.disabled = selectedFiles.length === 0;
-    executeScripts.disabled = false;
-    cancelButton.hidden = true;
+    updateConversionControls();
+    ui.cancelButton.hidden = true;
     if (isError) {
-      progressLabel.textContent = "変換できませんでした";
+      ui.progressLabel.textContent = "変換できませんでした";
     } else {
-      progressLabel.textContent = text.startsWith("変換をキャンセル") ? "キャンセルしました" : "変換完了";
+      ui.progressLabel.textContent = text.startsWith("変換をキャンセル") ? "キャンセルしました" : "変換完了";
     }
-    progressDetail.textContent = text;
-    setMessage(text, isError);
+    ui.progressDetail.textContent = text;
+    setMessage(ui, text, isError);
   }
 
   function createScriptSnapshot(html, signal) {
@@ -344,6 +491,9 @@
         cleanup();
         try {
           if (frame.contentDocument.fonts) await frame.contentDocument.fonts.ready;
+          await waitForImages(frame.contentDocument);
+          materializePseudoElements(frame.contentDocument);
+          await nextFrame();
           resolve(frame);
         } catch (error) {
           reject(error);
@@ -352,6 +502,77 @@
       frame.srcdoc = html;
       renderHost.appendChild(frame);
     });
+  }
+
+  async function waitForImages(document) {
+    const images = Array.from(document.images);
+    await Promise.allSettled(images.map(async (image) => {
+      if (typeof image.decode === "function") {
+        await image.decode();
+        return;
+      }
+      if (image.complete) return;
+      await new Promise((resolve) => {
+        image.addEventListener("load", resolve, { once: true });
+        image.addEventListener("error", resolve, { once: true });
+      });
+    }));
+  }
+
+  function materializePseudoElements(document) {
+    const view = document.defaultView;
+    const hosts = Array.from(document.body?.querySelectorAll("*") || []);
+    let hasBefore = false;
+    let hasAfter = false;
+
+    for (const host of hosts) {
+      const before = pseudoElementSnapshot(view, host, "::before");
+      const after = pseudoElementSnapshot(view, host, "::after");
+      if (!before && !after) continue;
+
+      if (before) {
+        host.setAttribute("data-html-to-pptx-before", "");
+        host.insertBefore(createPseudoProxy(document, before, "before"), host.firstChild);
+        hasBefore = true;
+      }
+      if (after) {
+        host.setAttribute("data-html-to-pptx-after", "");
+        host.appendChild(createPseudoProxy(document, after, "after"));
+        hasAfter = true;
+      }
+    }
+
+    if (!hasBefore && !hasAfter) return;
+    const suppression = document.createElement("style");
+    suppression.setAttribute("data-html-to-pptx-pseudo-suppression", "");
+    suppression.textContent = [
+      hasBefore ? "[data-html-to-pptx-before]::before{content:none!important;display:none!important}" : "",
+      hasAfter ? "[data-html-to-pptx-after]::after{content:none!important;display:none!important}" : ""
+    ].join("\n");
+    document.head.appendChild(suppression);
+  }
+
+  function pseudoElementSnapshot(view, host, pseudo) {
+    const style = view.getComputedStyle(host, pseudo);
+    const content = style.content;
+    if (content === "none" || content === "normal" || style.display === "none" || style.visibility === "hidden" || Number(style.opacity) === 0) {
+      return null;
+    }
+    return {
+      content: /^(["']).*\1$/.test(content) ? content.slice(1, -1) : "",
+      properties: Array.from(style, (property) => [property, style.getPropertyValue(property), style.getPropertyPriority(property)])
+    };
+  }
+
+  function createPseudoProxy(document, snapshot, position) {
+    const proxy = document.createElement("span");
+    proxy.setAttribute("data-html-to-pptx-pseudo", position);
+    proxy.setAttribute("aria-hidden", "true");
+    proxy.textContent = snapshot.content;
+    for (const [property, value, priority] of snapshot.properties) {
+      if (property !== "content") proxy.style.setProperty(property, value, priority);
+    }
+    return proxy;
   }
 
   function preferredSlideDisplay(slides) {
@@ -426,17 +647,24 @@
     const scaleY = layout.height / slideRect.height;
     const colorReader = createColorReader(slideElement.ownerDocument);
     const shapes = [];
+    const images = [];
     const texts = [];
     const claimedTextNodes = new WeakSet();
 
     for (const element of [slideElement, ...slideElement.querySelectorAll("*")]) {
+      const rasterRoot = element.closest("img, canvas, svg");
+      if (rasterRoot && rasterRoot !== element) continue;
       const style = view.getComputedStyle(element);
       const rect = element.getBoundingClientRect();
-      if (style.display === "none" || style.visibility === "hidden" || Number(style.opacity) === 0 || rect.width <= 0 || rect.height <= 0) continue;
+      if (style.display === "none" || style.visibility === "hidden" || Number(style.opacity) === 0 || rect.width <= 0 || rect.height <= 0 || isVisuallyClipped(style, rect)) continue;
 
       if (element !== slideElement) {
-        extractElementShapes(style, rect, slideRect, scaleX, scaleY, colorReader, shapes);
+        extractElementShapes(style, rect, slideRect, scaleX, scaleY, layout, colorReader, shapes);
+        const image = extractElementImage(element, style, rect, slideRect, scaleX, scaleY, layout);
+        if (image) images.push(image);
       }
+
+      if (rasterRoot) continue;
 
       const isTableCell = ["TD", "TH"].includes(element.tagName);
       if (!isTableCell && !hasInlineText(element, view)) continue;
@@ -445,22 +673,32 @@
       const plainText = runs.map((run) => `${run.options.softBreakBefore ? "\n" : ""}${run.text}`).join("").replace(/\n+$/, "");
       if (!plainText) continue;
 
-      const paddingLeft = Number.parseFloat(style.paddingLeft) || 0;
-      const paddingRight = Number.parseFloat(style.paddingRight) || 0;
-      const paddingTop = Number.parseFloat(style.paddingTop) || 0;
-      const paddingBottom = Number.parseFloat(style.paddingBottom) || 0;
-      const x = (rect.left + paddingLeft - slideRect.left) * scaleX;
-      const y = (rect.top + paddingTop - slideRect.top) * scaleY;
-      const width = Math.max(1, rect.width - paddingLeft - paddingRight);
-      const height = Math.max(1, rect.height - paddingTop - paddingBottom);
+      const useRenderedBounds = shouldUseRenderedTextBounds(element, style, view, extracted.bounds);
+      const textRect = useRenderedBounds ? extracted.bounds : rect;
+      const paddingLeft = useRenderedBounds ? 0 : Number.parseFloat(style.paddingLeft) || 0;
+      const paddingRight = useRenderedBounds ? 0 : Number.parseFloat(style.paddingRight) || 0;
+      const paddingTop = useRenderedBounds ? 0 : Number.parseFloat(style.paddingTop) || 0;
+      const paddingBottom = useRenderedBounds ? 0 : Number.parseFloat(style.paddingBottom) || 0;
+      let x = (textRect.left + paddingLeft - slideRect.left) * scaleX;
+      const y = (textRect.top + paddingTop - slideRect.top) * scaleY;
+      let width = Math.max(1, textRect.width - paddingLeft - paddingRight) * scaleX;
+      const height = Math.max(1, textRect.height - paddingTop - paddingBottom);
       if (x >= layout.width || y >= layout.height || x + rect.width * scaleX <= 0 || y + rect.height * scaleY <= 0) continue;
+      const alignment = textBoxAlignment(style);
+      if (!plainText.includes("\n")) {
+        const expandedWidth = width * 1.18;
+        const extraWidth = expandedWidth - width;
+        if (alignment.horizontal === "right") x = Math.max(0, x - extraWidth);
+        else if (alignment.horizontal === "center") x = Math.max(0, x - extraWidth / 2);
+        width = Math.min(expandedWidth, layout.width - x);
+      }
 
       texts.push({
         text: plainText,
         runs,
         x,
         y,
-        w: Math.min(width * scaleX, layout.width - Math.max(0, x)),
+        w: Math.min(width, layout.width - Math.max(0, x)),
         h: Math.min(height * scaleY, layout.height - Math.max(0, y)),
         fontFace: style.fontFamily.split(",")[0].replace(/["']/g, "").trim(),
         fontSize: Number.parseFloat(style.fontSize) * 0.75,
@@ -468,7 +706,8 @@
         color: colorReader(style.color, Number(style.opacity)),
         bold: Number.parseInt(style.fontWeight, 10) >= 600,
         italic: style.fontStyle === "italic",
-        align: style.textAlign
+        align: alignment.horizontal,
+        valign: alignment.vertical
       });
     }
 
@@ -476,25 +715,170 @@
     return {
       background: HtmlToPptxCore.colorOptions(slideBackground, "FFFFFF").transparency === 100 ? "FFFFFF" : slideBackground,
       shapes,
+      images,
       texts
     };
   }
 
-  function hasInlineText(element, view) {
-    for (const node of element.childNodes) {
-      if (node.nodeType === view.Node.TEXT_NODE && node.textContent.trim()) return true;
-      if (node.nodeType !== view.Node.ELEMENT_NODE) continue;
-      if (node.tagName === "BR") return true;
-      const display = view.getComputedStyle(node).display;
-      if ((display === "contents" || display.startsWith("inline")) && hasInlineText(node, view)) return true;
+  function isVisuallyClipped(style, rect) {
+    const clipPath = style.clipPath || style.webkitClipPath || "none";
+    const clip = style.clip || "auto";
+    if (clipPath === "none" && clip === "auto") return false;
+    if (rect.width <= 2 && rect.height <= 2) return true;
+    return /^inset\(\s*50%(?:\s+50%){0,3}\s*\)$/i.test(clipPath)
+      || /^rect\(\s*0(?:px)?(?:\s*,\s*|\s+)0(?:px)?(?:\s*,\s*|\s+)0(?:px)?(?:\s*,\s*|\s+)0(?:px)?\s*\)$/i.test(clip);
+  }
+
+  function extractElementImage(element, style, rect, slideRect, scaleX, scaleY, layout) {
+    let data = "";
+    let altText = element.getAttribute("aria-label") || element.getAttribute("alt") || "";
+
+    try {
+      if (element.tagName === "IMG") {
+        if (!element.complete || element.naturalWidth <= 0 || element.naturalHeight <= 0) return null;
+        data = rasterizeImageElement(element, style, rect);
+      } else if (element.tagName === "CANVAS") {
+        data = element.toDataURL("image/png");
+      } else if (element.tagName === "svg") {
+        const source = new XMLSerializer().serializeToString(element);
+        data = `data:image/svg+xml;base64,${utf8Base64(source)}`;
+        if (!altText) altText = element.querySelector("title")?.textContent || "";
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.warn("画像を埋め込めなかったためスキップしました。", error);
+      return null;
     }
-    return false;
+
+    if (!data) return null;
+    const borderLeft = Number.parseFloat(style.borderLeftWidth) || 0;
+    const borderRight = Number.parseFloat(style.borderRightWidth) || 0;
+    const borderTop = Number.parseFloat(style.borderTopWidth) || 0;
+    const borderBottom = Number.parseFloat(style.borderBottomWidth) || 0;
+    const paddingLeft = Number.parseFloat(style.paddingLeft) || 0;
+    const paddingRight = Number.parseFloat(style.paddingRight) || 0;
+    const paddingTop = Number.parseFloat(style.paddingTop) || 0;
+    const paddingBottom = Number.parseFloat(style.paddingBottom) || 0;
+    const contentRect = {
+      left: rect.left + borderLeft + paddingLeft,
+      top: rect.top + borderTop + paddingTop,
+      right: rect.right - borderRight - paddingRight,
+      bottom: rect.bottom - borderBottom - paddingBottom
+    };
+    const bounds = scaledBounds(contentRect, slideRect, scaleX, scaleY, layout);
+    if (!bounds) return null;
+    return { data, altText, ...bounds };
+  }
+
+  function rasterizeImageElement(image, style, rect) {
+    const borderWidth = (Number.parseFloat(style.borderLeftWidth) || 0) + (Number.parseFloat(style.borderRightWidth) || 0);
+    const borderHeight = (Number.parseFloat(style.borderTopWidth) || 0) + (Number.parseFloat(style.borderBottomWidth) || 0);
+    const paddingWidth = (Number.parseFloat(style.paddingLeft) || 0) + (Number.parseFloat(style.paddingRight) || 0);
+    const paddingHeight = (Number.parseFloat(style.paddingTop) || 0) + (Number.parseFloat(style.paddingBottom) || 0);
+    const boxWidth = Math.max(1, rect.width - borderWidth - paddingWidth);
+    const boxHeight = Math.max(1, rect.height - borderHeight - paddingHeight);
+    const pixelRatio = Math.min(2, 4096 / Math.max(boxWidth, boxHeight));
+    const canvas = image.ownerDocument.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(boxWidth * pixelRatio));
+    canvas.height = Math.max(1, Math.round(boxHeight * pixelRatio));
+    const context = canvas.getContext("2d");
+    if (!context) return "";
+    context.scale(pixelRatio, pixelRatio);
+
+    const naturalWidth = image.naturalWidth;
+    const naturalHeight = image.naturalHeight;
+    const fit = style.objectFit || "fill";
+    let drawWidth = boxWidth;
+    let drawHeight = boxHeight;
+    if (fit !== "fill") {
+      const containScale = Math.min(boxWidth / naturalWidth, boxHeight / naturalHeight);
+      const coverScale = Math.max(boxWidth / naturalWidth, boxHeight / naturalHeight);
+      let imageScale = fit === "cover" ? coverScale : 1;
+      if (fit === "contain") imageScale = containScale;
+      if (fit === "scale-down") imageScale = Math.min(1, containScale);
+      drawWidth = naturalWidth * imageScale;
+      drawHeight = naturalHeight * imageScale;
+    }
+
+    const [positionX, positionY] = objectPosition(style.objectPosition);
+    const drawX = (boxWidth - drawWidth) * positionX;
+    const drawY = (boxHeight - drawHeight) * positionY;
+    context.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+    return canvas.toDataURL("image/png");
+  }
+
+  function objectPosition(value) {
+    const tokens = String(value || "50% 50%").trim().split(/\s+/);
+    const ratio = (token, fallback) => {
+      if (token === "left" || token === "top") return 0;
+      if (token === "right" || token === "bottom") return 1;
+      if (token === "center") return 0.5;
+      if (token?.endsWith("%")) return Math.min(1, Math.max(0, Number.parseFloat(token) / 100));
+      return fallback;
+    };
+    return [ratio(tokens[0], 0.5), ratio(tokens[1] || tokens[0], 0.5)];
+  }
+
+  function utf8Base64(value) {
+    const bytes = new TextEncoder().encode(value);
+    let binary = "";
+    for (const byte of bytes) binary += String.fromCharCode(byte);
+    return btoa(binary);
+  }
+
+  function hasInlineText(element, view) {
+    let hasDirectText = false;
+    let hasBlockChild = false;
+
+    for (const node of element.childNodes) {
+      if (node.nodeType === view.Node.TEXT_NODE && node.textContent.trim()) {
+        hasDirectText = true;
+        continue;
+      }
+      if (node.nodeType !== view.Node.ELEMENT_NODE) continue;
+      if (node.tagName === "BR") {
+        hasDirectText = true;
+        continue;
+      }
+      const display = view.getComputedStyle(node).display;
+      if (display !== "contents" && !display.startsWith("inline")) hasBlockChild = true;
+    }
+
+    if (hasDirectText) return true;
+    if (hasBlockChild) return false;
+    return [...element.children].some((child) => hasInlineText(child, view));
+  }
+
+  function textBoxAlignment(style) {
+    const display = style.display;
+    const isGrid = display === "grid" || display === "inline-grid";
+    const isFlex = display === "flex" || display === "inline-flex";
+    const horizontallyCentered = (isGrid && style.justifyItems === "center")
+      || (isFlex && style.justifyContent === "center");
+    const verticallyCentered = (isGrid || isFlex) && style.alignItems === "center";
+    return {
+      horizontal: horizontallyCentered ? "center" : style.textAlign,
+      vertical: verticallyCentered ? "middle" : "top"
+    };
+  }
+
+  function shouldUseRenderedTextBounds(element, style, view, bounds) {
+    if (!bounds) return false;
+    const display = style.display;
+    if (!["flex", "inline-flex", "grid", "inline-grid"].includes(display)) return false;
+    const hasDirectText = [...element.childNodes].some((node) => node.nodeType === view.Node.TEXT_NODE && node.textContent.trim());
+    const hasPositionedChild = [...element.children].some((child) => {
+      const childDisplay = view.getComputedStyle(child).display;
+      return childDisplay !== "contents" && !childDisplay.startsWith("inline");
+    });
+    return hasDirectText && hasPositionedChild;
   }
 
   function extractRenderedText(element, view, colorReader, claimedTextNodes, includeBlockDescendants) {
     const tokens = [];
     const lineSpacings = [];
-    const layoutState = { lineTop: null };
+    const layoutState = { lineTop: null, bounds: null };
 
     function pushBreak(force) {
       if (tokens.length === 0 || (!force && tokens[tokens.length - 1].break)) return;
@@ -529,7 +913,11 @@
     }
 
     visit(element, includeBlockDescendants);
-    return { tokens, lineSpacing: lineSpacings.find((value) => Number.isFinite(value) && value > 0) };
+    return {
+      tokens,
+      bounds: layoutState.bounds,
+      lineSpacing: lineSpacings.find((value) => Number.isFinite(value) && value > 0)
+    };
   }
 
   function appendTextNodeTokens(node, view, colorReader, tokens, lineSpacings, layoutState, pushBreak) {
@@ -571,6 +959,7 @@
       const characterRect = Array.from(range.getClientRects()).find((candidate) => candidate.width > 0 || candidate.height > 0);
       if (!characterRect && /\s/.test(character) && !["pre", "pre-wrap", "break-spaces"].includes(whiteSpace)) continue;
       if (characterRect) {
+        layoutState.bounds = unionRects(layoutState.bounds, characterRect);
         if (layoutState.lineTop !== null && Math.abs(characterRect.top - layoutState.lineTop) > 1) {
           flush();
           pushBreak();
@@ -580,6 +969,17 @@
       buffer += character;
     }
     flush();
+  }
+
+  function unionRects(current, next) {
+    if (!current) {
+      return { left: next.left, top: next.top, right: next.right, bottom: next.bottom, width: next.width, height: next.height };
+    }
+    const left = Math.min(current.left, next.left);
+    const top = Math.min(current.top, next.top);
+    const right = Math.max(current.right, next.right);
+    const bottom = Math.max(current.bottom, next.bottom);
+    return { left, top, right, bottom, width: right - left, height: bottom - top };
   }
 
   function createColorReader(document) {
@@ -599,14 +999,12 @@
     };
   }
 
-  function extractElementShapes(style, rect, slideRect, scaleX, scaleY, colorReader, shapes) {
-    const left = Math.max(0, (rect.left - slideRect.left) * scaleX);
-    const top = Math.max(0, (rect.top - slideRect.top) * scaleY);
-    const right = Math.min(HtmlToPptxCore.SLIDE_WIDTH_IN, (rect.right - slideRect.left) * scaleX);
-    const bottom = Math.min(HtmlToPptxCore.SLIDE_HEIGHT_IN, (rect.bottom - slideRect.top) * scaleY);
-    const width = right - left;
-    const height = bottom - top;
-    if (width <= 0 || height <= 0) return;
+  function extractElementShapes(style, rect, slideRect, scaleX, scaleY, layout, colorReader, shapes) {
+    const bounds = scaledBounds(rect, slideRect, scaleX, scaleY, layout);
+    if (!bounds) return;
+    const { x: left, y: top, w: width, h: height } = bounds;
+    const right = left + width;
+    const bottom = top + height;
 
     const opacity = Number.parseFloat(style.opacity);
     const background = colorReader(style.backgroundColor, opacity);
@@ -633,7 +1031,7 @@
     );
     if (hasBackground || uniformBorder) {
       const shape = {
-        kind: "rect",
+        kind: isEllipse(style, rect) ? "ellipse" : "rect",
         x: left,
         y: top,
         w: width,
@@ -655,21 +1053,50 @@
     }
   }
 
+  function scaledBounds(rect, slideRect, scaleX, scaleY, layout) {
+    const left = Math.max(0, (rect.left - slideRect.left) * scaleX);
+    const top = Math.max(0, (rect.top - slideRect.top) * scaleY);
+    const right = Math.min(layout.width, (rect.right - slideRect.left) * scaleX);
+    const bottom = Math.min(layout.height, (rect.bottom - slideRect.top) * scaleY);
+    const width = right - left;
+    const height = bottom - top;
+    if (width <= 0 || height <= 0) return null;
+    return { x: left, y: top, w: width, h: height };
+  }
+
+  function isEllipse(style, rect) {
+    const radii = [
+      style.borderTopLeftRadius,
+      style.borderTopRightRadius,
+      style.borderBottomRightRadius,
+      style.borderBottomLeftRadius
+    ];
+    const allPercentage = radii.every((radius) => Number.parseFloat(radius) >= 45 && String(radius).includes("%"));
+    if (allPercentage) return true;
+    if (Math.abs(rect.width - rect.height) > Math.max(rect.width, rect.height) * 0.1) return false;
+    const minimumSize = Math.min(rect.width, rect.height);
+    return radii.every((radius) => Number.parseFloat(radius) >= minimumSize * 0.45);
+  }
+
   function prepareZipDownload(buffer, name) {
     clearDownload();
     const blob = new Blob([buffer], { type: "application/zip" });
     downloadUrl = URL.createObjectURL(blob);
-    downloadLink.href = downloadUrl;
-    downloadLink.download = name;
-    downloadLink.hidden = false;
+    for (const ui of conversionUis) {
+      ui.downloadLink.href = downloadUrl;
+      ui.downloadLink.download = name;
+      ui.downloadLink.hidden = false;
+    }
   }
 
   function clearDownload() {
     if (downloadUrl) URL.revokeObjectURL(downloadUrl);
     downloadUrl = null;
-    downloadLink.removeAttribute("href");
-    downloadLink.removeAttribute("download");
-    downloadLink.hidden = true;
+    for (const ui of conversionUis) {
+      ui.downloadLink.removeAttribute("href");
+      ui.downloadLink.removeAttribute("download");
+      ui.downloadLink.hidden = true;
+    }
   }
 
   window.addEventListener("pagehide", clearDownload, { once: true });
@@ -677,4 +1104,6 @@
   function nextFrame() {
     return new Promise((resolve) => requestAnimationFrame(() => resolve()));
   }
+
+  refreshPreview();
 })();

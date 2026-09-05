@@ -9,6 +9,11 @@ These are durable choices. Active work and exceptions belong in [`../PROJECT_STA
 - Keep DOM measurement on the browser main thread and yield between slides; perform PPTX construction and ZIP compression in a Web Worker.
 - Treat measured browser bounding boxes and computed styles as the starting point. Add semantic normalization only for verified cross-renderer differences.
 - Preserve solid CSS fills and borders as native PowerPoint shapes and add them before text so content remains editable and readable.
+- Use each detected presentation layout as the clipping boundary; never clip A4 portrait content against widescreen constants.
+- Wait for document fonts and images before measurement. Embed loaded `img` elements as PNG snapshots that retain CSS `object-fit`/`object-position`, preserve `canvas` pixels and inline SVG data, and skip unreadable or canvas-tainting sources without failing the rest of the deck.
+- Materialize visible CSS `::before` and `::after` content as measured proxy elements, then suppress the originals so pseudo-element decoration and text are extracted once.
+- Treat visually clipped one-pixel accessibility helpers as hidden output. Preserve circle geometry as PowerPoint ellipses and map flex/grid centering to PowerPoint text alignment.
+- Reserve a small width tolerance for browser-single-line text because PowerPoint and Chromium font metrics differ; keep the measured origin stable for left alignment and compensate the origin for centered or right-aligned text.
 - Convert computed CSS colors to sRGB in the browser instead of parsing every current CSS color syntax in the Worker.
 - Keep generated PowerPoint objects ungrouped. Favor one editable text object per logical DOM element; table cells own their descendant text so each cell remains independently editable.
 - Use PptxGenJS `softBreakBefore` for authored and rendered soft line boundaries because version 4.0.1 serializes it as `<a:br/>`; `breakLine` creates a separate `<a:p>` paragraph.
@@ -16,6 +21,7 @@ These are durable choices. Active work and exceptions belong in [`../PROJECT_STA
 ## Input and fidelity contract
 
 - Treat one HTML `.slide` element as one PowerPoint slide in document order.
+- Support direct HTML input with a dependency-free plain textarea rather than a full code editor. Treat pasted text as an in-memory virtual HTML file and route it through the same conversion function as uploaded files so page detection, progress, cancellation, output naming, and ZIP packaging do not diverge.
 - Keep `.slide` mandatory and deterministic. Do not discover classless slides or paginate arbitrary HTML automatically.
 - Define supported input as static 16:9 slide markup. A sidebar is supported when present in each slide's static DOM; runtime-only generation is outside the default security model.
 - Treat editable text fidelity as a human-effort optimization: preserve explicit structure and measured line boundaries, prevent text from crossing its intended box, and reserve exceptional font/layout differences for manual PowerPoint refinement.
@@ -24,7 +30,9 @@ These are durable choices. Active work and exceptions belong in [`../PROJECT_STA
 ## Security and download behavior
 
 - Keep uploaded HTML scripts disabled by default. Slide-visibility normalization must not add `allow-scripts` to the same-origin measurement sandbox.
+- Keep the paste-mode preview script-disabled in an iframe without sandbox capabilities. Inject a deny-by-default preview CSP that permits only inline styles and local `data:`/`blob:` visual assets; the separate trusted-script conversion option remains the only path that may execute inline scripts.
 - Permit inline script execution only through an explicit trusted-HTML option. Use a separate CSP-sandboxed document without `allow-same-origin`; block network, forms, workers, and child frames; validate both message boundaries; snapshot the generated DOM; and keep the measurement iframe script-disabled.
+- Describe that option by its visible effect—reflecting content added after the HTML opens—rather than leading with JavaScript or “trusted HTML” terminology. Keep it off by default, never auto-enable it, detect executable scripts to warn about possibly missing menus or charts, and provide an accessible disclosure with concrete examples of confirmed and unknown sources.
 - Require an explicit save click after conversion so each result has a fresh browser-authorized download gesture. Keep the Blob URL valid until selection, reconversion, or page exit.
 - Bind every asynchronous callback to its originating conversion job so stale Worker callbacks cannot finish a newer conversion.
 - Package every conversion as a ZIP. Keep one PPTX per HTML and suffix duplicate case-insensitive basenames with ` (2)`, ` (3)`, and so on.
