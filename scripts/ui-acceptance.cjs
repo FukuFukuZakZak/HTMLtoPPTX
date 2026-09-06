@@ -8,7 +8,8 @@ const path = require("node:path");
 const { chromium } = require("playwright");
 const JSZip = require("jszip");
 
-const outputDir = path.resolve(".tmp/ui-acceptance");
+const outputDir = path.resolve(process.env.UI_OUTPUT_DIR || ".tmp/ui-acceptance");
+const appearance = process.env.UI_APPEARANCE || "standard";
 const viewports = [[1920, 1080], [1920, 950], [1536, 864], [1280, 720]];
 const sample = `<!doctype html><html><head><meta charset="utf-8"><style>
 body{margin:0}.slide{position:relative;width:1600px;height:900px;background:#fff;color:#182333}
@@ -113,16 +114,35 @@ async function saveDownload(page, selector, name) {
   try {
     await page.goto(process.argv[2]);
     assert.equal(await page.locator('input[name="theme"][value="system"]').isChecked(), true);
+    await page.locator("#open-settings-button").click();
+    assert.equal(await page.locator("#theme-settings").evaluate(el => el.matches(":modal")), true);
+    assert.equal(await page.locator("#close-settings-button").evaluate(el => el === document.activeElement), true);
+    await page.locator('input[name="appearance"][value="standard"]').focus();
+    await page.keyboard.press("ArrowRight");
+    assert.equal(await page.locator("html").getAttribute("data-appearance"), "8bit");
+    if (appearance === "standard") await page.keyboard.press("ArrowLeft");
+    await page.keyboard.press("Escape");
+    assert.equal(await page.locator("#open-settings-button").evaluate(el => el === document.activeElement), true);
+    await page.reload();
+    await page.evaluate(() => document.fonts.ready);
+    assert.equal(await page.locator("html").getAttribute("data-appearance"), appearance);
+    if (appearance === "8bit") assert.equal(await page.evaluate(() => document.fonts.check('16px "DotGothic16"')), true);
+    report.checks.push("Settings modal, keyboard appearance choice, Escape/focus return and reload persistence");
     assert.equal(await page.locator("#execute-scripts").isChecked(), false);
     assert.equal(await page.locator("#editor-execute-scripts").isChecked(), false);
-    const fileControls = ["#intro-title", ".intro-note", "#drop-zone", "#open-editor-button", "#execute-scripts", "#convert-button"];
-    const editorControls = ["#back-to-file-button", "#editor-execute-scripts", "#editor-convert-button", "#html-editor"];
+    const fileControls = ["#open-settings-button", "#intro-title", ".intro-note", "#drop-zone", "#open-editor-button", "#execute-scripts", "#convert-button"];
+    const editorControls = ["#open-settings-button", "#back-to-file-button", "#editor-execute-scripts", "#editor-convert-button", "#html-editor"];
     for (const theme of ["light", "dark"]) {
       await selectTheme(page, theme);
       await checkContrast(page, theme);
+      await page.locator("#open-settings-button").click();
+      await page.evaluate(() => document.fonts.ready);
+      await page.screenshot({ path: path.join(outputDir, `settings-${theme}.png`) });
+      await page.locator("#close-settings-button").click();
       for (const [width, height] of viewports) {
         await page.setViewportSize({ width, height });
         await page.reload();
+        await page.evaluate(() => document.fonts.ready);
         await assertFits(page, `file-empty-${theme}`, fileControls);
         if (height === 1080) await page.screenshot({ path: path.join(outputDir, `home-${theme}.png`) });
         await page.locator("#html-file").setInputFiles(payload);
@@ -222,12 +242,20 @@ async function saveDownload(page, selector, name) {
     await page.locator("#open-editor-button").click();
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     await page.screenshot({ path: path.join(outputDir, "mobile-editor.png"), fullPage: true });
+    await page.locator("#open-settings-button").click();
+    const settingsBounds = await page.locator("#theme-settings").boundingBox();
+    assert.ok(settingsBounds.x >= 0 && settingsBounds.x + settingsBounds.width <= 390);
+    await page.keyboard.press("Escape");
     report.checks.push("Expandable help in both modes, error feedback, mobile without horizontal overflow");
 
     const blocked = await browser.newPage();
     await blocked.addInitScript(() => Object.defineProperty(window, "localStorage", { get() { throw new DOMException("Blocked", "SecurityError"); } }));
     await blocked.goto(process.argv[2]);
     await selectTheme(blocked, "dark");
+    await blocked.locator("#open-settings-button").click();
+    await blocked.locator('input[name="appearance"][value="8bit"]').check();
+    await blocked.locator("#close-settings-button").click();
+    assert.equal(await blocked.locator("html").getAttribute("data-appearance"), "8bit");
     assert.equal(await blocked.locator("#open-editor-button").isEnabled(), true);
     await blocked.close();
     report.checks.push("Theme controls work when browser storage is blocked");

@@ -15,10 +15,12 @@ Build the HTML-to-PPTX converter described in `docs/HTML_to_PPTX_converter_spec_
 
 ## Current milestone
 
-Website-style UI complete: restored the original site's welcoming introduction and warm palette for shared intranet browser use, with verified FullHD workflows, themes and unchanged conversion behavior.
+Optional 8bit special theme complete: a top-right settings gear selects standard or retro appearance independently of light/dark/system. Both workspaces retain verified FullHD workflows and unchanged conversion behavior.
 
 ## Current work
 
+- Completed the settings gear and optional 8bit appearance: blue/navy palettes, pixel lettering, square panels, stepped shadows and original inline pixel art, inspired by the user's reference site. Native dialog/radios support keyboard operation, Escape and focus return. Light/dark/system remain independent; settings persist on the same browser origin and tolerate blocked storage.
+- Latest review artifact: `dist/ui-8bit-20260906/HTMLtoPPTX.exe`, with light/dark home/editor/settings screenshots and `ui-verification.json`. Bundled complete DotGothic16 WOFF2 (500,340 bytes) under OFL 1.1; no runtime font downloads. This follow-up has not replaced the published `d12bda1` prerelease.
 - Published the verified website UI build at the user's request: `main` was pushed and the existing `v0.1.0-alpha.1` prerelease/tag/Windows asset were replaced. A fresh GitHub download matches the tested executable. Target-machine validation is next.
 - Follow-up to `8b97c24` is complete: the user prefers the original website character and clarified that the final destination is shared intranet browser access. The UI now uses a large introductory heading, warm paper/copper colors, a centered site header, consistent icons and joined editor panes. All acceptance checks pass. Shared hosting remains a future deployment task.
 - File selection now leads from input on the left to settings, conversion and ZIP save on the right. Editor navigation/conversion sit above the code and preview, with script execution directly below the toolbar.
@@ -53,7 +55,7 @@ Website-style UI complete: restored the original site's welcoming introduction a
 
 ## Next actions
 
-Confirm the website-style UI in the target FullHD/LGWAN browser and preferred Windows display scaling. The next product milestone is shared intranet hosting: establish the target web server and stable origin, then verify the existing browser-only conversion, Worker and CSP behavior in that environment. The current executable still starts a local server for review.
+Confirm the latest artifact's top-right gear → 8bit appearance in light/dark on the target FullHD/LGWAN browser and preferred Windows display scaling. The next product milestone is shared intranet hosting: establish the target web server and stable origin, then verify the existing browser-only conversion, Worker and CSP behavior in that environment. The current executable still starts a local server for review.
 
 1. Open the verified files in `dist/quality-20260906/変換結果.zip` in Microsoft PowerPoint on a machine where it is installed; confirm editable text/shapes, Japanese fonts and the corrected inline badges/checklist. This environment completed browser, OOXML and LibreOffice checks.
 2. Supply the missing hero illustration as a `data:` URL inside the smartphone HTML, or add an explicit associated-asset import workflow; then repeat the real conversion to confirm the intended illustration is embedded.
@@ -83,6 +85,8 @@ Confirm the website-style UI in the target FullHD/LGWAN browser and preferred Wi
 
 ## Latest verification
 
+- Special theme: standard and 8bit each passed 58 layout states (116 total), both color modes, four desktop sizes, real ZIP downloads and settings/keyboard/persistence/mobile cases. Minimum measured contrast: standard 5.0:1, 8bit 5.15:1. All 9 slide XML files across four download cases match between appearances. Switching appearance while editing preserves source/preview; local font loads with no external requests.
+- `npm test` 35/35 (0.257 s), Go tests (0.947 s), vet, build and JS syntax passed. Final executable: 9,963,520 bytes, SHA-256 `5C91994DCB31A3529725A852B04D0500D0A7DB49542892E0B38E9024F2ED7D52`. Context7: MDN native dialog/themes, Playwright keyboard/media/fonts and fontTools WOFF2. Graphify refresh: 363 nodes / 714 edges / 21 communities. See detailed special-theme evidence for build and final smoke coverage.
 - Release replacement (2026-09-06): remote `main` and the annotated prerelease tag resolve to product commit `d12bda1`; GitHub reports one uploaded Windows asset, prerelease true and draft false. A fresh download matches the tested build's SHA-256 and size. Context7: `/websites/cli_github_manual`, existing release edit/notes/target, asset upload replacement and download verification. Subsequent status-only commits may advance `main` without moving the product tag.
 - Website UI: Edge/Playwright acceptance passed 58 layout states at 1920×1080, 1920×950, 1536×864 and 1280×720, in light and dark. No page scrolling, offscreen introductory content/actions or panels escaping the form with help closed. System/keyboard/storage checks pass. All 28 checked text/background pairs are at least 5.0:1.
 - Four real ZIP downloads verified: editor light/dark (identical slide XML), mixed A4 batch (3 PPTX / 6 slides), and scripts-enabled editor output. Cancellation/retry controls, retained editor input, folded help, error feedback, visible preview rendering and 390px mobile overflow checks passed. Evidence: `.tmp/ui-acceptance/`; repeatable test: `scripts/ui-acceptance.cjs`.
@@ -97,6 +101,7 @@ Confirm the website-style UI in the target FullHD/LGWAN browser and preferred Wi
 
 ## Working tree notes
 
+- Special-theme follow-up owns `web/index.html`, `web/theme.js`, new `web/special-theme.css`, bundled font/license/provenance, the acceptance driver and status records. Conversion/runtime/Worker/Go hosting code and dependencies are unchanged. Existing published prerelease and previous distribution folders remain intact.
 - Typography scaling was committed as `1af27f1`; paste-mode/script/fidelity work as `5800027`; quality acceptance as `5a3f440`; FullHD/theme foundations as `8b97c24`. This website-style follow-up owns `web/index.html`, `web/style.css`, `web/favicon.svg`, `scripts/ui-acceptance.cjs` and status records. Runtime JavaScript and Go hosting/conversion logic were not changed.
 - Latest UI artifact: `dist/ui-website-20260906/HTMLtoPPTX.exe`, now published as the existing alpha prerelease's Windows asset. The previous `dist/ui-20260906/` and quality artifacts remain intact.
 - Verified executable and output copies: `dist/quality-20260906/HTMLtoPPTX.exe` and `変換結果.zip`, with both PDF previews alongside them. The executable is byte-identical to the browser-tested `.tmp/HTMLtoPPTX-visual-quality-v2.exe`. No release was changed.

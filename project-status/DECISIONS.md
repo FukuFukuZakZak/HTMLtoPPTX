@@ -6,6 +6,7 @@ These are durable choices. Active work and exceptions belong in [`../PROJECT_STA
 
 ## UI workflow and themes
 
+- Optional 8bit appearance is selected from a top-right gear, separately from light/dark/system. Keep standard as the default. The reference site's blue pixel aesthetic informs square panels, hard shadows, original pixel artwork and DotGothic16; preserve familiar operation labels and layout. Bundle the full WOFF2 font plus OFL license; no runtime font service or additional application dependency. App appearance never propagates into source/preview/conversion frames. Preferences remain per origin, matching existing color-mode storage.
 - The destination is a shared intranet website used by staff in their browsers. Preserve the original website character: large introductory copy, warm paper/copper palette and a quiet centered header. Keep actionable input/settings in the adjacent form and the editor toolbar above its panes. Use browser-oriented copy; implement shared hosting as its own milestone.
 - Keep icons as bundled inline SVG and use installed fonts; the visual polish adds no runtime dependency or external asset requests. Compact spacing at short desktop heights must keep both panels inside their form, not merely inside the browser viewport.
 - Use two steps for file conversion: choose HTML, then review settings and convert/save. Keep the editor's back action on the left, conversion/save on the right, and the script option above both panes. Use the existing shared conversion and download handlers.

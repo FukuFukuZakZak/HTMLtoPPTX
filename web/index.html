@@ -8,6 +8,7 @@
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <script src="./theme.js"></script>
     <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="./special-theme.css">
   </head>
   <body>
     <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -20,6 +21,7 @@
       <symbol id="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></symbol>
       <symbol id="icon-moon" viewBox="0 0 24 24"><path d="M20.5 14A9 9 0 0 1 10 3.5 9 9 0 1 0 20.5 14Z"/></symbol>
       <symbol id="icon-monitor" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="13" rx="2"/><path d="M8 21h8m-4-5v5"/></symbol>
+      <symbol id="icon-settings" viewBox="0 0 24 24"><path d="m9 3-1 3-3 1-2 3 2 2-1 3 3 2 3-1 2 3h3l1-3 3-1 2-3-2-2 1-3-3-2-3 1-2-3Z"/><circle cx="11.5" cy="11" r="3"/></symbol>
     </svg>
     <header class="masthead">
       <div class="brand">
@@ -34,8 +36,19 @@
           <label><input type="radio" name="theme" value="dark"><span><svg class="icon" aria-hidden="true"><use href="#icon-moon"/></svg>ダーク</span></label>
           <label><input type="radio" name="theme" value="system" checked><span><svg class="icon" aria-hidden="true"><use href="#icon-monitor"/></svg>システム</span></label>
         </fieldset>
+        <button class="settings-button" id="open-settings-button" type="button" aria-label="テーマ設定" aria-haspopup="dialog" aria-controls="theme-settings" title="テーマ設定"><svg class="icon" aria-hidden="true"><use href="#icon-settings"/></svg></button>
       </div>
     </header>
+    <dialog class="theme-settings" id="theme-settings" aria-labelledby="theme-settings-title" aria-describedby="theme-settings-description">
+      <div class="settings-heading"><h2 id="theme-settings-title">スペシャルテーマ</h2><button class="settings-close" id="close-settings-button" type="button" aria-label="テーマ設定を閉じる" autofocus>×</button></div>
+      <p id="theme-settings-description">いつもの操作を、お好みの見た目で。</p>
+      <fieldset class="appearance-options">
+        <legend class="visually-hidden">デザインを選択</legend>
+        <label class="appearance-option"><input type="radio" name="appearance" value="standard" checked><span class="appearance-card"><span class="theme-sample sample-standard" aria-hidden="true"><i></i><i></i><i></i></span><strong>標準</strong><small>すっきり、落ち着いたデザイン</small><span class="appearance-selected" aria-hidden="true">選択中</span></span></label>
+        <label class="appearance-option"><input type="radio" name="appearance" value="8bit"><span class="appearance-card"><span class="theme-sample sample-pixel" aria-hidden="true"><i></i><i></i><i></i></span><strong>8bit</strong><small>ドット文字とレトロなウィンドウ</small><span class="appearance-selected" aria-hidden="true">選択中</span></span></label>
+      </fieldset>
+      <p class="settings-hint">ライト・ダーク・システムの設定を引き継ぎます。<br>変更はすぐに反映され、このブラウザに保存されます。</p>
+    </dialog>
     <main class="workspace" id="file-workspace">
       <section class="intro" aria-labelledby="intro-title">
         <h2 id="intro-title">HTMLのスライドを、<br>編集できる<br>PowerPointへ。</h2>
@@ -53,6 +66,7 @@
           <div class="panel-heading"><h3 id="converter-title"><span class="step-number">1</span>HTMLを読み込む</h3><span class="subtle">複数ファイルに対応</span></div>
           <label class="drop-zone" id="drop-zone" for="html-file">
             <input id="html-file" type="file" accept=".html,.htm,text/html" multiple>
+            <svg class="pixel-art" viewBox="0 0 180 90" shape-rendering="crispEdges" aria-hidden="true"><g fill="var(--pixel-edge)"><path d="M12 8h58v4h4v65H12zM108 18h58v4h4v55h-62z"/></g><path fill="var(--surface)" d="M10 6h58v67H10zM106 16h58v57h-58z"/><path fill="var(--accent)" d="M10 6h58v12H10zM106 16h58v12h-58z"/><path fill="var(--accent-ink)" d="M14 10h4v4h-4zm8 0h4v4h-4zm8 0h4v4h-4zM110 20h4v4h-4z"/><path fill="var(--ink)" d="M26 29h4v4h-4v4h-4v4h4v4h4v4h-4v-4h-4v-4h-4v-4h4v-4h4zm22 0h4v4h4v4h4v4h-4v4h-4v4h-4v-4h4v-4h4v-4h-4v-4h-4zM38 29h4v12h-4v12h-4V41h4z"/><path fill="var(--accent)" d="M78 42h14v-6h4v4h4v4h4v4h-4v4h-4v4h-4v-6H78zM116 36h36v4h-36zm0 8h24v4h-24z"/><path fill="var(--muted)" d="M20 59h36v4H20zm96-3h12v8h-12zm16-4h8v12h-8zm12-8h8v20h-8z"/></svg>
             <svg class="conversion-art" viewBox="0 0 360 180" aria-hidden="true">
               <g fill="none" stroke="var(--rule)" stroke-width="1"><path stroke-dasharray="3 6" d="M16 148h328M180 8v160"/><path d="M16 16v10m-5-5h10m313 131v10m-5-5h10"/></g>
               <rect class="art-paper" x="31" y="17" width="137" height="139" rx="8"/>
