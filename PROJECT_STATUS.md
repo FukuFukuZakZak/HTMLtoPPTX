@@ -15,10 +15,14 @@ Build the HTML-to-PPTX converter described in `docs/HTML_to_PPTX_converter_spec_
 
 ## Current milestone
 
-HTML simple repair complete: an explicit editor action adds supported structural closing tags, reports changes and refreshes preview. Windows Edge native Undo/Redo is preserved and verified; no full editor or custom history manager was added.
+Approved How to use manual is integrated into the executable. A shared header link opens the 11-chapter guide in a separate tab while preserving editor input. Integration verification passed; commit, push and existing prerelease replacement are in progress.
 
 ## Current work
 
+- 2026-09-07: user approved the manual and authorized integration, commit, GitHub push and replacement of the existing prerelease. Added the shared header entry and self-contained `web/howtouse/` assets. Existing CSP remains unchanged.
+
+- Created `deliverables/Howtouse/Howtouse.html` for users to read on screen while operating the converter. Covers paste/preview, optional repair and script-added content, conversion, ZIP save/extraction, file input, page sizes, themes and troubleshooting. The single HTML embeds screenshots and the downloadable practice HTML. Source and original captures are beside it; approved content is now generated into the application without adding dependencies.
+- Verified all 11 chapters at four viewport sizes (44 states), image enlargement/Escape/focus return, chapter navigation, standalone practice download and no-JavaScript reading in Edge. No page errors or external requests. Current executable produced the pictured two-slide `貼り付けHTML.pptx` inside a ZIP. Final manual evidence is `deliverables/Howtouse/verification.json`; detailed workflow evidence remains in `.tmp/howtouse/`.
 - Implemented the user's paste-first HTML repair request in the existing textarea. The `簡易補正` button uses locally bundled parse5 to locate source tags; adds supported structural ends at ancestor/indentation/EOF boundaries and removes standalone Markdown code fences. Inline formatting boundaries, malformed attributes/raw text and unsupported ambiguities produce diagnostics without changing source. CSS and JavaScript contents are preserved.
 - Verified 580 damaged copies of both supplied `test-data` HTMLs: 256 applied repairs all restore the original tree and Edge element/text geometry; 151 are already recovered by the browser, 166 remain warning-only, and 7 have no supported detectable repair. All cases are idempotent and the original file hashes are unchanged. Six real conversion ZIPs verify identical corresponding slide XML, including scripts enabled.
 - Native Ctrl+Z/Ctrl+Y passes 150 undo/redo cycles with exactly 300 history input events. Paste and repair are separate history entries; no-op repair creates no entry, editing discards the redo branch, and navigation retains history. Latest local artifact: `dist/html-repair-20260906/HTMLtoPPTX.exe`, with screenshots, reports and copied mutation cases. Published this verified repair build in the existing prerelease on 2026-09-07 JST; a fresh GitHub download matches the tested executable.
@@ -57,7 +61,15 @@ HTML simple repair complete: an explicit editor action adds supported structural
 - SHA-256: `90B14A4799C4EA4A1F5740A6BC4B1ACDFF73DA45BDE99222959D092CAD8CD65C`
 - The annotated tag and GitHub prerelease both target the clean product commit above. The release contains exactly one Windows asset.
 
+## Current manual decisions
+
+- Approved content is shared by standalone and app generators. Embedded screenshots and static assets ship inside the executable. Open help in a separate tab to preserve active input and conversions; use external same-origin scripts under the existing CSP.
+
+- Review the user-facing manual as a standalone, offline HTML before producing a video. Use real current-version screenshots with marked controls, short action/result text and on-demand chapters. Preserve the original application's behavior and provide no automatic playback.
+
 ## Next actions
+
+Commit and push the approved manual integration, replace the existing alpha.1 prerelease executable/tag, then verify a fresh downloaded asset against the tested executable.
 
 Try `dist/html-repair-20260906/HTMLtoPPTX.exe` on the target LGWAN/Windows browser: paste representative exaBase HTML, run `簡易補正`, inspect preview and use Ctrl+Z/Ctrl+Y. Closing positions use structural/indentation hints; arbitrary missing content or intended formatting cannot be reconstructed. Broaden supported repairs only with representative failing examples and original-output comparisons.
 
@@ -75,6 +87,7 @@ Confirm the latest artifact's top-right gear → 8bit appearance in light/dark o
 
 ## Active risks / blockers
 
+- The approved manual is integrated; video production remains a separate future task. Screenshots document the unchanged conversion controls from product commit `2139b95`; the newly added header help link is not pictured. No integration blockers remain.
 - Simple repair does not guarantee reconstruction of arbitrary malformed HTML. Missing inline formatting ends, starting tags/attributes, unfinished script/style/comment text, foreign content and ambiguous nesting are outside automatic repair. Native history uses the deprecated but currently working `execCommand("insertText")` API; Windows Edge acceptance must be repeated for an engine migration. No custom input/history reentry is used.
 - Browser and filesystem access are available with the current full-access setting; the previous local-URL, uv-cache and Git-write blockers are resolved.
 - Microsoft PowerPoint is not installed/registered in this environment. All 24 final slides were individually inspected using LibreOffice 26.2.5.2 → PDF → PNG. Native PowerPoint rendering and editing are not verified.
@@ -92,6 +105,12 @@ Confirm the latest artifact's top-right gear → 8bit appearance in light/dark o
 
 ## Latest verification
 
+- Standard and 8bit browser regression: 58 layout states each (116 total), four real conversion ZIPs each, zero page errors; minimum measured contrast 5.0 / 5.15. Desktop and mobile screenshots inspected. Graphify AST update: 803 nodes / 2132 edges / 43 communities; metadata JSON produces no AST nodes and community labels use hub fallback.
+
+- Integrated manual: 44 viewport/chapter states; home/editor separate-tab entry, retained input, chapter links, modal close/Escape/focus, practice download, no-JS readability, actual two-slide ZIP, zero external requests/page errors/CSP violations. `npm test`: 43 passed; `go test ./...` and `go vet ./...`: passed. Context7 consulted: `/mdn/content` CSP external same-origin scripts; `/websites/cli_github_manual` release edit/upload/download.
+
+- How to use (2026-09-07): Edge acceptance covers 11 chapters at 1920×1080, 1440×900, 1280×720 and 390×844, with no horizontal document overflow, missing images, page errors or external requests. Previous/next boundaries, direct chapter links, FAQ links, native image dialog/Escape/focus return, embedded practice-file download and no-JavaScript reading pass. Real conversion ZIP contains `貼り付けHTML.pptx` with 2 slides. Visual review confirmed FullHD chapter navigation remains within the screen; smaller desktop chapter content can scroll independently. No production tests were rerun because application code is unchanged.
+- Context7 for the manual: `/mdn/content` native dialog/focus and current-step navigation; `/microsoft/playwright` installed Edge, viewport/screenshots and downloads. Modern Web Guidance HTML guide and Frontend Design applied. Graphify query located `showEditorWorkspace`, `previewDocument`, `startConversion` and `prepareZipDownload`; AST refresh completed with 792 nodes / 2123 edges / 45 communities. `capture.json` yields no AST nodes and community labels fell back to hubs; neither affects the manual.
 - 2026-09-07 JST: pushed repair product commit 2139b95 and replaced the existing alpha.1 prerelease/tag/Windows asset. Fresh download matches the tested 10,145,280-byte executable and SHA-256 above; one asset, prerelease true, draft false. Context7: /websites/cli_github_manual, existing release edit/upload --clobber/download workflow. Details in project-status/VERIFICATION.md.
 
 - HTML repair (2026-09-06): `npm test` 43/43 (0.395 s), `go test ./...` (0.915 s), vet and build pass. `scripts/repair-mutations.mjs`: seed 20260906, 580 copies, 256/256 applied repairs restore the original tree; shipped bundle matches all cases. `scripts/repair-acceptance.cjs`: 256 browser geometry comparisons, 150 native history cycles, six ZIPs / 50 slides with original/repaired XML equality, 12 repair-panel layouts, no page errors. Existing UI acceptance passes 58 states and four ZIPs in each appearance (116 states total).
@@ -114,6 +133,7 @@ Confirm the latest artifact's top-right gear → 8bit appearance in light/dark o
 
 ## Working tree notes
 
+- This task includes `deliverables/Howtouse/` and the application integration. Existing `.codex/config.toml`, `.codex-remote-attachments/`, `docs/` and `test-data/` changes are preserved. The approved integration additionally owns `web/howtouse/`, the header/styles, the manual build command, acceptance script and verification/status updates.
 - This task owns the repair source/bundle/licenses, three repair build/acceptance scripts, unit tests, editor HTML/CSS/JS, package manifests and status records. User-owned `.codex/config.toml`, `.codex-remote-attachments/`, `docs/` and `test-data/` remain separate. Original `test-data` files are unchanged; damaged/repaired copies are under `.tmp/html-repair/` and archived with the distribution.
 - Special-theme follow-up owns `web/index.html`, `web/theme.js`, new `web/special-theme.css`, bundled font/license/provenance, the acceptance driver and status records. Conversion/runtime/Worker/Go hosting code and dependencies are unchanged. Existing published prerelease and previous distribution folders remain intact.
 - Typography scaling was committed as `1af27f1`; paste-mode/script/fidelity work as `5800027`; quality acceptance as `5a3f440`; FullHD/theme foundations as `8b97c24`. This website-style follow-up owns `web/index.html`, `web/style.css`, `web/favicon.svg`, `scripts/ui-acceptance.cjs` and status records. Runtime JavaScript and Go hosting/conversion logic were not changed.

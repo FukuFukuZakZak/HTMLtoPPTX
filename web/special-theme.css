@@ -100,3 +100,6 @@
   .appearance-card { padding: 9px; }
   :root[data-appearance="8bit"] .pixel-art { height: 126px; }
 }
+
+html[data-appearance="8bit"] .howtouse-link { border-radius: 0; border-width: 2px; box-shadow: 3px 3px 0 var(--ink); }
+html[data-appearance="8bit"] .howtouse-link:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }

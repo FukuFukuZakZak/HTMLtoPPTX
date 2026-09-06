@@ -331,3 +331,8 @@ code { font: 12px Consolas, monospace; color: var(--ink); }
   .theme-switch input:checked + span { outline: 2px solid Highlight; }
   .primary-button, .download-button, .select-file-label { border: 1px solid ButtonText; }
 }
+
+/* Shared help entry remains available while editing or converting. */
+.howtouse-link { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 6px 12px; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface); color: var(--ink); font-size: 13px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.howtouse-link:hover { background: var(--accent-soft); }
+@media (max-width: 640px) { .header-tools { flex-wrap: wrap; justify-content: flex-end; } }

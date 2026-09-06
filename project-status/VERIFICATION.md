@@ -278,3 +278,14 @@ This file is the detailed audit trail. The concise current result is in [`../PRO
 - Issue #3-#5 replacement candidate: 6,606,336 bytes; SHA-256 `6899929B140AD0A72511E6D3EEFA86C1485750AB10418E0F4B3B663AE81C560C`; product commit `69569fa`; annotated tag object `d82a26a`.
 - The superseded Issue #3-#5 release title was `HTMLtoPPTX v0.1.0-alpha.1（Issues #3〜#5 実機検証版）` and its public digest matched the candidate.
 - Release-replacement verification at each stage included JavaScript syntax checks, `npm test`, `go test ./...`, `go vet ./...`, and pre-commit. GitHub CLI behavior was checked through Context7 before destructive asset replacement.
+
+
+## 2026-09-07 — approved How to use integration
+
+- User approved the 11-chapter manual and authorized integration, commit/push and replacement of alpha.1.
+- `npm run build:manual` generates standalone review HTML and CSP-compatible `web/howtouse/` assets, embedded by the existing Go web filesystem. No dependency or CSP changes.
+- `node scripts/howtouse-acceptance.cjs <app URL>` against `dist/howtouse-20260907/HTMLtoPPTX.exe`: 44 chapter/viewport states, home/editor help links, separate tab with null opener, retained editor input, previous/next/deep links, image close/Escape/focus, exact practice download, no-JS reading, real two-slide PPTX ZIP, zero page errors/external requests/CSP violations. Tracked evidence: `deliverables/Howtouse/integration-verification.json`.
+- `scripts/ui-acceptance.cjs` for standard and 8bit: 116 total layout states and 8 conversion ZIPs, theme changes, mixed A4, scripts, cancellation and mobile checks passed; zero errors. Reports/screenshots in `dist/howtouse-20260907/ui-standard` and `ui-8bit`; desktop, manual and mobile screenshots visually inspected.
+- `npm test`: 43 passed. `go test ./...` and `go vet ./...`: passed. Executable built with `go build -buildvcs=false -o dist/howtouse-20260907/HTMLtoPPTX.exe .`.
+- Context7: `/mdn/content` same-origin external scripts under CSP; `/websites/cli_github_manual` existing release edit/upload/download. Modern Web Guidance security guidance applied.
+- Graphify AST update: 803 nodes, 2132 edges, 43 communities. Capture/verification JSON has no AST nodes; some community labels use hub fallback.

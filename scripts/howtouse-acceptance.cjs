@@ -1,0 +1,111 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs/promises');
+const {chromium}=require('playwright');
+const JSZip=require('jszip');
+(async()=>{
+ const browser=await chromium.launch({channel:'msedge'});
+ const report={checks:[],layouts:[],errors:[],network:[]};
+ try{
+ await fs.mkdir('.tmp/howtouse',{recursive:true});
+ const app=await browser.newPage();
+ await app.goto(process.argv[2]);
+ const openManual=async()=>{
+  const popup=app.waitForEvent('popup');
+  await app.locator('#howtouse-link').click();
+  const manual=await popup;
+  await manual.waitForLoadState();
+  assert.equal(await manual.evaluate(()=>window.opener),null);
+  return manual;
+ };
+ const homeManual=await openManual();
+ assert.ok(await homeManual.locator('#chapter-1').isVisible());
+ await homeManual.close();
+ await app.locator('#open-editor-button').click();
+ const sample=await fs.readFile('deliverables/Howtouse/操作練習.html','utf8');
+ await app.locator('#html-editor').fill(sample);
+ const page=await openManual();
+ assert.equal(await app.locator('#html-editor').inputValue(),sample);
+ report.checks.push('home/editor help entry, separate tab, no opener, editor input retained');
+ await page.addInitScript(()=>{window.cspViolations=[];document.addEventListener('securitypolicyviolation',e=>window.cspViolations.push(e.violatedDirective));});
+ page.on('pageerror',e=>report.errors.push(e.message));
+ page.on('request',r=>{if(/^https?:/.test(r.url()) && new URL(r.url()).origin!==new URL(process.argv[2]).origin)report.network.push(r.url());});
+ const url=new URL('howtouse/',process.argv[2]).href;
+ const ready=i=>page.waitForFunction(i=>document.querySelector(`nav a[data-chapter="${i}"]`).getAttribute('aria-current')==='step',i);
+ for(const [width,height] of [[1920,1080],[1440,900],[1280,720],[390,844]]){
+  await page.setViewportSize({width,height});
+  await page.goto(url);
+  for(let i=1;i<=11;i++){
+   await page.locator(`nav a[data-chapter="${i}"]`).click();
+   await page.waitForFunction(i=>document.querySelector(`nav a[data-chapter="${i}"]`).getAttribute('aria-current')==='step',i);
+   assert.equal(await page.locator('.chapter:visible').count(),1);
+   assert.equal(await page.locator(`nav a[data-chapter="${i}"]`).getAttribute('aria-current'),'step');
+   const layout=await page.evaluate(()=>({w:innerWidth,sw:document.documentElement.scrollWidth,h:innerHeight,sh:document.documentElement.scrollHeight,images:[...document.querySelectorAll('.chapter:not([hidden]) img')].every(x=>x.complete&&x.naturalWidth>0)}));
+   assert.ok(layout.sw<=width,`overflow ${width}, chapter ${i}`);
+   assert.ok(layout.images);
+   report.layouts.push({width,height,chapter:i,...layout});
+  }
+  assert.equal(await page.locator('#next').isDisabled(),true);
+  if(width===1920||width===390){
+   await page.locator('nav a[data-chapter="1"]').click();
+   await ready(1);
+   await page.screenshot({path:`.tmp/howtouse/manual-${width}.png`,fullPage:true});
+  }
+ }
+ await page.setViewportSize({width:1440,height:900});
+ await page.goto(url);
+ assert.equal(await page.locator('#prev').isDisabled(),true);
+ await page.locator('#next').click();
+ await ready(2);
+ assert.equal(new URL(page.url()).hash,'#chapter-2');
+ await page.locator('#prev').click();
+ await ready(1);
+ assert.equal(new URL(page.url()).hash,'#chapter-1');
+ await page.locator('.chapter:visible .screenshot').click();
+ assert.ok(await page.locator('#zoom').isVisible());
+ await page.locator('#zoom button').click();
+ assert.equal(await page.locator('#zoom').isVisible(),false);
+ await page.locator('.chapter:visible .screenshot').click();
+ await page.keyboard.press('Escape');
+ assert.equal(await page.locator('#zoom').isVisible(),false);
+ assert.ok(await page.locator('.chapter:visible .screenshot').evaluate(e=>e===document.activeElement));
+ report.checks.push('previous/next, boundary disabled, image modal, Escape, focus return');
+ await page.goto(url+'#chapter-7');
+ assert.ok(await page.locator('#chapter-7').isVisible());
+ await page.screenshot({path:'.tmp/howtouse/manual-save.png',fullPage:true});
+ await page.locator('nav a[data-chapter="11"]').click();
+ await ready(11);
+ await page.locator('.faq-list summary').nth(4).click();
+ assert.ok(await page.locator('.faq-list details').nth(4).evaluate(e=>e.open));
+ await page.locator('.faq-list details').nth(4).locator('a').click();
+ await ready(7);
+ assert.ok(await page.locator('#chapter-7').isVisible());
+ report.checks.push('direct chapter URL and FAQ links');
+ await page.locator('nav a[data-chapter="2"]').click();
+ await ready(2);
+ const download=page.waitForEvent('download');
+ await page.locator('a[download]').click();
+ await(await download).saveAs('.tmp/howtouse/sample-downloaded.html');
+ assert.equal(await fs.readFile('.tmp/howtouse/sample-downloaded.html','utf8'),await fs.readFile('deliverables/Howtouse/操作練習.html','utf8'));
+ report.checks.push('practice HTML download exact bytes');
+ const noJs=await browser.newPage({javaScriptEnabled:false,viewport:{width:1440,height:900}});
+ await noJs.goto(url);
+ assert.equal(await noJs.locator('.chapter:visible').count(),11);
+ report.checks.push('all content readable without JavaScript');
+ await app.locator('#editor-convert-button').click();
+ await app.locator('#editor-download-link').waitFor({state:'visible'});
+ const saved=app.waitForEvent('download');
+ await app.locator('#editor-download-link').click();
+ await(await saved).saveAs('.tmp/howtouse/貼り付け変換.zip');
+ const zip=await JSZip.loadAsync(await fs.readFile('.tmp/howtouse/貼り付け変換.zip'));
+ const names=Object.keys(zip.files).filter(n=>n.endsWith('.pptx'));
+ assert.deepEqual(names,['貼り付けHTML.pptx']);
+ const pptx=await JSZip.loadAsync(await zip.file(names[0]).async('nodebuffer'));
+ assert.equal(Object.keys(pptx.files).filter(n=>/^ppt\/slides\/slide\d+\.xml$/.test(n)).length,2);
+ report.checks.push('actual conversion ZIP: 貼り付けHTML.pptx, 2 slides');
+ assert.deepEqual(await page.evaluate(()=>window.cspViolations),[]);
+ report.checks.push('existing CSP preserved; no policy violations');
+ assert.deepEqual(report.errors,[]);assert.deepEqual(report.network,[]);
+ await fs.writeFile('.tmp/howtouse/verification.json',JSON.stringify(report,null,2)+String.fromCharCode(10));
+ console.log(JSON.stringify({layouts:report.layouts.length,checks:report.checks,errors:report.errors,externalRequests:report.network.length}));
+ }finally{await browser.close();}
+})().catch(e=>{console.error(e);process.exitCode=1;});

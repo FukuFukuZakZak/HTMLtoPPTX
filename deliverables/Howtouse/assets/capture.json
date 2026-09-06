@@ -1,0 +1,131 @@
+{
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "screens": {
+    "01-start": [
+      {
+        "selector": "#open-editor-button",
+        "x": 416.984375,
+        "y": 731.625,
+        "width": 459,
+        "height": 78.1875
+      }
+    ],
+    "02-empty": [
+      {
+        "selector": "#html-editor",
+        "x": 33,
+        "y": 316.96875,
+        "width": 687,
+        "height": 486.25
+      }
+    ],
+    "03-preview": [
+      {
+        "selector": "#html-preview",
+        "x": 721,
+        "y": 308.171875,
+        "width": 686,
+        "height": 495.046875
+      },
+      {
+        "selector": "#repair-html-button",
+        "x": 634,
+        "y": 273.78125,
+        "width": 70,
+        "height": 31.1875
+      }
+    ],
+    "04-repair": [
+      {
+        "selector": "#repair-html-button",
+        "x": 634,
+        "y": 273.78125,
+        "width": 70,
+        "height": 31.1875
+      },
+      {
+        "selector": "#repair-report",
+        "x": 33,
+        "y": 316.96875,
+        "width": 687,
+        "height": 61.375
+      }
+    ],
+    "05-options": [
+      {
+        "selector": "#editor-execute-scripts",
+        "x": 49,
+        "y": 212.984375,
+        "width": 19,
+        "height": 19
+      },
+      {
+        "selector": ".editor-settings",
+        "x": 32,
+        "y": 194.59375,
+        "width": 1376,
+        "height": 98.375
+      }
+    ],
+    "06-convert": [
+      {
+        "selector": "#editor-convert-button",
+        "x": 1259.53125,
+        "y": 129.296875,
+        "width": 148.46875,
+        "height": 46
+      }
+    ],
+    "07-save": [
+      {
+        "selector": "#editor-download-link",
+        "x": 1272.6875,
+        "y": 129.296875,
+        "width": 135.3125,
+        "height": 46
+      },
+      {
+        "selector": "#editor-message",
+        "x": 32,
+        "y": 818.015625,
+        "width": 1376,
+        "height": 20.796875
+      }
+    ],
+    "08-files": [
+      {
+        "selector": "#drop-zone",
+        "x": 416.984375,
+        "y": 194.1875,
+        "width": 459,
+        "height": 435.859375
+      },
+      {
+        "selector": "#file-row",
+        "x": 416.984375,
+        "y": 648.046875,
+        "width": 459,
+        "height": 65.578125
+      },
+      {
+        "selector": "#convert-button",
+        "x": 924.984375,
+        "y": 395.125,
+        "width": 458.015625,
+        "height": 46
+      }
+    ],
+    "09-settings": [
+      {
+        "selector": "#theme-settings",
+        "x": 440,
+        "y": 243.421875,
+        "width": 560,
+        "height": 413.140625
+      }
+    ]
+  }
+}

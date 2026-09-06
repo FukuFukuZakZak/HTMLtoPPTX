@@ -1,0 +1,50 @@
+// Generates the standalone manual and CSP-compatible embedded application manual.
+const fs = require('node:fs');
+const path = require('node:path');
+const root = __dirname;
+const appRoot = path.resolve(root, '../../web/howtouse');
+const embedded = process.argv.includes('--app');
+if (embedded) fs.mkdirSync(path.join(appRoot, 'assets'), { recursive: true });
+const captures = JSON.parse(fs.readFileSync(path.join(root,'assets/capture.json'),'utf8'));
+const chapters = [
+  {nav:'貼り付け画面を開く',group:'基本の操作',title:'「HTMLコードを貼り付ける」を押す',lead:'HTMLのコードを持っている場合は、ここから始めます。',image:'01-start',marks:[0],caption:'最初の画面：中央下のボタンから貼り付け画面へ進みます。',steps:['HTML → PowerPoint の画面を開きます。','「HTMLコードを貼り付ける」を押します。'],result:'HTMLエディターが開き、左に入力欄、右にプレビューが表示されます。',note:'HTMLファイルを持っている場合は、目次の「ファイルから変換」をご覧ください。',extra:'<a class="inline-link" href="#chapter-8">ファイルから変換する手順へ</a>'},
+  {nav:'HTMLを貼り付ける',group:'基本の操作',title:'左の欄に、HTMLを貼り付ける',lead:'AIなどで作成したHTMLコード全体をコピーしておきます。',image:'02-empty',marks:[0],caption:'HTMLエディター：左側の「HTMLコード」欄に貼り付けます。',steps:['左側の「HTMLコード」欄をクリックします。','Ctrl + V でHTMLコードを貼り付けます。'],result:'右側のプレビューが自動で更新されます。',note:'文章だけでなく、HTMLのコード全体を貼り付けてください。画面を再読み込みしたり閉じたりすると入力内容は消えるので、元のコードは残しておきます。',extra:'<a class="inline-link" href="操作練習.html" download>操作練習用HTMLを保存</a><p class="small">練習用ファイルは「ファイルから変換」の手順で利用できます。</p>'},
+  {nav:'プレビューを確認',group:'基本の操作',title:'文字・配置・画像を確認する',lead:'右側のプレビューで、変換前の見た目を確認します。',image:'03-preview',marks:[0],caption:'右側のプレビューを確認します。下のページは、枠内をスクロールして見ます。',steps:['見出しや本文が表示されているか確認します。','プレビュー内をスクロールし、続きのページも確認します。','画像や文字に欠けがないか確認します。'],result:'問題がなければ「PPTXへ変換」に進めます。',note:'プレビューは確認用です。PowerPointと完全に同じ見た目を保証するものではありません。変換後のPPTXも確認してください。',extra:'<a class="inline-link" href="#chapter-6">問題がなければ、変換へ進む</a>'},
+  {nav:'必要なとき：簡易補正',group:'必要に応じて',title:'表示が崩れたら「簡易補正」',lead:'HTMLの一部に閉じタグの抜けなどがある場合に使います。',image:'04-repair',marks:[0,1],caption:'左側上部の「簡易補正」と、その下に表示される補正結果です。',steps:['「HTMLコード」欄の右上にある「簡易補正」を押します。','表示された補正結果を読み、プレビューを確認します。','戻したいときは入力欄をクリックし、Ctrl + Z を押します。'],result:'補正した内容がコードとプレビューに反映されます。Ctrl + Y でやり直せます。',note:'すべての崩れが直る機能ではありません。補正できない場合や確認が必要な場合は、表示された案内を読み、元のHTMLを見直します。'},
+  {nav:'必要なとき：追加表示',group:'必要に応じて',title:'グラフやメニューが不足するとき',lead:'HTMLを開いた後に追加される内容は、変換時の設定で反映します。',image:'05-options',marks:[1],caption:'画面上部の「追加表示される内容も反映する」で設定します。',steps:['まず、通常の設定（オフ）で確認します。','自分で作成したHTMLなど、作成元を確認できる場合にオンにします。','PPTXへ変換し、出力したファイルで追加内容を確認します。'],result:'HTML内のプログラムで追加される内容が、変換対象になります。',note:'オンにしてもプレビューには反映されません。外部から読み込むプログラム・画像などは反映されない場合があります。作成元が分からない場合や迷う場合はオフにします。'},
+  {nav:'PPTXへ変換',group:'基本の操作',title:'「PPTXへ変換」を押す',lead:'確認が終わったら、右上のボタンから変換します。',image:'06-convert',marks:[0],caption:'HTMLエディター右上の「PPTXへ変換」を押します。',steps:['右上の「PPTXへ変換」を押します。','表示される変換状況を確認し、完了を待ちます。'],result:'変換が終わると「ZIPを保存」が表示されます。',note:'変換中は画面を閉じたり再読み込みしたりしないでください。中止するときは、変換状況に表示される「キャンセル」を押します。'},
+  {nav:'保存してPowerPointで開く',group:'基本の操作',title:'ZIPを保存し、PPTXを開く',lead:'変換が完了したら、保存まで行います。',image:'07-save',marks:[0,1],caption:'完了メッセージを確認し、右上の「ZIPを保存」を押します。',steps:['「ZIPを保存」を押します。保存先はブラウザーの設定によって異なります。','保存したZIPを右クリックし、「すべて展開」で取り出します。','展開したフォルダー内の .pptx をPowerPointで開きます。'],result:'文字・図形を編集できるPowerPointファイルとして使えます。画像など、一部は画像として入ります。',note:'最後にページ数、文字のはみ出し、画像、フォントを確認してください。貼り付けた場合のPPTX名は「貼り付けHTML.pptx」です。向きが混在する場合は複数ファイルになります。'},
+  {nav:'ファイルから変換',group:'別の操作・困ったとき',title:'HTMLファイルを選んで変換する',lead:'保存済みの .html / .htm ファイルは、そのまま読み込めます。',image:'08-files',marks:[0,1,2],caption:'① ファイルを選ぶ → ② ファイル名を確認 → ③ PPTXへ変換。',steps:['最初の画面で「ファイルを選択」を押します。枠へのドラッグ＆ドロップも使えます。','ファイルを選び、表示されたファイル名・件数を確認します。複数選択もできます。','必要な設定を確認し、「PPTXへ変換」→「ZIPを保存」と進みます。'],result:'HTMLごとのPPTXが、1つのZIPにまとまります。',note:'エディターから戻るときは左上の「ファイル選択へ」を押します。ファイル選択画面にはプレビューや簡易補正はありません。',extra:'<a class="inline-link" href="#chapter-7">保存後の開き方を確認する</a>'},
+  {nav:'ページサイズと出力',group:'別の操作・困ったとき',title:'ページサイズは自動で判定される',lead:'16:9・A4縦・A4横を、HTMLのページ構造から判定します。',kind:'sizes',steps:['画面でサイズを指定する操作はありません。','A4縦・横が混在する場合は、ZIPの中に向き別のPPTXが作られます。','出力したPPTXを開き、意図した向きになっているか確認します。'],result:'同じ向きのページは、元の順序でまとまります。',note:'PowerPointは1つのファイル内で異なるページサイズを混在できません。1つにまとめたい場合は、統一するサイズを決めてPowerPointで調整してください。'},
+  {nav:'画面の見た目を変える',group:'別の操作・困ったとき',title:'見やすいテーマを選ぶ',lead:'画面右上から明るさやデザインを変更できます。',image:'09-settings',marks:[0],caption:'右上の歯車（テーマ設定）を押すと、この選択画面が開きます。',steps:['右上の「ライト」「ダーク」「システム」で明るさを選びます。','歯車を押すと「標準」「8bit」のデザインを選べます。','選んだら、右上の × で設定を閉じます。'],result:'選択はすぐに反映され、同じブラウザーに保存されます。',note:'テーマはアプリ画面の見た目を変えます。入力したHTMLの配色や、出力するPPTXの配色は変わりません。'},
+  {nav:'困ったとき',group:'別の操作・困ったとき',title:'困ったときは、ここを確認',lead:'症状を選ぶと、確認する場所と次の操作が分かります。',kind:'faq'}
+];
+const faqs = [
+ ['「PPTXへ変換」を押せない','HTMLコードが空になっていないか、またはHTMLファイルを選択できているか確認します。変換中の場合は完了を待ちます。',2,'HTMLを貼り付ける'],
+ ['プレビューが空白、または表示が崩れる','HTMLコード全体を貼り付けたか確認します。「簡易補正」を試し、結果とプレビューを見直します。外部画像やプログラムで表示する内容は、プレビューに出ない場合があります。',4,'簡易補正の手順へ'],
+ ['画像やグラフが出てこない','プログラムで追加する内容は「追加表示される内容も反映する」を確認します。外部参照の画像やフォントは反映されない場合があるため、HTMLの作成者に、必要な素材をHTML内に含められるか確認します。',5,'追加表示の設定へ'],
+ ['変換エラーが出る','画面のエラーメッセージを確認します。対応するスライドやA4ページの構造がないHTMLは変換できません。複数ファイルの場合は1つずつ試して対象を絞り、HTMLの作成者へメッセージと対象ファイルを伝えます。',8,'ファイルから変換の手順へ'],
+ ['保存したPPTXが見つからない','「ZIPを保存」を押したか確認し、ブラウザーのダウンロード一覧と保存先を確認します。ZIPを展開すると、中にPPTXが入っています。',7,'保存と展開の手順へ'],
+ ['PowerPointで文字や配置がずれる','利用できるフォントやHTML表現の違いにより、出力が元の表示と異なる場合があります。PowerPoint側でフォント・文字サイズ・配置を調整し、編集後のファイルを保存します。',7,'変換後の確認へ']
+];
+const esc=s=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+const practice='data:text/html;base64,'+fs.readFileSync(path.join(root,'操作練習.html')).toString('base64');
+chapters.forEach(c=>{if(c.extra)c.extra=c.extra.replace('href="操作練習.html" download',`href="${practice}" download="操作練習.html"`);});
+function illustration(c){
+ if(c.image){
+   const filename=c.image+'.png';
+   if (embedded) fs.copyFileSync(path.join(root,'assets',filename),path.join(appRoot,'assets',filename));
+   const src=embedded?'./assets/'+filename:'data:image/png;base64,'+fs.readFileSync(path.join(root,'assets',filename)).toString('base64');
+   const marks=c.marks.map((m,i)=>{const b=captures.screens[c.image][m];return `<span class="mark" style="left:${b.x/14.4}%;top:${b.y/9}%;width:${b.width/14.4}%;height:${b.height/9}%"><b>${i+1}</b></span>`;}).join('');
+   return `<figure><button class="screenshot" type="button" aria-label="${esc(c.nav)}の操作画面を拡大"><img src="${src}" width="1440" height="900" alt="${esc(c.caption)}">${marks}</button><figcaption>${c.caption}<span>画像を押すと拡大</span></figcaption></figure>`;
+ }
+ return `<div class="output-map" aria-label="出力ファイルの説明"><h3>HTMLの向きに合わせて、PPTXへ</h3><div class="paper-row"><div><span class="paper wide">16:9</span><p>横長のスライド</p></div><div><span class="paper portrait">A4縦</span><p>縦向きのページ</p></div><div><span class="paper landscape">A4横</span><p>横向きのページ</p></div></div><div class="zip-example"><p>例：資料.html にA4縦・横が混在しているとき</p><strong>保存したZIP</strong><ul><li>資料-A4縦.pptx</li><li>資料-A4横.pptx</li></ul><p class="small">説明用の例です。ファイル名は読み込んだHTMLによって変わります。</p></div></div>`;
+}
+let lastGroup='';
+const nav=chapters.map((c,i)=>{const group=c.group!==lastGroup?`<p class="nav-group">${c.group}</p>`:'';lastGroup=c.group;return `${group}<a href="#chapter-${i+1}" data-chapter="${i+1}"><span>${String(i+1).padStart(2,'0')}</span>${c.nav}</a>`}).join('');
+const sections=chapters.map((c,i)=>`<section class="chapter" id="chapter-${i+1}" aria-labelledby="title-${i+1}"><header class="chapter-heading"><p class="chapter-count">${String(i+1).padStart(2,'0')} / ${chapters.length}　${c.group}</p><h2 id="title-${i+1}" tabindex="-1">${c.title}</h2><p class="lead">${c.lead}</p></header>${c.kind==='faq'?`<div class="faq-list">${faqs.map((f,n)=>`<details ${n===0?'open':''}><summary>${f[0]}</summary><div><p>${f[1]}</p><a href="#chapter-${f[2]}">${f[3]}</a></div></details>`).join('')}</div>`:`<div class="lesson">${illustration(c)}<div class="instructions"><h3>操作すること</h3><ol>${c.steps.map(s=>`<li>${s}</li>`).join('')}</ol><div class="result"><h3>ここまでできればOK</h3><p>${c.result}</p></div><p class="note">${c.note}</p>${c.extra||''}</div></div>`}</section>`).join('');
+const css=fs.readFileSync(path.join(root,'manual.css'),'utf8');
+const js=fs.readFileSync(path.join(root,'manual.js'),'utf8');
+fs.writeFileSync(embedded?path.join(appRoot,'index.html'):path.join(root,'Howtouse.html'),`<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>How to use｜HTML → PowerPoint 操作マニュアル</title>${embedded?'<link rel="stylesheet" href="./manual.css">':`<style>${css}</style>`}</head><body><a class="skip" href="#content">手順へ移動</a><header class="topbar"><div><strong>How to use</strong><span>HTML → PowerPoint 操作マニュアル</span></div><span class="review">操作ガイド</span></header><div class="shell"><aside><p class="toc-title">操作を選ぶ</p><nav aria-label="マニュアルの目次">${nav}</nav><p class="toc-note">画面を見ながら、1つずつ。<br>「次へ」で順番に読めます。</p></aside><main id="content">${sections}<footer class="pager" hidden><button type="button" id="prev">前へ</button><p id="position" role="status" aria-live="polite"></p><button type="button" id="next">次へ <span aria-hidden="true">→</span></button></footer><p class="version">画面：v0.1.0-alpha.1（簡易補正対応版）／ 2026年9月7日作成<br>画像は操作例です。ファイル名や表示内容は利用するHTMLによって変わります。</p></main></div><dialog id="zoom" aria-labelledby="zoom-title"><div class="zoom-header"><h2 id="zoom-title">操作画面</h2><form method="dialog"><button autofocus>閉じる ×</button></form></div><div id="zoom-body"></div><p class="small">枠で示した箇所を確認してください。Escキーでも閉じられます。</p></dialog>${embedded?'<script src="./manual.js"></script>':`<script>${js}</script>`}</body></html>\n`, 'utf8');
+if (embedded) { for (const name of ['manual.css','manual.js']) fs.copyFileSync(path.join(root,name),path.join(appRoot,name)); }
+console.log('Generated manual: '+chapters.length+' chapters, '+fs.statSync(embedded?path.join(appRoot,'index.html'):path.join(root,'Howtouse.html')).size+' bytes');
