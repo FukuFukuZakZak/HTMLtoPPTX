@@ -21,7 +21,7 @@ Optional 8bit special theme complete: a top-right settings gear selects standard
 
 - Applied the user's final palette adjustment: 8bit light uses the standard ivory page background (`#f3f1eb`) and neutral pixel dots; its settings thumbnail matches. Dark colors are unchanged. All 58 browser acceptance states and four conversion ZIP cases pass; the review artifact/screenshots were refreshed.
 - Completed the settings gear and optional 8bit appearance: blue/navy palettes, pixel lettering, square panels, stepped shadows and original inline pixel art, inspired by the user's reference site. Native dialog/radios support keyboard operation, Escape and focus return. Light/dark/system remain independent; settings persist on the same browser origin and tolerate blocked storage.
-- Latest review artifact: `dist/ui-8bit-20260906/HTMLtoPPTX.exe`, with light/dark home/editor/settings screenshots and `ui-verification.json`. Bundled complete DotGothic16 WOFF2 (500,340 bytes) under OFL 1.1; no runtime font downloads. This follow-up has not replaced the published `d12bda1` prerelease.
+- Latest review artifact: `dist/ui-8bit-20260906/HTMLtoPPTX.exe`, with light/dark home/editor/settings screenshots and `ui-verification.json`. Bundled complete DotGothic16 WOFF2 (500,340 bytes) under OFL 1.1; no runtime font downloads. Published this verified 8bit build in the existing `v0.1.0-alpha.1` prerelease; a fresh download matches the tested executable.
 - Published the verified website UI build at the user's request: `main` was pushed and the existing `v0.1.0-alpha.1` prerelease/tag/Windows asset were replaced. A fresh GitHub download matches the tested executable. Target-machine validation is next.
 - Follow-up to `8b97c24` is complete: the user prefers the original website character and clarified that the final destination is shared intranet browser access. The UI now uses a large introductory heading, warm paper/copper colors, a centered site header, consistent icons and joined editor panes. All acceptance checks pass. Shared hosting remains a future deployment task.
 - File selection now leads from input on the left to settings, conversion and ZIP save on the right. Editor navigation/conversion sit above the code and preview, with script execution directly below the toolbar.
@@ -47,11 +47,11 @@ Optional 8bit special theme complete: a top-right settings gear selects standard
 
 ## Current release
 
-- Product commit: `d12bda185890872989d15ae0b7f2f05e6ecbc3eb`
-- Release: [`v0.1.0-alpha.1`](https://github.com/divine261402-pixel/HTMLtoPPTX/releases/tag/v0.1.0-alpha.1) — `HTMLtoPPTX v0.1.0-alpha.1（UI刷新・変換品質改善 実機検証版）`
+- Product commit: `9afed1e98c975043edfe8a1ed7769f58387689e8`
+- Release: [`v0.1.0-alpha.1`](https://github.com/divine261402-pixel/HTMLtoPPTX/releases/tag/v0.1.0-alpha.1) — `HTMLtoPPTX v0.1.0-alpha.1（8bitテーマ対応 実機検証版）`
 - Asset: `HTMLtoPPTX-v0.1.0-alpha.1-windows-amd64.exe`
-- Size: 9,446,912 bytes
-- SHA-256: `567FFDCE3D1DD2C4F4383A63E1C7C0AFCD8DA338FA9EF06016C0E9FC56C65656`
+- Size: 9,963,520 bytes
+- SHA-256: `28ED556B4537A283C72BAB3289074974A7949DAFB36CFE019498A1DF0ABE70F1`
 - The annotated tag and GitHub prerelease both target the clean product commit above. The release contains exactly one Windows asset.
 
 ## Next actions

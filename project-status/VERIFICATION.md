@@ -1,5 +1,10 @@
 # Verification evidence
 
+## 8bit prerelease replacement — 2026-09-06
+
+- At the user's request, pushed `main` through `9afed1e98c975043edfe8a1ed7769f58387689e8` and replaced the existing `v0.1.0-alpha.1` prerelease with the verified ivory-background 8bit build. Annotated tag `2312fdbe9f7ab1eac0651fef1e10c4112fefa27c` dereferences to that product commit; tag push used a lease on the previous tag object. Release remains published, non-draft and prerelease, with exactly one executable asset (ID `547031521`, 9,963,520 bytes).
+- Fresh GitHub download SHA-256 `28ED556B4537A283C72BAB3289074974A7949DAFB36CFE019498A1DF0ABE70F1` matches the tested distribution and GitHub asset digest. Previous metadata/binary are backed up under `.tmp/release-8bit-20260906/previous/`. Release notes include the settings gear, 8bit themes, ivory light background and physical-machine checks. Context7 `/websites/cli_github_manual` confirmed edit/notes-file/target/prerelease, upload-clobber and download behavior. No product code changed during publication.
+
 ## 8bit light background alignment — 2026-09-06
 
 - User requested the standard light background for visual consistency. Changed only three CSS colors: light canvas to `#f3f1eb`, light pixel dots to the standard `#e4e4dd`, and the appearance thumbnail canvas to `#f3f1eb`. Dark rules and conversion code are unchanged. Modern Web Guidance theme guidance was reused; no third-party API/configuration changes.
