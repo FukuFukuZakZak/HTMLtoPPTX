@@ -1,5 +1,13 @@
 # Verification evidence
 
+## Prerelease replacement — 2026-09-06
+
+- User explicitly requested GitHub push and replacement of the existing prerelease for target-machine testing. Pushed `main` fast-forward to product commit `d12bda185890872989d15ae0b7f2f05e6ecbc3eb`.
+- Replaced the annotated `v0.1.0-alpha.1` tag using a lease on its previous object `26dc54f63f21babd2e034ced1d1553f0311517ce`. New tag object: `7961f4bc468e81370931841347eb84a0cc928f03`, dereferencing to the product commit. The release target matches.
+- Updated the existing release title/notes, retained prerelease status and the asset filename, and replaced the executable with the already tested website build. Release URL: https://github.com/divine261402-pixel/HTMLtoPPTX/releases/tag/v0.1.0-alpha.1 . API confirms prerelease true, draft false, and exactly one uploaded asset: `HTMLtoPPTX-v0.1.0-alpha.1-windows-amd64.exe`, asset ID `546805192`, 9,446,912 bytes.
+- Downloaded the published asset afresh to `.tmp/release-20260906/downloaded/`; its SHA-256 is `567FFDCE3D1DD2C4F4383A63E1C7C0AFCD8DA338FA9EF06016C0E9FC56C65656`, matching both the tested local binary and GitHub's asset digest. The previous release binary is backed up in `.tmp/release-20260906/previous/`.
+- Context7 `/websites/cli_github_manual` was consulted for `gh release edit` notes-file/target/prerelease options, upload `--clobber` semantics and fresh asset download. No product code or dependencies changed, so the existing build/browser/test evidence below remains applicable. Native PowerPoint and target Windows/browser validation remain the user's next step.
+
 ## Website-style UI finish — 2026-09-06
 
 - Tested the embedded `.tmp/HTMLtoPPTX-website-v3.exe` with the same installed Edge / bundled Playwright path and `scripts/ui-acceptance.cjs`. All 58 desktop states passed at 1920×1080, 1920×950, 1536×864 and 1280×720 in light/dark. The heading, instructions and primary controls stay in the viewport; source/settings panels stay inside the form. Expanded help remains the page-scroll exception.

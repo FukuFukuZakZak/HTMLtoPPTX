@@ -19,6 +19,7 @@ Website-style UI complete: restored the original site's welcoming introduction a
 
 ## Current work
 
+- Published the verified website UI build at the user's request: `main` was pushed and the existing `v0.1.0-alpha.1` prerelease/tag/Windows asset were replaced. A fresh GitHub download matches the tested executable. Target-machine validation is next.
 - Follow-up to `8b97c24` is complete: the user prefers the original website character and clarified that the final destination is shared intranet browser access. The UI now uses a large introductory heading, warm paper/copper colors, a centered site header, consistent icons and joined editor panes. All acceptance checks pass. Shared hosting remains a future deployment task.
 - File selection now leads from input on the left to settings, conversion and ZIP save on the right. Editor navigation/conversion sit above the code and preview, with script execution directly below the toolbar.
 - FullHD acceptance passed with help closed; script notices, conversion progress and saved-result actions remain inside the viewport. Expanded help and content inside the editor/preview can scroll.
@@ -43,11 +44,11 @@ Website-style UI complete: restored the original site's welcoming introduction a
 
 ## Current release
 
-- Product commit: `7e3fcbfb37ef45ac8b8fa8566e918357b076175e`
-- Release: `v0.1.0-alpha.1` — `HTMLtoPPTX v0.1.0-alpha.1（複数HTML・ZIP一括出力 実機検証版）`
+- Product commit: `d12bda185890872989d15ae0b7f2f05e6ecbc3eb`
+- Release: [`v0.1.0-alpha.1`](https://github.com/divine261402-pixel/HTMLtoPPTX/releases/tag/v0.1.0-alpha.1) — `HTMLtoPPTX v0.1.0-alpha.1（UI刷新・変換品質改善 実機検証版）`
 - Asset: `HTMLtoPPTX-v0.1.0-alpha.1-windows-amd64.exe`
-- Size: 9,359,872 bytes
-- SHA-256: `38FE040F2BB9E7452FA870B42B0A20C9316B790F1565598AF73D6EC0F93027FF`
+- Size: 9,446,912 bytes
+- SHA-256: `567FFDCE3D1DD2C4F4383A63E1C7C0AFCD8DA338FA9EF06016C0E9FC56C65656`
 - The annotated tag and GitHub prerelease both target the clean product commit above. The release contains exactly one Windows asset.
 
 ## Next actions
@@ -82,6 +83,7 @@ Confirm the website-style UI in the target FullHD/LGWAN browser and preferred Wi
 
 ## Latest verification
 
+- Release replacement (2026-09-06): remote `main` and the annotated prerelease tag resolve to product commit `d12bda1`; GitHub reports one uploaded Windows asset, prerelease true and draft false. A fresh download matches the tested build's SHA-256 and size. Context7: `/websites/cli_github_manual`, existing release edit/notes/target, asset upload replacement and download verification. Subsequent status-only commits may advance `main` without moving the product tag.
 - Website UI: Edge/Playwright acceptance passed 58 layout states at 1920×1080, 1920×950, 1536×864 and 1280×720, in light and dark. No page scrolling, offscreen introductory content/actions or panels escaping the form with help closed. System/keyboard/storage checks pass. All 28 checked text/background pairs are at least 5.0:1.
 - Four real ZIP downloads verified: editor light/dark (identical slide XML), mixed A4 batch (3 PPTX / 6 slides), and scripts-enabled editor output. Cancellation/retry controls, retained editor input, folded help, error feedback, visible preview rendering and 390px mobile overflow checks passed. Evidence: `.tmp/ui-acceptance/`; repeatable test: `scripts/ui-acceptance.cjs`.
 - Website UI build: `npm test` 35 passed (2.08 s), acceptance-driver syntax check, `go test ./...` (0.744 s), `go vet ./...`, and `go build -o .tmp/HTMLtoPPTX-website-v3.exe .` passed. Graphify AST refresh: 359 nodes / 711 edges / 23 communities. Context7: `/mdn/content` for responsive grid/minimum sizing, clamp typography, focus/hover/reduced motion and SVG. Modern Web Guidance and Frontend Design informed the visual work.
@@ -96,13 +98,13 @@ Confirm the website-style UI in the target FullHD/LGWAN browser and preferred Wi
 ## Working tree notes
 
 - Typography scaling was committed as `1af27f1`; paste-mode/script/fidelity work as `5800027`; quality acceptance as `5a3f440`; FullHD/theme foundations as `8b97c24`. This website-style follow-up owns `web/index.html`, `web/style.css`, `web/favicon.svg`, `scripts/ui-acceptance.cjs` and status records. Runtime JavaScript and Go hosting/conversion logic were not changed.
-- Latest UI artifact: `dist/ui-website-20260906/HTMLtoPPTX.exe`. The previous `dist/ui-20260906/` and quality artifacts remain intact; no GitHub release was changed.
+- Latest UI artifact: `dist/ui-website-20260906/HTMLtoPPTX.exe`, now published as the existing alpha prerelease's Windows asset. The previous `dist/ui-20260906/` and quality artifacts remain intact.
 - Verified executable and output copies: `dist/quality-20260906/HTMLtoPPTX.exe` and `変換結果.zip`, with both PDF previews alongside them. The executable is byte-identical to the browser-tested `.tmp/HTMLtoPPTX-visual-quality-v2.exe`. No release was changed.
 - `.codex/config.toml` acquired a persisted Serena `insert_after_symbol` approval setting during this session. Preserve this local setting separately from the product commit.
 - `.codex-remote-attachments/` is also untracked and preserved.
 - `docs/` and `test-data/` are user-owned untracked directories as of 2026-09-03. Preserve them unless the user explicitly requests otherwise.
 - `deliverables/HTMLtoPPTX_Issue3-6_改修方針書.docx` is the decision memo used for Issues #3-#6 and was not edited during implementation.
-- Batch conversion is committed and pushed as `7e3fcbf`; the product release points to it. Status-document commits do not change the release artifact.
+- Batch conversion was released as `7e3fcbf`; the product release now points to `d12bda1`, including the subsequent fidelity and UI improvements. Status-document commits do not change the release artifact.
 
 ## Handoff checklist
 
