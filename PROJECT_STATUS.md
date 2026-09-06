@@ -15,7 +15,7 @@ Build the HTML-to-PPTX converter described in `docs/HTML_to_PPTX_converter_spec_
 
 ## Current milestone
 
-Approved How to use manual is integrated into the executable. A shared header link opens the 11-chapter guide in a separate tab while preserving editor input. Integration verification passed; commit, push and existing prerelease replacement are in progress.
+Approved How to use manual is integrated into the executable. A shared header link opens the 11-chapter guide in a separate tab while preserving editor input. Integration, commit/push and replacement of the existing alpha.1 prerelease are complete. A fresh GitHub download matches the tested executable.
 
 ## Current work
 
@@ -54,11 +54,11 @@ Approved How to use manual is integrated into the executable. A shared header li
 
 ## Current release
 
-- Product commit: `2139b952265d61e1d4cccf27976637a5db75d254`
-- Release: [`v0.1.0-alpha.1`](https://github.com/divine261402-pixel/HTMLtoPPTX/releases/tag/v0.1.0-alpha.1) — `HTMLtoPPTX v0.1.0-alpha.1（HTML簡易補正対応 実機検証版）`
+- Product commit: `992d93cd844479bdacf53baf812e05110eecebd7`
+- Release: [`v0.1.0-alpha.1`](https://github.com/divine261402-pixel/HTMLtoPPTX/releases/tag/v0.1.0-alpha.1) — `HTMLtoPPTX v0.1.0-alpha.1（操作マニュアル内蔵 実機検証版）`
 - Asset: `HTMLtoPPTX-v0.1.0-alpha.1-windows-amd64.exe`
-- Size: 10,145,280 bytes
-- SHA-256: `90B14A4799C4EA4A1F5740A6BC4B1ACDFF73DA45BDE99222959D092CAD8CD65C`
+- Size: 11,205,120 bytes
+- SHA-256: `7352875E071476B806EFC13AB1DF04AB4A53F1FCB71E4FBA33DC68A5D08C8F02`
 - The annotated tag and GitHub prerelease both target the clean product commit above. The release contains exactly one Windows asset.
 
 ## Current manual decisions
@@ -69,7 +69,7 @@ Approved How to use manual is integrated into the executable. A shared header li
 
 ## Next actions
 
-Commit and push the approved manual integration, replace the existing alpha.1 prerelease executable/tag, then verify a fresh downloaded asset against the tested executable.
+On the target Windows browser, open the updated alpha.1 executable and use the shared header「How to use」entry while editing. The approved integration/release task is complete; video recording and narration remain a future task.
 
 Try `dist/html-repair-20260906/HTMLtoPPTX.exe` on the target LGWAN/Windows browser: paste representative exaBase HTML, run `簡易補正`, inspect preview and use Ctrl+Z/Ctrl+Y. Closing positions use structural/indentation hints; arbitrary missing content or intended formatting cannot be reconstructed. Broaden supported repairs only with representative failing examples and original-output comparisons.
 
@@ -104,6 +104,8 @@ Confirm the latest artifact's top-right gear → 8bit appearance in light/dark o
 - The initial design document and other user-owned untracked inputs must not be added or modified without explicit user intent.
 
 ## Latest verification
+
+- 2026-09-07 JST: product commit `992d93c` pushed; existing alpha.1 annotated tag and prerelease target this product commit. Replaced the sole Windows asset. Fresh download matches 11,205,120 bytes and SHA-256 above; prerelease true, draft false. Publication evidence is `.tmp/howtouse/published-verification.json`; previous executable and release metadata retained locally for recovery.
 
 - Standard and 8bit browser regression: 58 layout states each (116 total), four real conversion ZIPs each, zero page errors; minimum measured contrast 5.0 / 5.15. Desktop and mobile screenshots inspected. Graphify AST update: 803 nodes / 2132 edges / 43 communities; metadata JSON produces no AST nodes and community labels use hub fallback.
 

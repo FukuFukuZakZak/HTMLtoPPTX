@@ -289,3 +289,5 @@ This file is the detailed audit trail. The concise current result is in [`../PRO
 - `npm test`: 43 passed. `go test ./...` and `go vet ./...`: passed. Executable built with `go build -buildvcs=false -o dist/howtouse-20260907/HTMLtoPPTX.exe .`.
 - Context7: `/mdn/content` same-origin external scripts under CSP; `/websites/cli_github_manual` existing release edit/upload/download. Modern Web Guidance security guidance applied.
 - Graphify AST update: 803 nodes, 2132 edges, 43 communities. Capture/verification JSON has no AST nodes; some community labels use hub fallback.
+
+- Publication complete: product commit `992d93cd844479bdacf53baf812e05110eecebd7` pushed to main; annotated alpha.1 tag resolves to it. GitHub prerelease has exactly one asset, draft false. Fresh download matches the tested executable: 11,205,120 bytes; SHA-256 `7352875E071476B806EFC13AB1DF04AB4A53F1FCB71E4FBA33DC68A5D08C8F02`. Previous release metadata/executable backed up under `.tmp/howtouse/previous-*`.
