@@ -166,9 +166,10 @@
       </section>
       <div class="editor-grid" aria-labelledby="editor-title">
         <section class="editor-pane" aria-labelledby="html-editor-label">
-          <div class="pane-heading"><h3 id="html-editor-label"><svg class="icon" aria-hidden="true"><use href="#icon-code"/></svg>HTMLコード</h3><span id="editor-size">0 B</span></div>
+          <div class="pane-heading"><h3 id="html-editor-label"><svg class="icon" aria-hidden="true"><use href="#icon-code"/></svg>HTMLコード</h3><div class="pane-tools"><span id="editor-size">0 B</span><button id="repair-html-button" class="repair-button" type="button" disabled>簡易補正</button></div></div>
+          <div id="repair-report" class="repair-report" role="status" aria-live="polite" hidden></div>
           <textarea id="html-editor" name="html-code" spellcheck="false" aria-labelledby="html-editor-label" aria-describedby="html-editor-help" placeholder="ここにHTMLコードを貼り付けてください"></textarea>
-          <p class="pane-help" id="html-editor-help">ファイルへの保存は不要です。入力内容は画面を戻っても保持されます。</p>
+          <p class="pane-help" id="html-editor-help">閉じタグなどを簡易補正できます。Ctrl+Z：元に戻す ／ Ctrl+Y：やり直す</p>
         </section>
         <section class="editor-pane preview-pane" aria-labelledby="html-preview-label">
           <div class="pane-heading"><h3 id="html-preview-label"><svg class="icon" aria-hidden="true"><use href="#icon-slide"/></svg>プレビュー</h3><span>スクリプト停止</span></div>
@@ -195,6 +196,7 @@
     </main>
     <div class="render-host" id="render-host" aria-hidden="true"></div>
     <script src="./converter-core.js"></script>
+    <script src="./html-repair.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

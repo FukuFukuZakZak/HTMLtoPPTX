@@ -23,6 +23,8 @@
   const openEditorButton = document.getElementById("open-editor-button");
   const backToFileButton = document.getElementById("back-to-file-button");
   const htmlEditor = document.getElementById("html-editor");
+  const repairButton = document.getElementById("repair-html-button");
+  const repairReport = document.getElementById("repair-report");
   let htmlPreview = document.getElementById("html-preview");
   const editorSize = document.getElementById("editor-size");
   const editorExecuteScripts = document.getElementById("editor-execute-scripts");
@@ -74,6 +76,8 @@
   let downloadUrl = null;
   let previewTimer = null;
   let fileInspectionToken = 0;
+  let editorComposing = false;
+  let applyingRepair = false;
 
   function formatBytes(bytes) {
     if (bytes < 1024) return `${bytes} B`;
@@ -93,6 +97,7 @@
     editorExecuteScripts.disabled = Boolean(activeJob);
     openEditorButton.disabled = Boolean(activeJob);
     backToFileButton.disabled = Boolean(activeJob);
+    repairButton.disabled = Boolean(activeJob) || editorComposing || applyingRepair || !htmlEditor.value.trim();
   }
 
   function updateScriptNotice(ui) {
@@ -200,6 +205,8 @@
   openEditorButton.addEventListener("click", showEditorWorkspace);
   backToFileButton.addEventListener("click", showFileWorkspace);
   htmlEditor.addEventListener("input", () => {
+    // Undo/redo is an input event too. Never run repair or add history here.
+    repairReport.hidden = true;
     window.clearTimeout(previewTimer);
     if (!activeJob) {
       clearDownload();
@@ -209,6 +216,85 @@
     editorSize.textContent = formatBytes(new Blob([htmlEditor.value]).size);
     updateConversionControls();
     previewTimer = window.setTimeout(refreshPreview, 350);
+  });
+
+  htmlEditor.addEventListener("compositionstart", () => {
+    editorComposing = true;
+    updateConversionControls();
+  });
+  htmlEditor.addEventListener("compositionend", () => {
+    editorComposing = false;
+    updateConversionControls();
+  });
+
+  function showRepairReport(summary, items, warning) {
+    repairReport.replaceChildren();
+    const description = document.createElement("p");
+    description.textContent = summary;
+    repairReport.append(description);
+    if (items.length) {
+      const list = document.createElement("ul");
+      for (const item of items.slice(0, 30)) {
+        const row = document.createElement("li");
+        row.textContent = item;
+        list.append(row);
+      }
+      if (items.length > 30) {
+        const row = document.createElement("li");
+        row.textContent = `ほか${items.length - 30}件`;
+        list.append(row);
+      }
+      repairReport.append(list);
+    }
+    repairReport.classList.toggle("is-warning", warning);
+    repairReport.hidden = false;
+    htmlEditor.focus({ preventScroll: true });
+  }
+
+  repairButton.addEventListener("click", () => {
+    if (activeJob || editorComposing || applyingRepair || !htmlEditor.value.trim()) return;
+    const original = htmlEditor.value;
+    const result = HtmlRepair.repairHtml(original);
+    if (result.blocked) {
+      showRepairReport("自動で閉じ位置を決められないため、変更していません。", result.warnings, true);
+      return;
+    }
+    if (result.html === original) {
+      showRepairReport("簡易補正できる箇所は見つかりませんでした。表示が崩れる場合は元のHTMLを確認してください。", [], false);
+      return;
+    }
+    // Native editing is intentional: assigning .value or setRangeText loses the
+    // Windows browser undo transaction. Only invoke this on an explicit click,
+    // never from beforeinput/input/history handlers (which would recurse).
+    let start = 0;
+    while (start < original.length && original[start] === result.html[start]) start++;
+    let oldEnd = original.length;
+    let newEnd = result.html.length;
+    while (oldEnd > start && newEnd > start && original[oldEnd - 1] === result.html[newEnd - 1]) { oldEnd--; newEnd--; }
+    const scrollTop = htmlEditor.scrollTop;
+    applyingRepair = true;
+    updateConversionControls();
+    try {
+      htmlEditor.focus();
+      htmlEditor.setSelectionRange(start, oldEnd);
+      document.execCommand("insertText", false, result.html.slice(start, newEnd));
+      if (htmlEditor.value !== result.html) {
+        showRepairReport("取り消し履歴を保った補正を適用できませんでした。", [], true);
+        return;
+      }
+      // Some browsers omit the input event for a command; notify the same UI
+      // path once more without generating a native edit/history entry.
+      htmlEditor.dispatchEvent(new Event("input", { bubbles: true }));
+      htmlEditor.scrollTop = scrollTop;
+      window.clearTimeout(previewTimer);
+      refreshPreview();
+      showRepairReport(`${result.changes.length}件を補正しました。閉じ位置を推定した箇所があります。プレビューを確認してください。Ctrl+Zで元に戻せます。`, result.changes.map(change => `${change.line}行目${change.tag ? `： </${change.tag}>を追加` : ""} — ${change.reason}`), false);
+    } catch {
+      showRepairReport("このブラウザーでは取り消し履歴を保った補正を適用できませんでした。", [], true);
+    } finally {
+      applyingRepair = false;
+      updateConversionControls();
+    }
   });
 
   for (const ui of conversionUis) ui.cancelButton.addEventListener("click", () => {

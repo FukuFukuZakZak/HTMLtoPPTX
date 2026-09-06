@@ -4,12 +4,15 @@
   "version": "0.1.0",
   "description": "Development dependencies and tests for the embedded HTML to PPTX converter UI.",
   "scripts": {
+    "build:repair": "node scripts/build-html-repair.mjs",
     "test": "node --test web/*.test.js"
   },
   "devDependencies": {
+    "esbuild": "0.28.2",
     "jszip": "3.10.1"
   },
   "dependencies": {
+    "parse5": "8.0.1",
     "pptxgenjs": "4.0.1"
   }
 }
