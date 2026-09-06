@@ -15,14 +15,15 @@ Build the HTML-to-PPTX converter described in `docs/HTML_to_PPTX_converter_spec_
 
 ## Current milestone
 
-UI refinement complete: viewport-fitting file/editor workflows and accessible light, dark and system themes, preserving conversion behavior.
+Website-style UI complete: restored the original site's welcoming introduction and warm palette for shared intranet browser use, with verified FullHD workflows, themes and unchanged conversion behavior.
 
 ## Current work
 
+- Follow-up to `8b97c24` is complete: the user prefers the original website character and clarified that the final destination is shared intranet browser access. The UI now uses a large introductory heading, warm paper/copper colors, a centered site header, consistent icons and joined editor panes. All acceptance checks pass. Shared hosting remains a future deployment task.
 - File selection now leads from input on the left to settings, conversion and ZIP save on the right. Editor navigation/conversion sit above the code and preview, with script execution directly below the toolbar.
 - FullHD acceptance passed with help closed; script notices, conversion progress and saved-result actions remain inside the viewport. Expanded help and content inside the editor/preview can scroll.
 - Light, dark and live system themes are complete. Conversion measurement/Worker/package logic remains based on verified commit `5a3f440`; theme changes produce identical slide XML.
-- Verified executable: `dist/ui-20260906/HTMLtoPPTX.exe`. No implementation blockers remain for this UI request.
+- Verified executable: `dist/ui-website-20260906/HTMLtoPPTX.exe`, with home/editor screenshots and `ui-verification.json` alongside it. No implementation blockers remain for this UI request.
 
 ## Current state
 
@@ -51,7 +52,7 @@ UI refinement complete: viewport-fitting file/editor workflows and accessible li
 
 ## Next actions
 
-Confirm the new executable's file/editor layout in the target FullHD/LGWAN browser and preferred Windows display scaling; automated coverage includes a 1920×950 browser viewport and 1536×864 / 1280×720 CSS viewports.
+Confirm the website-style UI in the target FullHD/LGWAN browser and preferred Windows display scaling. The next product milestone is shared intranet hosting: establish the target web server and stable origin, then verify the existing browser-only conversion, Worker and CSP behavior in that environment. The current executable still starts a local server for review.
 
 1. Open the verified files in `dist/quality-20260906/変換結果.zip` in Microsoft PowerPoint on a machine where it is installed; confirm editable text/shapes, Japanese fonts and the corrected inline badges/checklist. This environment completed browser, OOXML and LibreOffice checks.
 2. Supply the missing hero illustration as a `data:` URL inside the smartphone HTML, or add an explicit associated-asset import workflow; then repeat the real conversion to confirm the intended illustration is embedded.
@@ -81,10 +82,10 @@ Confirm the new executable's file/editor layout in the target FullHD/LGWAN brows
 
 ## Latest verification
 
-- UI: Edge/Playwright acceptance passed 58 layout states at 1920×1080, 1920×950, 1536×864 and 1280×720, in light and dark. No page scrolling or offscreen primary controls with help closed. System theme changes immediately, keyboard selection and reload persistence work, and blocked storage does not break theme controls. All 20 checked text/background pairs are at least 5.0:1.
+- Website UI: Edge/Playwright acceptance passed 58 layout states at 1920×1080, 1920×950, 1536×864 and 1280×720, in light and dark. No page scrolling, offscreen introductory content/actions or panels escaping the form with help closed. System/keyboard/storage checks pass. All 28 checked text/background pairs are at least 5.0:1.
 - Four real ZIP downloads verified: editor light/dark (identical slide XML), mixed A4 batch (3 PPTX / 6 slides), and scripts-enabled editor output. Cancellation/retry controls, retained editor input, folded help, error feedback, visible preview rendering and 390px mobile overflow checks passed. Evidence: `.tmp/ui-acceptance/`; repeatable test: `scripts/ui-acceptance.cjs`.
-- UI build: `npm test` 35 passed (278 ms), JavaScript syntax checks, `go test ./...` (0.756 s), `go vet ./...`, and `go build -o .tmp/HTMLtoPPTX-ui-v6.exe .` passed. Graphify AST refresh: 359 nodes / 711 edges / 23 communities. Context7: MDN viewport sizing, color schemes, storage, iframe/srcdoc sandbox; Playwright theme emulation, uploads, downloads and frame assertions.
-- UI executable: 9,439,232 bytes; SHA-256 `E76AD1B1AA515F490331F227F36D60AABEECEB863CF6E1C8FAF42851FC1A4348`. The distribution copy is byte-identical to the browser-tested build. See the detailed UI section in [Verification evidence](project-status/VERIFICATION.md).
+- Website UI build: `npm test` 35 passed (2.08 s), acceptance-driver syntax check, `go test ./...` (0.744 s), `go vet ./...`, and `go build -o .tmp/HTMLtoPPTX-website-v3.exe .` passed. Graphify AST refresh: 359 nodes / 711 edges / 23 communities. Context7: `/mdn/content` for responsive grid/minimum sizing, clamp typography, focus/hover/reduced motion and SVG. Modern Web Guidance and Frontend Design informed the visual work.
+- Website UI executable: 9,446,912 bytes; SHA-256 `567FFDCE3D1DD2C4F4383A63E1C7C0AFCD8DA338FA9EF06016C0E9FC56C65656`. The distribution copy is byte-identical to the browser-tested build. See the detailed UI section in [Verification evidence](project-status/VERIFICATION.md).
 - Actual Codex in-app browser: two supplied HTMLs with scripts on → two PPTX / 13 slides; three regression HTMLs with scripts off → four PPTX / 11 slides. ZIP save succeeded, mixed-A4 notice appeared, and browser warning/error logs were empty.
 - All six final PPTX packages pass integrity and geometry inspections. All 24 slides were exported through LibreOffice 26.2.5.2 and viewed individually at up to 1600px. Fixed labels, bold checklist text, background ordering, rounded borders and page-view scaling were confirmed. Native PowerPoint is unavailable; the missing source illustration is documented above.
 - OOXML verifies exact wide/A4 sizes, 99 runtime agenda entries, ungrouped editable objects, and invariant typography at 24/36pt, 36pt line spacing and -0.75/+1.5pt character spacing. Four viewport scales, including negative and zero scales, produce identical body geometry and 24pt text.
@@ -94,8 +95,8 @@ Confirm the new executable's file/editor layout in the target FullHD/LGWAN brows
 
 ## Working tree notes
 
-- Typography scaling was committed as `1af27f1`; paste-mode/script/fidelity work as `5800027`; quality acceptance as `5a3f440`. This UI milestone owns `web/index.html`, `web/style.css`, `web/theme.js`, small preview/file-title changes in `web/app.js`, the label assertion in `main_test.go`, `scripts/ui-acceptance.cjs` and status records.
-- UI artifact: `dist/ui-20260906/HTMLtoPPTX.exe`. The existing quality artifacts remain intact; no GitHub release was changed.
+- Typography scaling was committed as `1af27f1`; paste-mode/script/fidelity work as `5800027`; quality acceptance as `5a3f440`; FullHD/theme foundations as `8b97c24`. This website-style follow-up owns `web/index.html`, `web/style.css`, `web/favicon.svg`, `scripts/ui-acceptance.cjs` and status records. Runtime JavaScript and Go hosting/conversion logic were not changed.
+- Latest UI artifact: `dist/ui-website-20260906/HTMLtoPPTX.exe`. The previous `dist/ui-20260906/` and quality artifacts remain intact; no GitHub release was changed.
 - Verified executable and output copies: `dist/quality-20260906/HTMLtoPPTX.exe` and `変換結果.zip`, with both PDF previews alongside them. The executable is byte-identical to the browser-tested `.tmp/HTMLtoPPTX-visual-quality-v2.exe`. No release was changed.
 - `.codex/config.toml` acquired a persisted Serena `insert_after_symbol` approval setting during this session. Preserve this local setting separately from the product commit.
 - `.codex-remote-attachments/` is also untracked and preserved.

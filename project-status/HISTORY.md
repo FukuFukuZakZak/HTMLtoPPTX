@@ -6,6 +6,9 @@ This file holds completed milestones and superseded release state. Current work 
 
 ## FullHD UI refinement — 2026-09-06
 
+- Follow-up visual finish restored the website style requested for future shared intranet use: large introductory heading, warm paper/copper colors, clear conversion steps, consistent icons and adjoining code/preview panes. Preserved both themes/system choice and every conversion handler.
+- The website build passed 58 layout states, 28 contrast pairs, real downloads, preview/navigation checks and the 35 existing conversion tests. A compact-height panel overflow found visually is fixed and covered by form-containment assertions. Saved separately as `dist/ui-website-20260906/HTMLtoPPTX.exe`, with screenshots and verification report.
+
 - Reorganized file input/settings into two steps and the editor into a navigation/action toolbar, shared settings row, and flexible code/preview panes.
 - Added light, dark and live system themes, accessible native selection controls, high-contrast dark surfaces and a themed empty preview. Kept source rendering independent of app colors.
 - Verified 58 desktop layout states, real ZIP conversion/download behavior, preview rendering, system/keyboard/storage cases, help expansion and narrow-screen overflow. Existing conversion tests remain 35/35 passing.

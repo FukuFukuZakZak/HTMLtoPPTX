@@ -29,6 +29,11 @@ async function assertFits(page, state, selectors) {
     const root = document.documentElement;
     return {
       width: innerWidth, height: innerHeight, scrollWidth: root.scrollWidth, scrollHeight: root.scrollHeight,
+      panels: Array.from(document.querySelectorAll('#file-workspace:not([hidden]) .file-grid > section')).map(element => {
+        const rect = element.getBoundingClientRect();
+        const parent = element.parentElement.getBoundingClientRect();
+        return { name: element.className, bottom: rect.bottom, parentBottom: parent.bottom, right: rect.right, parentRight: parent.right };
+      }),
       controls: selectors.map(selector => {
         const element = document.querySelector(selector);
         const rect = element.getBoundingClientRect();
@@ -39,6 +44,10 @@ async function assertFits(page, state, selectors) {
   report.layouts.push({ state, ...measurement });
   assert.ok(measurement.scrollWidth <= measurement.width, `${state}: horizontal scroll ${JSON.stringify(measurement)}`);
   assert.ok(measurement.scrollHeight <= measurement.height, `${state}: vertical scroll ${JSON.stringify(measurement)}`);
+  for (const panel of measurement.panels) {
+    assert.ok(panel.bottom <= panel.parentBottom + 1 && panel.right <= panel.parentRight + 1,
+      `${state}: panel escapes its form ${JSON.stringify(panel)}`);
+  }
   for (const rect of measurement.controls) {
     assert.ok(rect.height > 0 && rect.top >= 0 && rect.bottom <= measurement.height && rect.left >= 0 && rect.right <= measurement.width,
       `${state}: control outside viewport ${JSON.stringify(rect)}`);
@@ -59,7 +68,9 @@ async function checkContrast(page, theme) {
     return [["--ink", "--surface"], ["--muted", "--surface"], ["--muted", "--canvas"],
       ["--ink", "--input"], ["--muted", "--input"], ["--accent-ink", "--accent"],
       ["--disabled-ink", "--disabled-bg"], ["--warning", "--warning-bg"],
-      ["--success", "--success-bg"], ["--error", "--error-bg"]]
+      ["--success", "--success-bg"], ["--error", "--error-bg"],
+      ["--accent", "--surface"], ["--accent", "--accent-soft"],
+      ["--muted", "--surface-subtle"], ["--ink", "--canvas"]]
       .map(([fg, bg]) => ({ fg, bg, foreground: color(fg), background: color(bg) }));
   });
   const luminance = rgb => rgb.map(c => c / 255).map(c => c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)
@@ -104,7 +115,7 @@ async function saveDownload(page, selector, name) {
     assert.equal(await page.locator('input[name="theme"][value="system"]').isChecked(), true);
     assert.equal(await page.locator("#execute-scripts").isChecked(), false);
     assert.equal(await page.locator("#editor-execute-scripts").isChecked(), false);
-    const fileControls = ["#drop-zone", "#open-editor-button", "#execute-scripts", "#convert-button"];
+    const fileControls = ["#intro-title", ".intro-note", "#drop-zone", "#open-editor-button", "#execute-scripts", "#convert-button"];
     const editorControls = ["#back-to-file-button", "#editor-execute-scripts", "#editor-convert-button", "#html-editor"];
     for (const theme of ["light", "dark"]) {
       await selectTheme(page, theme);
@@ -113,6 +124,7 @@ async function saveDownload(page, selector, name) {
         await page.setViewportSize({ width, height });
         await page.reload();
         await assertFits(page, `file-empty-${theme}`, fileControls);
+        if (height === 1080) await page.screenshot({ path: path.join(outputDir, `home-${theme}.png`) });
         await page.locator("#html-file").setInputFiles(payload);
         await page.locator("#file-script-notice").waitFor({ state: "visible" });
         await assertFits(page, `file-script-notice-${theme}`, fileControls);
@@ -121,6 +133,7 @@ async function saveDownload(page, selector, name) {
         await page.locator("#download-link").waitFor({ state: "visible", timeout: 30000 });
         await assertFits(page, `file-complete-${theme}`, [...fileControls, "#download-link", "#progress-card", "#message"]);
         if (height === 1080) await page.screenshot({ path: path.join(outputDir, `file-${theme}.png`) });
+        if (height === 720) await page.screenshot({ path: path.join(outputDir, `file-compact-${theme}.png`) });
         await page.locator("#open-editor-button").click();
         await page.locator("#html-editor").fill(sample);
         await page.locator("#editor-script-notice").waitFor({ state: "visible" });
@@ -134,6 +147,7 @@ async function saveDownload(page, selector, name) {
         await assertFits(page, `editor-converting-${theme}`, [...editorControls, "#editor-cancel-button"]);
         await page.locator("#editor-download-link").waitFor({ state: "visible", timeout: 30000 });
         await assertFits(page, `editor-complete-${theme}`, [...editorControls, "#editor-download-link", "#editor-message"]);
+        if (height === 720) await page.screenshot({ path: path.join(outputDir, `editor-compact-${theme}.png`) });
         if (height === 1080) {
           const slides = await saveDownload(page, "#editor-download-link", `editor-${theme}.zip`);
           if (theme === "light") report.referenceSlides = slides;

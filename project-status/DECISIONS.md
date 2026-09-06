@@ -6,6 +6,8 @@ These are durable choices. Active work and exceptions belong in [`../PROJECT_STA
 
 ## UI workflow and themes
 
+- The destination is a shared intranet website used by staff in their browsers. Preserve the original website character: large introductory copy, warm paper/copper palette and a quiet centered header. Keep actionable input/settings in the adjacent form and the editor toolbar above its panes. Use browser-oriented copy; implement shared hosting as its own milestone.
+- Keep icons as bundled inline SVG and use installed fonts; the visual polish adds no runtime dependency or external asset requests. Compact spacing at short desktop heights must keep both panels inside their form, not merely inside the browser viewport.
 - Use two steps for file conversion: choose HTML, then review settings and convert/save. Keep the editor's back action on the left, conversion/save on the right, and the script option above both panes. Use the existing shared conversion and download handlers.
 - Fit normal application controls within FullHD with help closed. Use flexible code/preview panes and compact progress feedback; allow document scrolling when explanations expand, and internal scrolling for long source/preview content. Narrow screens can stack the layout.
 - Offer explicit light, dark and system radio choices, with system selected initially. A small same-origin script runs before CSS under the existing strict CSP. Store the choice in browser localStorage, tolerate disabled storage, and let CSS respond immediately to system theme changes. Storage is per origin; the server's random port means a new app process may use the default again.
