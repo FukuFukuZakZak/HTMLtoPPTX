@@ -1,6 +1,6 @@
 # Project status
 
-Last updated: 2026-09-06
+Last updated: 2026-09-07
 Status owner: Codex and repository maintainers
 
 This file is the short, current handoff view. Longer-lived details are split by purpose:
@@ -21,7 +21,7 @@ HTML simple repair complete: an explicit editor action adds supported structural
 
 - Implemented the user's paste-first HTML repair request in the existing textarea. The `簡易補正` button uses locally bundled parse5 to locate source tags; adds supported structural ends at ancestor/indentation/EOF boundaries and removes standalone Markdown code fences. Inline formatting boundaries, malformed attributes/raw text and unsupported ambiguities produce diagnostics without changing source. CSS and JavaScript contents are preserved.
 - Verified 580 damaged copies of both supplied `test-data` HTMLs: 256 applied repairs all restore the original tree and Edge element/text geometry; 151 are already recovered by the browser, 166 remain warning-only, and 7 have no supported detectable repair. All cases are idempotent and the original file hashes are unchanged. Six real conversion ZIPs verify identical corresponding slide XML, including scripts enabled.
-- Native Ctrl+Z/Ctrl+Y passes 150 undo/redo cycles with exactly 300 history input events. Paste and repair are separate history entries; no-op repair creates no entry, editing discards the redo branch, and navigation retains history. Latest local artifact: `dist/html-repair-20260906/HTMLtoPPTX.exe`, with screenshots, reports and copied mutation cases. The published prerelease is unchanged.
+- Native Ctrl+Z/Ctrl+Y passes 150 undo/redo cycles with exactly 300 history input events. Paste and repair are separate history entries; no-op repair creates no entry, editing discards the redo branch, and navigation retains history. Latest local artifact: `dist/html-repair-20260906/HTMLtoPPTX.exe`, with screenshots, reports and copied mutation cases. Published this verified repair build in the existing prerelease on 2026-09-07 JST; a fresh GitHub download matches the tested executable.
 - Applied the user's final palette adjustment: 8bit light uses the standard ivory page background (`#f3f1eb`) and neutral pixel dots; its settings thumbnail matches. Dark colors are unchanged. All 58 browser acceptance states and four conversion ZIP cases pass; the review artifact/screenshots were refreshed.
 - Completed the settings gear and optional 8bit appearance: blue/navy palettes, pixel lettering, square panels, stepped shadows and original inline pixel art, inspired by the user's reference site. Native dialog/radios support keyboard operation, Escape and focus return. Light/dark/system remain independent; settings persist on the same browser origin and tolerate blocked storage.
 - Latest review artifact: `dist/ui-8bit-20260906/HTMLtoPPTX.exe`, with light/dark home/editor/settings screenshots and `ui-verification.json`. Bundled complete DotGothic16 WOFF2 (500,340 bytes) under OFL 1.1; no runtime font downloads. Published this verified 8bit build in the existing `v0.1.0-alpha.1` prerelease; a fresh download matches the tested executable.
@@ -50,11 +50,11 @@ HTML simple repair complete: an explicit editor action adds supported structural
 
 ## Current release
 
-- Product commit: `9afed1e98c975043edfe8a1ed7769f58387689e8`
-- Release: [`v0.1.0-alpha.1`](https://github.com/divine261402-pixel/HTMLtoPPTX/releases/tag/v0.1.0-alpha.1) — `HTMLtoPPTX v0.1.0-alpha.1（8bitテーマ対応 実機検証版）`
+- Product commit: `2139b952265d61e1d4cccf27976637a5db75d254`
+- Release: [`v0.1.0-alpha.1`](https://github.com/divine261402-pixel/HTMLtoPPTX/releases/tag/v0.1.0-alpha.1) — `HTMLtoPPTX v0.1.0-alpha.1（HTML簡易補正対応 実機検証版）`
 - Asset: `HTMLtoPPTX-v0.1.0-alpha.1-windows-amd64.exe`
-- Size: 9,963,520 bytes
-- SHA-256: `28ED556B4537A283C72BAB3289074974A7949DAFB36CFE019498A1DF0ABE70F1`
+- Size: 10,145,280 bytes
+- SHA-256: `90B14A4799C4EA4A1F5740A6BC4B1ACDFF73DA45BDE99222959D092CAD8CD65C`
 - The annotated tag and GitHub prerelease both target the clean product commit above. The release contains exactly one Windows asset.
 
 ## Next actions
@@ -91,6 +91,8 @@ Confirm the latest artifact's top-right gear → 8bit appearance in light/dark o
 - The initial design document and other user-owned untracked inputs must not be added or modified without explicit user intent.
 
 ## Latest verification
+
+- 2026-09-07 JST: pushed repair product commit 2139b95 and replaced the existing alpha.1 prerelease/tag/Windows asset. Fresh download matches the tested 10,145,280-byte executable and SHA-256 above; one asset, prerelease true, draft false. Context7: /websites/cli_github_manual, existing release edit/upload --clobber/download workflow. Details in project-status/VERIFICATION.md.
 
 - HTML repair (2026-09-06): `npm test` 43/43 (0.395 s), `go test ./...` (0.915 s), vet and build pass. `scripts/repair-mutations.mjs`: seed 20260906, 580 copies, 256/256 applied repairs restore the original tree; shipped bundle matches all cases. `scripts/repair-acceptance.cjs`: 256 browser geometry comparisons, 150 native history cycles, six ZIPs / 50 slides with original/repaired XML equality, 12 repair-panel layouts, no page errors. Existing UI acceptance passes 58 states and four ZIPs in each appearance (116 states total).
 - Context7 consulted before dependency/API use: `/inikulin/parse5` Parser/token/source locations and error recovery, `/evanw/esbuild` local browser IIFE bundle, `/mdn/content` history-preserving insertText and input/beforeinput reentry, `/microsoft/playwright` native keyboard/clipboard and installed browser execution. Modern Web Guidance HTML guidance was consulted. parse5 8.0.1 and esbuild 0.28.2 are pinned; parse5/entities MIT licenses are bundled. Graphify AST refresh: 771 nodes / 2104 edges / 44 communities; six community labels fell back to hub names after the update.

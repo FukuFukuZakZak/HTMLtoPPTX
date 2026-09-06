@@ -1,5 +1,14 @@
 # Verification evidence
 
+## HTML repair prerelease replacement — 2026-09-07 JST
+
+- Pushed product commit `2139b952265d61e1d4cccf27976637a5db75d254` to `origin/main`; replaced annotated `v0.1.0-alpha.1` using an explicit lease against the previous remote tag object. New tag object `94c1fd79a10dd23b4735c36ccc887256a2a43e39` dereferences to the product commit.
+- Edited the existing release title/notes and replaced its single Windows executable. GitHub reports prerelease true, draft false, target commit 2139b95, and asset ID `547319658`.
+- A fresh `gh release download` returns 10,145,280 bytes, SHA-256 `90B14A4799C4EA4A1F5740A6BC4B1ACDFF73DA45BDE99222959D092CAD8CD65C`, identical to the previously tested `dist/html-repair-20260906/HTMLtoPPTX.exe`. No rebuild or product changes were made during publication.
+- Previous release metadata/executable backed up under `.tmp/release-html-repair-20260906/previous/`; old executable hash matches the prior published record. Only the executable was uploaded; sample HTMLs and mutation copies remain local.
+- Context7 consulted `/websites/cli_github_manual` for existing release editing with notes-file, asset upload with clobber, and fresh asset download. Official documentation confirms clobber deletes the old asset before upload; backup preceded replacement.
+- Unrelated `.codex/config.toml`, `.codex-remote-attachments/`, `docs/`, and `test-data/` remain outside release commits.
+
 ## HTML simple repair — 2026-09-06
 
 - Implemented explicit source-preserving repair with parse5, a local esbuild bundle/MIT licenses, change/warning feedback, immediate preview and native history. CSS/JS bodies are not repaired or reformatted. Inline formatting boundaries and unsupported ambiguity remain warning-only.
