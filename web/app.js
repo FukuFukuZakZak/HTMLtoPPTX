@@ -23,7 +23,7 @@
   const openEditorButton = document.getElementById("open-editor-button");
   const backToFileButton = document.getElementById("back-to-file-button");
   const htmlEditor = document.getElementById("html-editor");
-  const htmlPreview = document.getElementById("html-preview");
+  let htmlPreview = document.getElementById("html-preview");
   const editorSize = document.getElementById("editor-size");
   const editorExecuteScripts = document.getElementById("editor-execute-scripts");
   const editorConvertButton = document.getElementById("editor-convert-button");
@@ -131,6 +131,8 @@
     fileSize.textContent = files.length === 1
       ? formatBytes(totalBytes)
       : `${formatBytes(totalBytes)} ・ ${files.map((file) => file.name).join(" / ")}`;
+    fileName.title = fileName.textContent;
+    fileSize.title = fileSize.textContent;
     fileRow.hidden = false;
     updateConversionControls();
     setMessage(fileUi, activeJob ? "選択したファイルは次の一括変換に使われます。" : `${files.length}件の変換準備ができました。`, false);
@@ -158,6 +160,10 @@
   function showEditorWorkspace() {
     fileWorkspace.hidden = true;
     editorWorkspace.hidden = false;
+    // Recreate the sandboxed frame after showing its workspace; Chromium can retain a blank layout after display:none.
+    const visiblePreview = htmlPreview.cloneNode(false);
+    htmlPreview.replaceWith(visiblePreview);
+    htmlPreview = visiblePreview;
     refreshPreview();
     htmlEditor.focus();
   }
@@ -183,7 +189,9 @@
   function refreshPreview() {
     const html = htmlEditor.value;
     editorSize.textContent = formatBytes(new Blob([html]).size);
-    htmlPreview.srcdoc = previewDocument(html);
+    // Loading srcdoc inside a hidden workspace can leave Chromium's frame without layout.
+    if (!editorWorkspace.hidden) htmlPreview.srcdoc = previewDocument(html);
+    document.getElementById("preview-empty").hidden = Boolean(html.trim());
     editorUi.hasExecutableScripts = HtmlToPptxCore.hasExecutableScripts(html);
     updateScriptNotice(editorUi);
     updateConversionControls();

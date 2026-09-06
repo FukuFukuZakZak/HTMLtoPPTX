@@ -1,8 +1,16 @@
 # Completed work and release history
 
-Last updated: 2026-09-05
+Last updated: 2026-09-06
 
 This file holds completed milestones and superseded release state. Current work and next actions belong in [`../PROJECT_STATUS.md`](../PROJECT_STATUS.md).
+
+## FullHD UI refinement — 2026-09-06
+
+- Reorganized file input/settings into two steps and the editor into a navigation/action toolbar, shared settings row, and flexible code/preview panes.
+- Added light, dark and live system themes, accessible native selection controls, high-contrast dark surfaces and a themed empty preview. Kept source rendering independent of app colors.
+- Verified 58 desktop layout states, real ZIP conversion/download behavior, preview rendering, system/keyboard/storage cases, help expansion and narrow-screen overflow. Existing conversion tests remain 35/35 passing.
+- Fixed the preview's hidden-workspace initialization issue and retained the existing conversion pipeline, script sandbox and mixed A4 output contract.
+- Distributed the verified build separately as `dist/ui-20260906/HTMLtoPPTX.exe`; existing quality artifacts and GitHub release remain unchanged.
 
 ## Application foundation
 

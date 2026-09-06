@@ -4,6 +4,14 @@ Last updated: 2026-09-06
 
 These are durable choices. Active work and exceptions belong in [`../PROJECT_STATUS.md`](../PROJECT_STATUS.md).
 
+## UI workflow and themes
+
+- Use two steps for file conversion: choose HTML, then review settings and convert/save. Keep the editor's back action on the left, conversion/save on the right, and the script option above both panes. Use the existing shared conversion and download handlers.
+- Fit normal application controls within FullHD with help closed. Use flexible code/preview panes and compact progress feedback; allow document scrolling when explanations expand, and internal scrolling for long source/preview content. Narrow screens can stack the layout.
+- Offer explicit light, dark and system radio choices, with system selected initially. A small same-origin script runs before CSS under the existing strict CSP. Store the choice in browser localStorage, tolerate disabled storage, and let CSS respond immediately to system theme changes. Storage is per origin; the server's random port means a new app process may use the default again.
+- Keep dark text/background contrasts high and retain a visible keyboard focus indicator. Keep preview and measurement iframe color schemes light so app theme changes cannot recolor source HTML or alter converted output.
+- Load preview srcdoc only while the editor workspace is visible and recreate its iframe when opening the editor. Chromium reproduced zero-sized child layout after hidden-workspace initialization and re-entry; the clone preserves all sandbox/referrer attributes. The empty-state overlay keeps the frame available without hiding its own rendering surface. The existing network restrictions and script-disabled preview remain intact.
+
 ## Conversion architecture
 
 - Keep DOM measurement on the browser main thread and yield between slides; perform PPTX construction and ZIP compression in a Web Worker.

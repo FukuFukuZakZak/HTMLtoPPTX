@@ -3,222 +3,146 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="color-scheme" content="light">
+    <meta name="color-scheme" content="light dark">
     <title>HTML → PowerPoint Converter</title>
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+    <script src="./theme.js"></script>
     <link rel="stylesheet" href="./style.css">
   </head>
   <body>
     <header class="masthead">
-      <div>
-        <p class="product-mark" aria-label="HTML to PowerPoint Converter">
-          <span aria-hidden="true">H</span><i></i><span aria-hidden="true">P</span>
-        </p>
-        <h1>HTML → PowerPoint</h1>
+      <div class="brand">
+        <span class="product-mark" aria-hidden="true">H<span>P</span></span>
+        <h1>HTML <span aria-hidden="true">→</span> PowerPoint</h1>
       </div>
-      <p class="local-note"><span aria-hidden="true"></span>このPC内だけで変換</p>
+      <div class="header-tools">
+        <p class="local-note"><span aria-hidden="true"></span>このPC内だけで変換</p>
+        <fieldset class="theme-switch" aria-label="表示テーマ">
+          <legend class="visually-hidden">表示テーマ</legend>
+          <label><input type="radio" name="theme" value="light"><span>ライト</span></label>
+          <label><input type="radio" name="theme" value="dark"><span>ダーク</span></label>
+          <label><input type="radio" name="theme" value="system" checked><span>システム</span></label>
+        </fieldset>
+      </div>
     </header>
-
     <main class="workspace" id="file-workspace">
-      <section class="intro" aria-labelledby="intro-title">
-        <p class="kicker">スライド変換</p>
-        <h2 id="intro-title">HTMLのスライド束を、<br>編集できるPowerPointへ。</h2>
-        <p>複数のHTMLを順番に読み取り、PPTXを作成してZIPにまとめます。A4の縦・横が混在するHTMLは向き別に分けます。</p>
-        <ol class="flow" aria-label="変換の流れ">
-          <li><span>HTML</span><small>読み込み</small></li>
-          <li><span>ページ</span><small>サイズ判定</small></li>
-          <li><span>ZIP</span><small>PPTXを保存</small></li>
-        </ol>
-      </section>
-
-      <section class="converter" aria-labelledby="converter-title">
-        <div class="converter-heading">
-          <div>
-            <p class="kicker">変換するファイル</p>
-            <h2 id="converter-title">HTMLを選択</h2>
-          </div>
-          <span class="format-badge">16:9 / A4</span>
-        </div>
-
-        <aside class="orientation-notice" aria-labelledby="orientation-notice-title">
-          <p class="kicker">A4の縦・横が混在する場合</p>
-          <h3 id="orientation-notice-title">向き別に出力後、手動で統合</h3>
-          <ol class="orientation-flow" role="list" aria-label="縦横混在時の変換の流れ">
-            <li><strong>ページごと</strong><small>向きを判定</small></li>
-            <li><strong>縦・横別</strong><small>PPTXを生成</small></li>
-            <li><strong>PowerPoint</strong><small>手動で統合</small></li>
-          </ol>
-          <p>PowerPointでは1つのファイル内に縦向きと横向きを混在できません。生成された縦・横のPPTXは、変換後に手動で1つへ統合してください。</p>
-        </aside>
-
-        <label class="drop-zone" id="drop-zone" for="html-file">
-          <input id="html-file" type="file" accept=".html,.htm,text/html" multiple>
-          <span class="file-glyph" aria-hidden="true"><b></b><b></b><b></b></span>
-          <strong>ここにHTMLをまとめてドロップ</strong>
-          <span>またはクリックして複数ファイルを選択</span>
-        </label>
-
-        <ul class="input-contract" aria-label="対応するHTMLの条件">
-          <li><code>.slide</code>、またはA4横・A4縦と判断できるページを含む</li>
-          <li>A4は <code>@page</code> の <code>size</code> またはページ要素の寸法から判定</li>
-          <li>読み込み後に追加表示される内容は、作成元を確認できるHTMLに限り任意で反映できます</li>
-        </ul>
-
-        <button class="mode-button" id="open-editor-button" type="button" aria-controls="editor-workspace">
-          <span>
-            <strong>HTMLコードを貼り付けて変換</strong>
-            <small>ファイルを保存できない場合はこちら</small>
-          </span>
-          <span aria-hidden="true">→</span>
-        </button>
-
-        <div class="file-row" id="file-row" hidden>
-          <span class="file-type" aria-hidden="true">HTML</span>
-          <span class="file-copy">
-            <strong id="file-name"></strong>
-            <small id="file-size"></small>
-          </span>
-        </div>
-
-        <section class="script-setting" aria-label="追加表示される内容の変換設定">
-          <label class="script-option" for="execute-scripts">
-            <input id="execute-scripts" type="checkbox" aria-describedby="execute-scripts-description file-script-notice">
-            <span>
-              <strong>HTMLを開いたときに追加表示される内容も反映する</strong>
-              <small id="execute-scripts-description">メニューやグラフなどをPowerPointにも含めます。</small>
-            </span>
+      <div class="workspace-heading">
+        <div><h2>HTMLから、編集できるスライドへ</h2><p>HTMLを選び、設定を確認して変換。完成したPPTXはZIPで保存できます。</p></div>
+        <span class="format-badge">16:9 / A4 縦・横</span>
+      </div>
+      <div class="file-grid">
+        <section class="source-panel" aria-labelledby="converter-title">
+          <div class="panel-heading"><h3 id="converter-title"><span class="step-number">1</span>HTMLを読み込む</h3><span class="subtle">複数ファイルに対応</span></div>
+          <label class="drop-zone" id="drop-zone" for="html-file">
+            <input id="html-file" type="file" accept=".html,.htm,text/html" multiple>
+            <span class="file-glyph" aria-hidden="true">&lt;/&gt;</span>
+            <strong>HTMLファイルをここにドロップ</strong>
+            <span class="select-file-label">ファイルを選択</span>
+            <small>.html / .htm ・ まとめて選択できます</small>
           </label>
-          <p class="script-notice" id="file-script-notice" role="status" aria-live="polite" hidden></p>
-          <details class="script-help">
-            <summary><span class="help-mark" aria-hidden="true">?</span>この設定について</summary>
-            <div class="script-help-body">
-              <p>オンにすると、HTML内のプログラム（JavaScript）をこのツールの隔離領域で実行します。</p>
-              <p><strong>オンにしてよい例</strong> 自分で作成したHTML、庁内で作成され、作成元を確認できるHTML</p>
-              <p><strong>オフにする例</strong> メール添付や外部サイトから取得したHTML、作成元が分からないHTML、判断に迷うHTML</p>
-              <p>オンの場合も外部通信は遮断されます。</p>
-            </div>
-          </details>
-        </section>
-
-        <div class="actions">
-          <button class="primary-button" id="convert-button" type="button" disabled>
-            PPTXへ一括変換
-            <span aria-hidden="true">→</span>
+          <div class="file-row" id="file-row" hidden><span class="file-type" aria-hidden="true">HTML</span><span class="file-copy"><strong id="file-name"></strong><small id="file-size"></small></span></div>
+          <button class="mode-button" id="open-editor-button" type="button" aria-controls="editor-workspace">
+            <span><strong>HTMLコードを貼り付ける</strong><small>エディターで入力・プレビューして変換</small></span><span aria-hidden="true">→</span>
           </button>
-          <a class="download-button" id="download-link" hidden>
-            ZIPを保存
-            <span aria-hidden="true">↓</span>
-          </a>
-        </div>
-
-        <section class="progress-card" id="progress-card" aria-labelledby="progress-title" hidden>
-          <div class="progress-copy">
-            <div>
-              <p class="kicker" id="progress-title">変換状況</p>
-              <strong id="progress-label">準備しています</strong>
-            </div>
-            <span id="progress-count">0 / 0 枚</span>
-          </div>
-          <progress id="conversion-progress" max="1" aria-describedby="progress-detail"></progress>
-          <div class="progress-footer" role="status" aria-live="polite" aria-atomic="true">
-            <span id="progress-detail">HTMLを読み取っています</span>
-            <button class="text-button" id="cancel-button" type="button">キャンセル</button>
-          </div>
         </section>
-
-        <p class="message" id="message" role="status" aria-live="polite"></p>
-      </section>
+        <section class="conversion-panel" aria-labelledby="settings-title">
+          <div class="panel-heading"><h3 id="settings-title"><span class="step-number">2</span>設定して変換</h3></div>
+          <section class="script-setting" aria-label="追加表示される内容の変換設定">
+            <label class="script-option" for="execute-scripts">
+              <input id="execute-scripts" type="checkbox" aria-describedby="execute-scripts-description file-script-notice">
+              <span><strong>追加表示される内容も反映する</strong><small id="execute-scripts-description">HTML内のスクリプトを実行し、メニューやグラフなどを含めます。</small></span>
+            </label>
+            <p class="script-notice" id="file-script-notice" role="status" aria-live="polite" hidden></p>
+            <details class="script-help">
+              <summary>この設定について</summary>
+              <div class="help-body">
+                <p>オンにすると、HTML内のプログラム（JavaScript）をこのツールの隔離領域で実行します。</p>
+                <p><strong>オンにしてよい例：</strong>自分で作成したHTML、庁内で作成され、作成元を確認できるHTML。</p>
+                <p><strong>オフにする例：</strong>メール添付や外部サイトから取得したHTML、作成元が分からないHTML、判断に迷うHTML。</p>
+                <p>オンの場合も外部通信は遮断されます。</p>
+              </div>
+            </details>
+          </section>
+          <div class="output-note"><strong>1つのHTMLごとにPPTXを作成</strong><p>ページサイズは自動判定。すべてのPPTXを1つのZIPにまとめます。</p><p>A4の縦・横が混在するHTMLは向き別に出力します。PowerPointで手動で統合してください。</p></div>
+          <div class="conversion-actions">
+            <button class="primary-button" id="convert-button" type="button" disabled>PPTXへ変換<span aria-hidden="true">→</span></button>
+            <a class="download-button" id="download-link" hidden>ZIPを保存<span aria-hidden="true">↓</span></a>
+          </div>
+          <section class="progress-card" id="progress-card" aria-labelledby="progress-title" hidden>
+            <div class="progress-copy"><strong id="progress-title">変換状況</strong><span id="progress-count">0 / 0 枚</span></div>
+            <strong class="progress-label" id="progress-label">準備しています</strong>
+            <progress id="conversion-progress" max="1" aria-label="変換の進捗" aria-describedby="progress-detail"></progress>
+            <div class="progress-footer"><span id="progress-detail"></span><button class="text-button" id="cancel-button" type="button">キャンセル</button></div>
+          </section>
+          <p class="message" id="message" role="status" aria-live="polite"></p>
+        </section>
+      </div>
+      <details class="workspace-help">
+        <summary>対応するHTML・出力について</summary>
+        <div class="help-body help-columns">
+          <div><h3>対応するHTML</h3><p><code>.slide</code>、またはA4横・A4縦と判断できるページを含むHTMLに対応します。A4は <code>@page</code> の <code>size</code> またはページ要素の寸法から判定します。</p><p>入力内容はこのPC内だけで処理します。外部ファイルを参照する画像やフォントは反映されない場合があります。</p></div>
+          <div><h3 id="orientation-notice-title">A4の縦・横が混在する場合</h3><p>ページごとに向きを判定し、縦・横別のPPTXを作成します。PowerPointでは1つのファイル内に異なるページサイズを混在できません。1つにまとめる場合は、出力後にPowerPointで手動統合してください。</p></div>
+        </div>
+      </details>
     </main>
-
     <main class="editor-workspace" id="editor-workspace" hidden>
       <div class="editor-heading">
-        <div>
-          <p class="kicker">HTML貼り付け変換</p>
-          <h2 id="editor-title">コードを貼り付けて、見た目を確認</h2>
-          <p>左側にHTMLコードを貼り付けると、右側のプレビューが自動更新されます。</p>
+        <div class="editor-navigation">
+          <button class="back-button" id="back-to-file-button" type="button" aria-controls="file-workspace"><span aria-hidden="true">←</span> ファイル選択へ</button>
+          <div><h2 id="editor-title">HTMLエディター</h2><p>貼り付けたHTMLを確認して、PowerPointに変換</p></div>
         </div>
-        <button class="back-button" id="back-to-file-button" type="button" aria-controls="file-workspace">
-          ← ファイル変換へ戻る
-        </button>
+        <div class="editor-actions">
+          <button class="primary-button" id="editor-convert-button" type="button" disabled>PPTXへ変換<span aria-hidden="true">→</span></button>
+          <a class="download-button" id="editor-download-link" hidden>ZIPを保存<span aria-hidden="true">↓</span></a>
+        </div>
       </div>
-
-      <div class="editor-grid" aria-labelledby="editor-title">
-        <section class="editor-pane" aria-labelledby="html-editor-label">
-          <div class="pane-heading">
-            <div>
-              <p class="kicker">HTMLコード</p>
-              <h3 id="html-editor-label">貼り付け欄</h3>
-            </div>
-            <span id="editor-size">0 B</span>
-          </div>
-          <textarea id="html-editor" name="html-code" spellcheck="false" aria-describedby="html-editor-help" placeholder="ここにAIなどで生成したHTMLコードを貼り付けてください"></textarea>
-          <p class="pane-help" id="html-editor-help">入力内容はこのPC内だけで処理され、ファイルとして保存しなくても変換できます。</p>
-        </section>
-
-        <section class="editor-pane preview-pane" aria-labelledby="html-preview-label">
-          <div class="pane-heading">
-            <div>
-              <p class="kicker">HTMLプレビュー</p>
-              <h3 id="html-preview-label">表示イメージ</h3>
-            </div>
-            <span>スクリプト停止</span>
-          </div>
-          <iframe id="html-preview" title="貼り付けたHTMLのプレビュー" sandbox="" referrerpolicy="no-referrer"></iframe>
-          <p class="pane-help">プレビューでは安全のためスクリプトを実行しません。変換時は下の設定を使用します。</p>
-        </section>
-      </div>
-
-      <section class="editor-conversion" aria-label="貼り付けHTMLの変換操作">
-        <section class="script-setting" aria-label="追加表示される内容の変換設定">
+      <section class="editor-settings" aria-label="貼り付けHTMLの変換設定">
+        <div class="editor-settings-row">
           <label class="script-option" for="editor-execute-scripts">
             <input id="editor-execute-scripts" type="checkbox" aria-describedby="editor-execute-scripts-description editor-script-notice">
-            <span>
-              <strong>HTMLを開いたときに追加表示される内容も反映する</strong>
-              <small id="editor-execute-scripts-description">メニューやグラフなどをPowerPointにも含めます。プレビューには反映されません。</small>
-            </span>
+            <span><strong>追加表示される内容も反映する</strong><small id="editor-execute-scripts-description">変換時にスクリプトを実行します。プレビューでは実行しません。</small></span>
           </label>
-          <p class="script-notice" id="editor-script-notice" role="status" aria-live="polite" hidden></p>
           <details class="script-help">
-            <summary><span class="help-mark" aria-hidden="true">?</span>この設定について</summary>
-            <div class="script-help-body">
-              <p>オンにすると、HTML内のプログラム（JavaScript）をこのツールの隔離領域で実行します。</p>
-              <p><strong>オンにしてよい例</strong> 自分で作成したHTML、庁内で作成され、作成元を確認できるHTML</p>
-              <p><strong>オフにする例</strong> メール添付や外部サイトから取得したHTML、作成元が分からないHTML、判断に迷うHTML</p>
+            <summary>この設定について</summary>
+            <div class="help-body">
+              <p>オンにすると、HTML内のプログラム（JavaScript）を隔離領域で実行し、追加表示されたメニューやグラフなども変換します。プレビューには反映されません。</p>
+              <p><strong>オンにしてよい例：</strong>自分で作成したHTML、庁内で作成され、作成元を確認できるHTML。</p>
+              <p><strong>オフにする例：</strong>メール添付や外部サイトから取得したHTML、作成元が分からないHTML、判断に迷うHTML。</p>
               <p>オンの場合も外部通信は遮断されます。</p>
             </div>
           </details>
-        </section>
-
-        <div class="editor-actions">
-          <button class="primary-button" id="editor-convert-button" type="button" disabled>
-            PPTXへ変換
-            <span aria-hidden="true">→</span>
-          </button>
-          <a class="download-button" id="editor-download-link" hidden>
-            ZIPを保存
-            <span aria-hidden="true">↓</span>
-          </a>
         </div>
-
-        <section class="progress-card" id="editor-progress-card" aria-labelledby="editor-progress-title" hidden>
-          <div class="progress-copy">
-            <div>
-              <p class="kicker" id="editor-progress-title">変換状況</p>
-              <strong id="editor-progress-label">準備しています</strong>
-            </div>
-            <span id="editor-progress-count">0 / 0 枚</span>
-          </div>
-          <progress id="editor-conversion-progress" max="1" aria-describedby="editor-progress-detail"></progress>
-          <div class="progress-footer" role="status" aria-live="polite" aria-atomic="true">
-            <span id="editor-progress-detail">HTMLを読み取っています</span>
-            <button class="text-button" id="editor-cancel-button" type="button">キャンセル</button>
-          </div>
+        <p class="script-notice" id="editor-script-notice" role="status" aria-live="polite" hidden></p>
+      </section>
+      <div class="editor-grid" aria-labelledby="editor-title">
+        <section class="editor-pane" aria-labelledby="html-editor-label">
+          <div class="pane-heading"><h3 id="html-editor-label">HTMLコード</h3><span id="editor-size">0 B</span></div>
+          <textarea id="html-editor" name="html-code" spellcheck="false" aria-labelledby="html-editor-label" aria-describedby="html-editor-help" placeholder="ここにHTMLコードを貼り付けてください"></textarea>
+          <p class="pane-help" id="html-editor-help">ファイルへの保存は不要です。入力内容は画面を戻っても保持されます。</p>
         </section>
-
+        <section class="editor-pane preview-pane" aria-labelledby="html-preview-label">
+          <div class="pane-heading"><h3 id="html-preview-label">プレビュー</h3><span>スクリプト停止</span></div>
+          <div class="preview-surface">
+            <div class="preview-empty" id="preview-empty"><span aria-hidden="true">&lt;/&gt;</span><strong>HTMLの表示をここで確認</strong><p>左の欄にコードを貼り付けると<br>プレビューが自動更新されます。</p></div>
+            <iframe id="html-preview" title="貼り付けたHTMLのプレビュー" sandbox="" referrerpolicy="no-referrer"></iframe>
+          </div>
+          <p class="pane-help">元のHTMLの配色で表示します。スクリプトで追加される内容は表示されません。</p>
+        </section>
+      </div>
+      <section class="editor-feedback" aria-label="貼り付けHTMLの変換状況">
+        <section class="progress-card" id="editor-progress-card" aria-labelledby="editor-progress-title" hidden>
+          <div class="progress-copy"><strong id="editor-progress-title">変換状況</strong><span id="editor-progress-count">0 / 0 枚</span></div>
+          <strong class="progress-label" id="editor-progress-label">準備しています</strong>
+          <progress id="editor-conversion-progress" max="1" aria-label="変換の進捗" aria-describedby="editor-progress-detail"></progress>
+          <div class="progress-footer"><span id="editor-progress-detail"></span><button class="text-button" id="editor-cancel-button" type="button">キャンセル</button></div>
+        </section>
         <p class="message" id="editor-message" role="status" aria-live="polite"></p>
       </section>
+      <details class="workspace-help">
+        <summary>貼り付け変換・出力について</summary>
+        <div class="help-body"><p>貼り付けたHTMLは「貼り付けHTML.html」として、ファイル選択と同じ処理で変換します。外部ファイルを参照する画像やフォントは反映されない場合があります。</p><p>16:9・A4縦・A4横のページサイズを自動判定します。A4の縦・横が混在する場合は向き別のPPTXをZIPにまとめます。1つにまとめる場合はPowerPointで手動統合してください。</p><p>入力内容はこのPC内だけで処理されます。再読み込みや画面を閉じると入力内容は消えます。</p></div>
+      </details>
     </main>
-
     <div class="render-host" id="render-host" aria-hidden="true"></div>
     <script src="./converter-core.js"></script>
     <script src="./app.js"></script>

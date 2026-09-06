@@ -40,7 +40,7 @@ func TestEmbeddedWebUI(t *testing.T) {
 		`id="editor-download-link"`,
 		`id="file-script-notice"`,
 		`id="editor-script-notice"`,
-		"HTMLを開いたときに追加表示される内容も反映する",
+		"追加表示される内容も反映する",
 		"この設定について",
 		"作成元を確認できるHTML",
 		"外部通信は遮断されます",
