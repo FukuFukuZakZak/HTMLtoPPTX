@@ -35,18 +35,18 @@
 .theme-sample { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 14px; height: 90px; background: #f3f1eb; border: 1px solid #c7c8c2; border-radius: 6px; }
 .theme-sample i { background: #fffefa; border: 1px solid #c7c8c2; border-radius: 3px; }
 .theme-sample i:first-child { grid-column: 1 / -1; height: 8px; width: 60%; background: #a64123; border: 0; }
-.sample-pixel { background: #d5e4f1; border: 2px solid #233c59; border-radius: 0; }
+.sample-pixel { background: #f3f1eb; border: 2px solid #233c59; border-radius: 0; }
 .sample-pixel i { background: #f0f6fb; border: 2px solid #233c59; border-radius: 0; box-shadow: 3px 3px #233c59; }
 .sample-pixel i:first-child { background: #233c59; box-shadow: 3px 3px #f5ba55; }
 .settings-hint { line-height: 1.8; }
 
 :root[data-appearance="8bit"] {
   font-family: "DotGothic16", "Yu Gothic UI", sans-serif;
-  --canvas: #e8f0f7; --surface: #f4f8fc; --surface-subtle: #dce8f3; --input: #eef5fb;
+  --canvas: #f3f1eb; --surface: #f4f8fc; --surface-subtle: #dce8f3; --input: #eef5fb;
   --ink: #1a2a42; --muted: #435d79; --rule: #57728e;
   --accent: #244e78; --accent-hover: #193b5e; --accent-ink: #ffffff; --accent-soft: #dce9f6;
   --disabled-bg: #d2dfe9; --disabled-ink: #465b73;
-  --canvas-dot: #bfcedc; --pixel-edge: #233c59; --pixel-highlight: #f5ba55;
+  --canvas-dot: #e4e4dd; --pixel-edge: #233c59; --pixel-highlight: #f5ba55;
   --workbench-shadow: 5px 5px 0 var(--pixel-edge);
 }
 :root[data-appearance="8bit"][data-theme="dark"] {

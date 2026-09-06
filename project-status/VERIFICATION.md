@@ -1,5 +1,11 @@
 # Verification evidence
 
+## 8bit light background alignment — 2026-09-06
+
+- User requested the standard light background for visual consistency. Changed only three CSS colors: light canvas to `#f3f1eb`, light pixel dots to the standard `#e4e4dd`, and the appearance thumbnail canvas to `#f3f1eb`. Dark rules and conversion code are unchanged. Modern Web Guidance theme guidance was reused; no third-party API/configuration changes.
+- Built `.tmp/HTMLtoPPTX-8bit-warm.exe` and ran existing `scripts/ui-acceptance.cjs` with `UI_APPEARANCE=8bit`, output `.tmp/ui-8bit-warm/`: 58 layout states, four real ZIP cases / nine slides, keyboard/settings/storage/system switching and preview retention passed. Minimum contrast 5.15:1, no page errors. Direct browser computation confirmed standard/8bit light both `rgb(243, 241, 235)` and unchanged retro dark `rgb(16, 27, 45)`. Visually reviewed the light home screenshot.
+- Refreshed executable, screenshots and report at `dist/ui-8bit-20260906/`; executable SHA-256 `28ED556B4537A283C72BAB3289074974A7949DAFB36CFE019498A1DF0ABE70F1`. Graphify AST update succeeded: 364 nodes / 715 edges / 20 communities. No new tests were added for this color-only adjustment.
+
 ## Optional 8bit appearance — 2026-09-06
 
 - Reference: https://danielvo594520.github.io/danielvo-articles-site/ . Viewed its actual browser rendering and inspected the public palette/font CSS. Implemented an original pixel conversion illustration, blue light/navy dark app colors, hard borders/shadows and DotGothic16. Modern Web Guidance and Frontend Design informed the work; Context7 covered `/mdn/content` native dialog/focus and theme attributes, `/microsoft/playwright` keyboard/media/font readiness, and `/fonttools/fonttools` full-font WOFF2 compression.
