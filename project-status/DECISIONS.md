@@ -8,6 +8,12 @@ These are durable choices. Active work and exceptions belong in [`../PROJECT_STA
 
 Use the first HTML title in the parsed document head for the editor's virtual input name. Decode entities through the existing parse5 parser; normalize whitespace, replace Windows-unsafe/control characters, trim trailing dots/spaces and limit the stem to 60 Unicode code points without splitting surrogate pairs. Prefix reserved Windows basenames with an underscore. Missing/empty names fall back to `貼り付けHTML`. Parsing does not execute scripts or fetch resources. The shared conversion path keeps ZIP/PPTX stems and mixed-A4 suffixes consistent; uploaded filenames remain authoritative. Source HTML, slide content and editor history are unchanged.
 
+## Editor line numbers and repair display (Issue #11)
+
+Keep the native textarea as the only editable/accessibility text surface. An inert, clipped mirror paints inserted-tag backgrounds/underlines behind native text, preserving caret, selection, IME and undo transactions. Build mirror content with text nodes and marks, never source HTML insertion. Number logical lines only; measure wrapped row heights in one read batch and synchronize the gutter/overlay on scrolling, resizing and font loading. Source/input edits clear repair colors; no-op repair preserves them only for an identical snapshot.
+
+Repair results expose final UTF-16 start/end ranges and final inserted-tag line numbers after Markdown fence removal and all insertions. Stable same-offset ordering matches generated source. Existing opening-tag line metadata remains separate. Report buttons focus/select/scroll to the inserted span; removed code fences are described as removals. Conversion and repair decisions themselves are unchanged.
+
 ## UI workflow and themes
 
 - The editor owns its page/zoom/pan controls independently of source HTML navigation. Reuse conversion page detection (`.slide` first, then A4) and isolated-page normalization in a dedicated preview document; undetected HTML falls back to one whole document. Fit the initial/selected page with a margin and no automatic upscaling; resize preserves manual zoom, while page changes/input refresh restore fit. Support mouse dragging and keyboard page/zoom/pan operations.

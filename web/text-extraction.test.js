@@ -14,6 +14,7 @@ const core = require("./converter-core.js");
 const context = {
   HtmlToPptxCore: core,
   HtmlPreview: () => ({ load() {} }),
+  EditorDisplay: () => ({ highlight() {}, goTo() {} }),
   Blob,
   document: { getElementById: () => ({ value: "", addEventListener() {} }) },
   window: { addEventListener() {} }

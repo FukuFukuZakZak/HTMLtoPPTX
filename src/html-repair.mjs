@@ -150,6 +150,19 @@ export function repairHtml(original) {
   }
   let repaired = source;
   for (const [offset, text] of [...insertions].sort((a, b) => b[0] - a[0])) repaired = repaired.slice(0, offset) + text + repaired.slice(offset);
+  // Stable ordering matches concatenation of tags inserted at the same offset.
+  // Offsets are UTF-16 indices, just like textarea selectionStart/selectionEnd.
+  let added = 0;
+  let cursor = 0;
+  let finalLine = 1;
+  for (const change of [...result.changes].sort((a, b) => a.offset - b.offset)) {
+    finalLine += (source.slice(cursor, change.offset).match(/\r\n|\r|\n/g) || []).length;
+    cursor = change.offset;
+    change.start = change.offset + added;
+    change.end = change.start + change.text.length;
+    change.finalLine = finalLine;
+    added += change.text.length;
+  }
   if (fence) result.changes.unshift({ line: 1, reason: "HTMLを囲むコード枠を除去", tag: null });
   result.html = repaired;
   return result;

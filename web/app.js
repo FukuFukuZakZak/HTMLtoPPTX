@@ -25,6 +25,7 @@
   const htmlEditor = document.getElementById("html-editor");
   const repairButton = document.getElementById("repair-html-button");
   const repairReport = document.getElementById("repair-report");
+  const editorDisplay = EditorDisplay(htmlEditor);
   const htmlPreview = HtmlPreview({ resolvePages: resolveConvertiblePages, preferredDisplay: preferredSlideDisplay, waitForImages });
   const editorSize = document.getElementById("editor-size");
   const editorExecuteScripts = document.getElementById("editor-execute-scripts");
@@ -218,7 +219,15 @@
       const list = document.createElement("ul");
       for (const item of items.slice(0, 30)) {
         const row = document.createElement("li");
-        row.textContent = item;
+        if (typeof item === "string") row.textContent = item;
+        else {
+          const link = document.createElement("button");
+          link.type = "button";
+          link.className = "repair-location";
+          link.textContent = `${item.finalLine}行目： ${item.text}を追加（開始タグ：${item.line}行目） — ${item.reason}`;
+          link.addEventListener("click", () => editorDisplay.goTo(item));
+          row.append(link);
+        }
         list.append(row);
       }
       if (items.length > 30) {
@@ -270,7 +279,8 @@
       htmlEditor.scrollTop = scrollTop;
       window.clearTimeout(previewTimer);
       refreshPreview();
-      showRepairReport(`${result.changes.length}件を補正しました。閉じ位置を推定した箇所があります。プレビューを確認してください。Ctrl+Zで元に戻せます。`, result.changes.map(change => `${change.line}行目${change.tag ? `： </${change.tag}>を追加` : ""} — ${change.reason}`), false);
+      editorDisplay.highlight(result.html, result.changes);
+      showRepairReport(`${result.changes.length}件を補正しました。色と下線が追加タグです。行番号を押すと移動します。閉じ位置をプレビューで確認してください。Ctrl+Zで元に戻せます。`, result.changes.map(change => change.tag ? change : change.reason), false);
     } catch {
       showRepairReport("このブラウザーでは取り消し履歴を保った補正を適用できませんでした。", [], true);
     } finally {

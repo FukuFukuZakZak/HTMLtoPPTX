@@ -15,9 +15,11 @@ Build the HTML-to-PPTX converter described in `docs/HTML_to_PPTX_converter_spec_
 
 ## Current milestone
 
-GitHub Issues #8/#9 passed target-machine validation and are closed. The user authorized implementation, commit/push and replacement of the existing prerelease for #10 only. Title-derived editor output names are implemented; unit/Go/build and nine actual Edge download/extraction cases pass. Preview/manual regression passes. Product commit 8616650 is pushed and the existing prerelease/tag/asset is replaced; a fresh download matches the verified executable. Target-machine confirmation is next. #11 remains assessment-only and is outside this implementation.
+User confirmed Issue #10 passed target-machine validation; closed as completed on 2026-09-07. Issue #11 implementation is authorized and underway: logical line numbers, colored inserted-tag ranges and clickable repair locations, preserving native textarea input/history. Implementation and automated acceptance are complete. Edge verified wrapping/scroll alignment, repair links, native history, clipboard and Japanese composition events; target-machine confirmation is next. Publication is not part of this new implementation request.
 
 ## Current work
+
+- Issue #11: added inert textarea mirror/gutter and explicit final repair ranges (same-offset insertion, Markdown fence removal, Unicode/newlines). Repair report links select and scroll to inserted tags. Manual and screenshot updated. Verification: 46 unit tests, 307-line/8-layout editor checks, 5000-line paste/copy, 580 mutation cases, 256 browser geometry comparisons, 150 native history cycles, six conversion ZIPs, preview 38/16 and manual 44 layouts all pass. Review EXE: `dist/issue11-20260907/HTMLtoPPTX.exe`. #10 is closed after user target-machine confirmation.
 
 - 2026-09-07 Issue #10 publication complete: product commit `8616650f813d3dceb8a8841d0b506e2aaaedf294` pushed to main; annotated alpha.1 tag `dab234ba1df351cd19b04d52c15861f22ca42a8f` resolves to it. Updated existing release notes/title and replaced its single Windows asset. Fresh download matches the tested EXE and GitHub digest. Backup/notes/download: `.tmp/release-issue10-20260907/`. #10 remains open for target-machine validation; #11 remains open and unimplemented.
 
@@ -76,7 +78,7 @@ GitHub Issues #8/#9 passed target-machine validation and are closed. The user au
 
 ## Next actions
 
-Issue #10 implementation, commit/push and existing alpha.1 prerelease replacement are complete. Validate title-derived ZIP/PPTX names on the target Windows machine before closing #10. #11 remains assessment-only and requires a separate implementation request. #8/#9 are closed after target-machine confirmation.
+Validate Issue #11 in the target Windows browser using dist/issue11-20260907/HTMLtoPPTX.exe: logical line numbers, colored added tags and repair-result links near line 300, including soft wrapping and native Japanese IME/candidate UI. Implementation/manual/automated checks are complete; commit/push and prerelease replacement remain a separate publication step. #8/#9/#10 are closed after target-machine confirmation.
 
 On the target Windows browser, open the updated alpha.1 executable and use the shared header「How to use」entry while editing. The approved integration/release task is complete; video recording and narration remain a future task.
 
@@ -96,13 +98,13 @@ Confirm the latest artifact's top-right gear → 8bit appearance in light/dark o
 
 ## Active risks / blockers
 
-- Issue #10: all automated acceptance checks pass; target-machine confirmation remains pending. Names are limited to 60 Unicode code points with unsafe/reserved-name handling. Issue #11 remains assessment-only: synchronized highlighting and final repair-position mapping still need implementation and browser/input-history verification.
+- Issue #11: automated browser/clipboard/composition/history and conversion checks pass. Physical Japanese IME candidate-window interaction and target-machine display scaling remain for user validation. Native textarea owns input/history; display layers never execute source HTML. Issue #10 target-machine verification passed and the issue is closed.
 - Issues #8/#9: target-machine validation passed per user and both Issues are closed. Preview uses static DOM: pages/charts created by scripts are checked through the existing conversion option. HTML with no detectable page boundary is shown as one document with an explanatory status.
 
 ## Issue #10/#11 assessment decisions
 
 - Implemented #10 behavior: use the first document-head HTML title, normalize whitespace and unsafe filename characters, and fall back to `貼り付けHTML` when missing/empty. Keep a common stem for ZIP/PPTX and existing mixed-orientation suffixes. File-upload naming remains based on the selected file. Do not execute scripts to obtain a title.
-- Proposed #11 approach: retain the native textarea and add logical line numbers plus an inert synchronized display for inserted-tag highlights. Preserve soft wrapping; continuation rows do not receive new source line numbers. Repair reports should distinguish opening-tag and inserted-tag positions and support navigation. Clear highlights on subsequent input/Undo/Redo to avoid stale positions; no-op repair may retain valid highlights for the identical source. These are assessment recommendations, not implemented behavior.
+- Implemented #11 approach: retain the native textarea and add logical line numbers plus an inert synchronized display for inserted-tag highlights. Preserve soft wrapping; continuation rows do not receive new source line numbers. Repair reports should distinguish opening-tag and inserted-tag positions and support navigation. Clear highlights on subsequent input/Undo/Redo to avoid stale positions; no-op repair may retain valid highlights for the identical source. These display behaviors are implemented; final inserted ranges use UTF-16 offsets and post-fence-removal line numbers.
 
 - The approved manual is integrated; video production remains a separate future task. Screenshots document the unchanged conversion controls from product commit `2139b95`; the newly added header help link is not pictured. No integration blockers remain.
 - Simple repair does not guarantee reconstruction of arbitrary malformed HTML. Missing inline formatting ends, starting tags/attributes, unfinished script/style/comment text, foreign content and ambiguous nesting are outside automatic repair. Native history uses the deprecated but currently working `execCommand("insertText")` API; Windows Edge acceptance must be repeated for an engine migration. No custom input/history reentry is used.
@@ -157,6 +159,8 @@ Confirm the latest artifact's top-right gear → 8bit appearance in light/dark o
 - Verified executable SHA-256: `0F0BCA1778506E32711EA6A38351E8D602999ECFF9FA5A945DEA876E9C8E5652`. Exact files, archive hashes, visual findings and commands are in [Verification evidence](project-status/VERIFICATION.md).
 
 ## Working tree notes
+
+- Issue #11 implementation is uncommitted: new editor-display.js and editor-display-acceptance.cjs, repair range metadata/tests/bundle, app/HTML/CSS, test harness, manual chapter/screenshot/generated assets and status records. User-owned .codex/config.toml, .codex-remote-attachments/, docs/ and test-data/ remain preserved. Current public release remains Issue #10 (8616650); no publication changes were made for #11.
 
 - Issue #10 owns filename helper/bundle, editor call/help/manual, unit and download acceptance tests, and status/assessment records. Implementation and publication are committed/pushed; all checks pass. Preserve and exclude unrelated .codex/config.toml, .codex-remote-attachments/, docs/ and test-data/.
 
