@@ -1,8 +1,15 @@
 # Verification evidence
 
+## Issue #11 prerelease replacement — 2026-09-07 JST
+
+- Product `b86b2d1a08b813e0a5b24d887c551ed4c6655d38` committed with all applicable hooks passing and pushed to main. Annotated alpha.1 tag `67fc448791da94432eb747013297ece52f04318c` points to this product; replacement used an explicit lease on previous tag object `dab234ba1df351cd19b04d52c15861f22ca42a8f`. Subsequent status-only commits advance main separately.
+- Existing release title/notes and its single Windows asset were replaced. Fresh download is 11,240,448 bytes, SHA-256 `4831FA7CBB9822A29C656CD7C849D83B833C4A2F624271819413C61F68EB7929`, identical to the tested EXE and GitHub digest. Prerelease true, draft false, product target and remote tag dereference verified. Asset ID `548234347` / node `RA_kwDOUNq3jc4grWRr`.
+- Previous metadata and executable backed up before replacement in `.tmp/release-issue11-20260907/previous/`; old executable hash `F48ACCBCB0972E388A277B4C867ECB95B9C341B1DE6B1E64FA82A520D18BC927` matches the prior release. Notes/upload/fresh download remain in the parent directory. No application changes or rebuild during publication.
+- Context7 `/websites/cli_github_manual`: existing release edit with notes-file/target/prerelease, upload --clobber and fresh download --pattern/--dir. Issue #11 verified OPEN pending target-machine confirmation. Unrelated workspace files preserved and excluded.
+
 ## Issue #11 line numbers and repair colors — 2026-09-07
 
-- User confirmed #10 target-machine acceptance; closed without comment as COMPLETED at `2026-09-07T05:14:06Z`. #11 implementation only is the current task; no commit/push/release replacement was requested for this step.
+- User confirmed #10 target-machine acceptance; closed without comment as COMPLETED at `2026-09-07T05:14:06Z`. Issue #11 implementation acceptance passed; the subsequent user request authorized publication, now completed as recorded above.
 - `npm test`: 46/46 (304 ms); `go test ./...` (0.795 s), `go vet ./...`, JS syntax, repair/manual builds and final executable build pass. Range tests cover multiple sites/same-offset tags, fences, CRLF/CR/LF, EOF and Japanese/emoji; unchanged-source reconstruction verifies ranges.
 - `scripts/editor-display-acceptance.cjs`, against actual built EXE in Edge: 307 logical lines, tabs/blank/EOF/wrapping, scroll/resize and eight standard/8bit/light/dark/viewport combinations; gutter tops match mirror rows within one pixel, native content height matches, repair links select the correct visible tag. Also verifies wrapping within repaired lines, safe source display, no-op/fence/warning handling, stale-color removal, 20 native Undo/Redo cycles and separate paste history. CDP Japanese composition/commit keeps repair disabled during composition and text correct afterward; physical IME candidate-window UI remains target-machine validation.
 - 5000-line native Ctrl+V/Ctrl+C round-trip passes under the 5-second acceptance bound; diagnostic mirror rendering was about 250 ms and final whole paste measurement was 640 ms, recorded in `editor-verification.json`. Playwright locator.fill of the same large text timed out; isolated DOM input and real clipboard paste both passed, so long-input acceptance uses the actual user clipboard workflow. No product changes were needed for that harness limitation.
