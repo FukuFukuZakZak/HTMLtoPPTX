@@ -15,11 +15,11 @@ Build the HTML-to-PPTX converter described in `docs/HTML_to_PPTX_converter_spec_
 
 ## Current milestone
 
-User confirmed Issue #10 passed target-machine validation; closed as completed on 2026-09-07. Issue #11 implementation is complete: logical line numbers, colored inserted-tag ranges and clickable repair locations, preserving native textarea input/history. Implementation and automated acceptance are complete. Edge verified wrapping/scroll alignment, repair links, native history, clipboard and Japanese composition events; target-machine confirmation is next. The subsequent user-authorized commit, push and prerelease replacement are complete; the fresh release download matches the tested EXE.
+User confirmed Issue #10 passed target-machine validation; closed as completed on 2026-09-07. Issue #11 implementation is complete: logical line numbers, colored inserted-tag ranges and clickable repair locations, preserving native textarea input/history. Implementation and automated acceptance are complete. Edge verified wrapping/scroll alignment, repair links, native history, clipboard and Japanese composition events; the user subsequently confirmed target-machine validation passed on 2026-09-07. Issue #11 is CLOSED / COMPLETED. The subsequent user-authorized commit, push and prerelease replacement are complete; the fresh release download matches the tested EXE.
 
 ## Current work
 
-- Issue #11 publication complete: product b86b2d1 pushed to main; annotated alpha.1 tag 67fc448791da94432eb747013297ece52f04318c points to it. Updated release title/notes and replaced its single Windows EXE. Fresh download size/hash match the tested artifact and GitHub digest. Backup, notes and download: .tmp/release-issue11-20260907/. Issue #11 remains OPEN for target-machine validation.
+- Issue #11 publication complete: product b86b2d1 pushed to main; annotated alpha.1 tag 67fc448791da94432eb747013297ece52f04318c points to it. Updated release title/notes and replaced its single Windows EXE. Fresh download size/hash match the tested artifact and GitHub digest. Backup, notes and download: .tmp/release-issue11-20260907/. Issue #11 was closed as COMPLETED at 2026-09-07T05:53:59Z after user target-machine confirmation.
 
 - Issue #11: added inert textarea mirror/gutter and explicit final repair ranges (same-offset insertion, Markdown fence removal, Unicode/newlines). Repair report links select and scroll to inserted tags. Manual and screenshot updated. Verification: 46 unit tests, 307-line/8-layout editor checks, 5000-line paste/copy, 580 mutation cases, 256 browser geometry comparisons, 150 native history cycles, six conversion ZIPs, preview 38/16 and manual 44 layouts all pass. Review EXE: `dist/issue11-20260907/HTMLtoPPTX.exe`. #10 is closed after user target-machine confirmation.
 
@@ -80,7 +80,7 @@ User confirmed Issue #10 passed target-machine validation; closed as completed o
 
 ## Next actions
 
-Validate Issue #11 in the target Windows browser using dist/issue11-20260907/HTMLtoPPTX.exe: logical line numbers, colored added tags and repair-result links near line 300, including soft wrapping and native Japanese IME/candidate UI. Implementation/manual/automated checks are complete; commit/push and prerelease replacement are complete. Download the updated alpha.1 asset for target-machine confirmation. #8/#9/#10 are closed after target-machine confirmation.
+Issues #8/#9/#10/#11 have passed user target-machine validation and are closed. The implementation and publication milestone is complete; await the next user-reported issue or requested enhancement.
 
 On the target Windows browser, open the updated alpha.1 executable and use the shared header「How to use」entry while editing. The approved integration/release task is complete; video recording and narration remain a future task.
 
@@ -100,7 +100,7 @@ Confirm the latest artifact's top-right gear → 8bit appearance in light/dark o
 
 ## Active risks / blockers
 
-- Issue #11: automated browser/clipboard/composition/history and conversion checks pass. Physical Japanese IME candidate-window interaction and target-machine display scaling remain for user validation. Native textarea owns input/history; display layers never execute source HTML. Issue #10 target-machine verification passed and the issue is closed.
+- Issue #11: automated checks and user target-machine validation passed. No remaining blocker for this issue; closed as completed. Native textarea owns input/history; display layers never execute source HTML.
 - Issues #8/#9: target-machine validation passed per user and both Issues are closed. Preview uses static DOM: pages/charts created by scripts are checked through the existing conversion option. HTML with no detectable page boundary is shown as one document with an explanatory status.
 
 ## Issue #10/#11 assessment decisions

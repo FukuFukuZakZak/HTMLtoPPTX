@@ -1,5 +1,10 @@
 # Verification evidence
 
+## Issue #11 target-machine acceptance and closure — 2026-09-07
+
+- User reported target-machine verification passed without problems and explicitly requested closure. GitHub issue 11 verified CLOSED / COMPLETED at 2026-09-07T05:53:59Z. No issue comment posted; no product or release artifact changed. Earlier publication-time pending-validation notes below are historical.
+
+
 ## Issue #11 prerelease replacement — 2026-09-07 JST
 
 - Product `b86b2d1a08b813e0a5b24d887c551ed4c6655d38` committed with all applicable hooks passing and pushed to main. Annotated alpha.1 tag `67fc448791da94432eb747013297ece52f04318c` points to this product; replacement used an explicit lease on previous tag object `dab234ba1df351cd19b04d52c15861f22ca42a8f`. Subsequent status-only commits advance main separately.
