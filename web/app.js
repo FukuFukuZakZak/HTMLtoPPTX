@@ -25,7 +25,7 @@
   const htmlEditor = document.getElementById("html-editor");
   const repairButton = document.getElementById("repair-html-button");
   const repairReport = document.getElementById("repair-report");
-  let htmlPreview = document.getElementById("html-preview");
+  const htmlPreview = HtmlPreview({ resolvePages: resolveConvertiblePages, preferredDisplay: preferredSlideDisplay, waitForImages });
   const editorSize = document.getElementById("editor-size");
   const editorExecuteScripts = document.getElementById("editor-execute-scripts");
   const editorConvertButton = document.getElementById("editor-convert-button");
@@ -165,10 +165,6 @@
   function showEditorWorkspace() {
     fileWorkspace.hidden = true;
     editorWorkspace.hidden = false;
-    // Recreate the sandboxed frame after showing its workspace; Chromium can retain a blank layout after display:none.
-    const visiblePreview = htmlPreview.cloneNode(false);
-    htmlPreview.replaceWith(visiblePreview);
-    htmlPreview = visiblePreview;
     refreshPreview();
     htmlEditor.focus();
   }
@@ -179,24 +175,10 @@
     openEditorButton.focus();
   }
 
-  function previewDocument(html) {
-    if (!html.trim()) {
-      return "<!doctype html><html lang=\"ja\"><head><meta charset=\"utf-8\"><style>body{display:grid;place-items:center;min-height:100vh;margin:0;color:#647080;background:#f8f7f2;font:16px 'Yu Gothic UI','Meiryo',sans-serif}p{padding:24px;text-align:center}</style></head><body><p>左側にHTMLコードを貼り付けると、ここに表示されます。</p></body></html>";
-    }
-    const parsed = new DOMParser().parseFromString(html, "text/html");
-    const policy = parsed.createElement("meta");
-    policy.httpEquiv = "Content-Security-Policy";
-    policy.content = "default-src 'none'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data: blob:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'";
-    parsed.head.prepend(policy);
-    return `<!doctype html>\n${parsed.documentElement.outerHTML}`;
-  }
-
   function refreshPreview() {
     const html = htmlEditor.value;
     editorSize.textContent = formatBytes(new Blob([html]).size);
-    // Loading srcdoc inside a hidden workspace can leave Chromium's frame without layout.
-    if (!editorWorkspace.hidden) htmlPreview.srcdoc = previewDocument(html);
-    document.getElementById("preview-empty").hidden = Boolean(html.trim());
+    if (!editorWorkspace.hidden) htmlPreview.load(html);
     editorUi.hasExecutableScripts = HtmlToPptxCore.hasExecutableScripts(html);
     updateScriptNotice(editorUi);
     updateConversionControls();

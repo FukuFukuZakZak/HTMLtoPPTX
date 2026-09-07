@@ -24,18 +24,11 @@
     ],
     "03-preview": [
       {
-        "selector": "#html-preview",
-        "x": 721,
-        "y": 308.171875,
-        "width": 686,
-        "height": 495.046875
-      },
-      {
-        "selector": "#repair-html-button",
-        "x": 634,
-        "y": 273.78125,
-        "width": 70,
-        "height": 31.1875
+        "selector": ".preview-pane",
+        "x": 720,
+        "y": 262.78125,
+        "width": 687,
+        "height": 575.03125
       }
     ],
     "04-repair": [

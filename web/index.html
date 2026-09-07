@@ -174,11 +174,22 @@
         </section>
         <section class="editor-pane preview-pane" aria-labelledby="html-preview-label">
           <div class="pane-heading"><h3 id="html-preview-label"><svg class="icon" aria-hidden="true"><use href="#icon-slide"/></svg>プレビュー</h3><span>スクリプト停止</span></div>
-          <div class="preview-surface">
-            <div class="preview-empty" id="preview-empty"><svg class="icon preview-icon" aria-hidden="true"><use href="#icon-slide"/></svg><strong>HTMLの表示をここで確認</strong><p>左の欄にコードを貼り付けると<br>プレビューが自動更新されます。</p></div>
-            <iframe id="html-preview" title="貼り付けたHTMLのプレビュー" sandbox="" referrerpolicy="no-referrer"></iframe>
+          <div class="preview-controls" role="group" aria-label="プレビューの操作">
+            <div class="preview-navigation">
+              <button id="preview-previous" type="button" aria-label="前のページ" title="前のページ" disabled>‹</button>
+              <select id="preview-select" aria-label="表示するページ" disabled><option>ページ</option></select><span id="preview-count">/ —</span>
+              <button id="preview-next" type="button" aria-label="次のページ" title="次のページ" disabled>›</button>
+            </div>
+            <div class="preview-zoom">
+              <button id="preview-minus" type="button" aria-label="縮小" title="縮小" disabled>−</button><output id="preview-percent" aria-label="表示倍率">—</output><button id="preview-plus" type="button" aria-label="拡大" title="拡大" disabled>＋</button>
+              <button id="preview-fit" type="button" disabled>全体表示</button>
+            </div>
           </div>
-          <p class="pane-help">元のHTMLの配色で表示します。スクリプトで追加される内容は表示されません。</p>
+          <div class="preview-surface" id="preview-surface" tabindex="0" role="region" aria-label="ページプレビュー" aria-describedby="preview-help preview-status">
+            <div class="preview-empty" id="preview-empty"><svg class="icon preview-icon" aria-hidden="true"><use href="#icon-slide"/></svg><strong>HTMLの表示をここで確認</strong><p>左の欄にコードを貼り付けると<br>プレビューが自動更新されます。</p></div>
+            <div class="preview-page" id="preview-page" hidden></div>
+          </div>
+          <p class="pane-help"><span id="preview-status" role="status" aria-live="polite">HTMLを貼り付けると、ページ全体を表示します。</span><span id="preview-help">拡大後はドラッグで移動。キーボード：＋／−で倍率、0で全体、矢印で移動、Page Up／Downでページ。スクリプトによる追加内容は変換時に確認してください。</span></p>
         </section>
       </div>
       <section class="editor-feedback" aria-label="貼り付けHTMLの変換状況">
@@ -198,6 +209,7 @@
     <div class="render-host" id="render-host" aria-hidden="true"></div>
     <script src="./converter-core.js"></script>
     <script src="./html-repair.js"></script>
+    <script src="./preview.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

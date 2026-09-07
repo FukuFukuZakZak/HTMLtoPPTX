@@ -13,6 +13,7 @@ const core = require("./converter-core.js");
 // The test-only export avoids adding a public/debug API to the converter UI.
 const context = {
   HtmlToPptxCore: core,
+  HtmlPreview: () => ({ load() {} }),
   Blob,
   document: { getElementById: () => ({ value: "", addEventListener() {} }) },
   window: { addEventListener() {} }

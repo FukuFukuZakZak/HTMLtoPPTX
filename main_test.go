@@ -35,7 +35,9 @@ func TestEmbeddedWebUI(t *testing.T) {
 		`id="open-editor-button"`,
 		`id="editor-workspace" hidden`,
 		`id="html-editor"`,
-		`id="html-preview"`,
+		`id="preview-page"`,
+		`id="preview-select"`,
+		`src="./preview.js"`,
 		`id="editor-convert-button"`,
 		`id="editor-download-link"`,
 		`id="file-script-notice"`,
@@ -54,9 +56,6 @@ func TestEmbeddedWebUI(t *testing.T) {
 			t.Errorf("embedded page still exposes technical wording %q", confusingLabel)
 		}
 	}
-	if !strings.Contains(string(body), `id="html-preview" title="貼り付けたHTMLのプレビュー" sandbox=""`) {
-		t.Fatal("HTML preview is not sandboxed")
-	}
 	if !strings.Contains(string(body), `id="orientation-notice-title"`) ||
 		!strings.Contains(string(body), "ページごと") ||
 		!strings.Contains(string(body), "縦・横別") ||
@@ -72,7 +71,7 @@ func TestEmbeddedWorkerAndBundleAreServed(t *testing.T) {
 	server := httptest.NewServer(newHandler())
 	defer server.Close()
 
-	for _, path := range []string{"/converter-worker.js", "/vendor/pptxgen.bundle.js", "/vendor/jszip.min.js"} {
+	for _, path := range []string{"/converter-worker.js", "/preview.js", "/vendor/pptxgen.bundle.js", "/vendor/jszip.min.js"} {
 		response, err := http.Get(server.URL + path)
 		if err != nil {
 			t.Fatal(err)

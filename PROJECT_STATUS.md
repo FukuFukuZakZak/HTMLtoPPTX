@@ -15,9 +15,12 @@ Build the HTML-to-PPTX converter described in `docs/HTML_to_PPTX_converter_spec_
 
 ## Current milestone
 
-Approved How to use manual is integrated into the executable. A shared header link opens the 11-chapter guide in a separate tab while preserving editor input. Integration, commit/push and replacement of the existing alpha.1 prerelease are complete. A fresh GitHub download matches the tested executable.
+GitHub Issues #8/#9 are implemented and verified locally. The editor preview fits each page, supports zoom/pan and exposes app-owned page navigation. The manual includes the new controls. Review executable: `dist/preview-20260907/HTMLtoPPTX.exe`. The user authorized commit/push and replacement of the existing alpha.1 prerelease for target-machine validation; publication is in progress.
 
 ## Current work
+
+- 2026-09-07: publishing the verified preview build at the user's request. Existing alpha.1 metadata and executable are backed up under `.tmp/release-preview-20260907/previous/`. Context7 `/websites/cli_github_manual` confirmed release edit/notes-file, upload replacement and fresh download verification. Preserve prerelease status and replace the existing asset/tag; verify downloaded bytes before marking complete.
+- 2026-09-07: implemented Issues #8 (fit/zoom/pan) and #9 (page navigation) after the user requested action. New `web/preview.js` reuses existing `.slide`/A4 detection and isolated-page measurement, provides previous/next/direct page selection, fit, zoom percentage and mouse/keyboard panning, and falls back to a whole-document preview. Source input and conversion frames are unchanged by preview controls. The static sandbox is retained; dynamic script-added contents are still checked in the converted PPTX. Updated manual chapter 3 and its actual screenshot. All acceptance checks pass; [assessment and completion evidence](project-status/ISSUES-8-9-ASSESSMENT.md).
 
 - 2026-09-07: user approved the manual and authorized integration, commit, GitHub push and replacement of the existing prerelease. Added the shared header entry and self-contained `web/howtouse/` assets. Existing CSP remains unchanged.
 
@@ -69,6 +72,8 @@ Approved How to use manual is integrated into the executable. A shared header li
 
 ## Next actions
 
+Try `dist/preview-20260907/HTMLtoPPTX.exe` with the Issue #8/#9 reporter's original HTML on the target Windows browser. Paste the HTML, select each page, enlarge/drag, and restore whole-page fit. Local implementation and acceptance are complete. Commit/push, prerelease replacement and Issue closure remain separate publication actions; no GitHub writes were made for this update.
+
 On the target Windows browser, open the updated alpha.1 executable and use the shared header「How to use」entry while editing. The approved integration/release task is complete; video recording and narration remain a future task.
 
 Try `dist/html-repair-20260906/HTMLtoPPTX.exe` on the target LGWAN/Windows browser: paste representative exaBase HTML, run `簡易補正`, inspect preview and use Ctrl+Z/Ctrl+Y. Closing positions use structural/indentation hints; arbitrary missing content or intended formatting cannot be reconstructed. Broaden supported repairs only with representative failing examples and original-output comparisons.
@@ -87,6 +92,8 @@ Confirm the latest artifact's top-right gear → 8bit appearance in light/dark o
 
 ## Active risks / blockers
 
+- Issues #8/#9: no implementation blocker remains. The reported source HTML was not attached, so reporter-specific confirmation remains; both supplied fixtures (13 pages total), mixed A4 and fixed-size regression pages pass. Preview uses static DOM: pages/charts created by scripts are checked through the existing conversion option. HTML with no detectable page boundary is shown as one document with an explanatory status.
+
 - The approved manual is integrated; video production remains a separate future task. Screenshots document the unchanged conversion controls from product commit `2139b95`; the newly added header help link is not pictured. No integration blockers remain.
 - Simple repair does not guarantee reconstruction of arbitrary malformed HTML. Missing inline formatting ends, starting tags/attributes, unfinished script/style/comment text, foreign content and ambiguous nesting are outside automatic repair. Native history uses the deprecated but currently working `execCommand("insertText")` API; Windows Edge acceptance must be repeated for an engine migration. No custom input/history reentry is used.
 - Browser and filesystem access are available with the current full-access setting; the previous local-URL, uv-cache and Git-write blockers are resolved.
@@ -104,6 +111,10 @@ Confirm the latest artifact's top-right gear → 8bit appearance in light/dark o
 - The initial design document and other user-owned untracked inputs must not be added or modified without explicit user intent.
 
 ## Latest verification
+
+- 2026-09-07 Issues #8/#9: `npm test` 43/43 (0.274 s), `go test ./...` (0.700 s), `go vet ./...`, syntax and build pass. Final EXE: Edge preview acceptance 38 page checks / 16 layouts, native Undo/Redo and repair refresh, keyboard/pointer navigation, blocked scripts/refresh/external requests, three-slide PPTX XML identical before/after preview controls. Existing UI acceptance: 58 layouts and four ZIPs per appearance (116 layouts total), minimum contrast 5.0:1 standard / 5.15:1 8bit. Updated manual: 44 chapter/viewports, keyboard/dialog/download/no-JS/CSP checks and a real two-slide ZIP pass. No page errors. Evidence copied beside the executable; details in `project-status/VERIFICATION.md`.
+- Context7 for preview: `/mdn/content` iframe sandbox, same-origin measurement with scripts disabled, Pointer Capture, ResizeObserver and transforms; `/microsoft/playwright` installed Edge, native keyboard/mouse and screenshot verification. Modern Web Guidance was searched; MDN covered the exact APIs. No new dependencies. Graphify AST update completed: 827 nodes / 2164 edges / 51 communities. Three report/capture JSON files yield no AST nodes and 15 labels use hub fallbacks; no application impact.
+- Preview review executable: 11,226,624 bytes, SHA-256 `2772B5307CF5FAA652AE576A1E889CD25C7CAD41096262AD3EC3CC9D2B362565`. The final artifact itself was used for preview and updated-manual acceptance. Current release details above remain the published manual build.
 
 - 2026-09-07 JST: product commit `992d93c` pushed; existing alpha.1 annotated tag and prerelease target this product commit. Replaced the sole Windows asset. Fresh download matches 11,205,120 bytes and SHA-256 above; prerelease true, draft false. Publication evidence is `.tmp/howtouse/published-verification.json`; previous executable and release metadata retained locally for recovery.
 
@@ -134,6 +145,8 @@ Confirm the latest artifact's top-right gear → 8bit appearance in light/dark o
 - Verified executable SHA-256: `0F0BCA1778506E32711EA6A38351E8D602999ECFF9FA5A945DEA876E9C8E5652`. Exact files, archive hashes, visual findings and commands are in [Verification evidence](project-status/VERIFICATION.md).
 
 ## Working tree notes
+
+- Issue #8/#9 implementation owns `web/preview.js`, editor HTML/CSS/JS, Go asset tests and the extraction test harness, `scripts/preview-acceptance.cjs`, manual chapter/screenshot/generated outputs/integration evidence, and status/decision/assessment records. Existing `.codex/config.toml`, `.codex-remote-attachments/`, `docs/` and `test-data/` changes are preserved. No Issue comments, commits, pushes or releases were made for this update. Review artifact/evidence is local under `dist/preview-20260907/`.
 
 - This task includes `deliverables/Howtouse/` and the application integration. Existing `.codex/config.toml`, `.codex-remote-attachments/`, `docs/` and `test-data/` changes are preserved. The approved integration additionally owns `web/howtouse/`, the header/styles, the manual build command, acceptance script and verification/status updates.
 - This task owns the repair source/bundle/licenses, three repair build/acceptance scripts, unit tests, editor HTML/CSS/JS, package manifests and status records. User-owned `.codex/config.toml`, `.codex-remote-attachments/`, `docs/` and `test-data/` remain separate. Original `test-data` files are unchanged; damaged/repaired copies are under `.tmp/html-repair/` and archived with the distribution.
