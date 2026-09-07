@@ -294,7 +294,7 @@
       htmlEditor.focus();
       return;
     }
-    const source = new File([html], "貼り付けHTML.html", { type: "text/html" });
+    const source = new File([html], HtmlRepair.editorInputFileName(html), { type: "text/html" });
     startConversion([source], editorExecuteScripts.checked, editorUi);
   });
 

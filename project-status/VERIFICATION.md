@@ -1,4 +1,13 @@
 # Verification evidence
+## Issue #10 title-derived filenames — 2026-09-07
+
+- `npm test`: 45/45 (284 ms); `go test ./...` (0.718 s), `go vet ./...`, JS syntax and repair/manual builds pass. Built with `go build -buildvcs=false -o dist/issue10-20260907/HTMLtoPPTX.exe .`.
+- Actual built EXE in Edge: `scripts/filename-acceptance.cjs` passed nine ZIP downloads, inner PPTX names, CRC and Windows filesystem extraction. Covered Japanese/entities/whitespace, blank/missing, unsafe/reserved, 100-emoji title, mixed A4, script-mutated title and uploaded-file naming. Slide XML and source input are unchanged. No page errors or external requests.
+- `scripts/preview-acceptance.cjs`: 38 pages / 16 layouts, controls/history and three-slide XML equality pass. `scripts/howtouse-acceptance.cjs`: 44 layouts, navigation/modal/focus/no-JS/CSP and real two-slide download pass.
+- Binary: 11,228,672 bytes; SHA-256 `F48ACCBCB0972E388A277B4C867ECB95B9C341B1DE6B1E64FA82A520D18BC927`. Reports are retained under `dist/issue10-20260907/` and `.tmp/issue10/`, `.tmp/issue10-preview/`, `.tmp/howtouse/`.
+- Context7: `/inikulin/parse5` document/head/title AST and scripting parsing; `/microsoft/playwright` installed Edge and real download APIs; `/websites/cli_github_manual` existing release edit, asset replacement and backup/download verification. Existing parse5 8.0.1 is reused without new dependencies. Modern Web Guidance was consulted.
+- Graphify AST update: 853 nodes / 2189 edges / 51 communities; metadata-only JSON produces no AST nodes and some community labels use hub fallback. Better Code Review Graph context and scoped diff review found no additional runtime impact beyond editor naming; repair/conversion algorithms are unchanged.
+- Issue #10 stays open for target-machine confirmation; #11 remains outside this implementation. #8/#9 closure was verified after user confirmation.
 
 ## Preview prerelease replacement — 2026-09-07 JST
 

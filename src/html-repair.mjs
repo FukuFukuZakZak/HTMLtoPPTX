@@ -1,4 +1,5 @@
 import { Parser } from "parse5";
+export { editorInputFileName } from "./editor-filename.mjs";
 
 const VOID = new Set("area base br col embed hr img input link meta param source track wbr".split(" "));
 const OPTIONAL = new Set("html head body p li dt dd rt rp optgroup option colgroup thead tbody tfoot tr td th".split(" "));

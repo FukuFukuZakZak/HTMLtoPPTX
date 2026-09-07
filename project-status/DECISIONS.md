@@ -4,6 +4,10 @@ Last updated: 2026-09-07
 
 These are durable choices. Active work and exceptions belong in [`../PROJECT_STATUS.md`](../PROJECT_STATUS.md).
 
+## Editor output filenames (Issue #10)
+
+Use the first HTML title in the parsed document head for the editor's virtual input name. Decode entities through the existing parse5 parser; normalize whitespace, replace Windows-unsafe/control characters, trim trailing dots/spaces and limit the stem to 60 Unicode code points without splitting surrogate pairs. Prefix reserved Windows basenames with an underscore. Missing/empty names fall back to `貼り付けHTML`. Parsing does not execute scripts or fetch resources. The shared conversion path keeps ZIP/PPTX stems and mixed-A4 suffixes consistent; uploaded filenames remain authoritative. Source HTML, slide content and editor history are unchanged.
+
 ## UI workflow and themes
 
 - The editor owns its page/zoom/pan controls independently of source HTML navigation. Reuse conversion page detection (`.slide` first, then A4) and isolated-page normalization in a dedicated preview document; undetected HTML falls back to one whole document. Fit the initial/selected page with a margin and no automatic upscaling; resize preserves manual zoom, while page changes/input refresh restore fit. Support mouse dragging and keyboard page/zoom/pan operations.
