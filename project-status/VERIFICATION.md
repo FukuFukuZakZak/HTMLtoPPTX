@@ -1,4 +1,11 @@
 # Verification evidence
+
+## Issue #10 prerelease replacement — 2026-09-07 JST
+
+- Product `8616650f813d3dceb8a8841d0b506e2aaaedf294` pushed to main. Existing alpha.1 annotated tag replaced with an explicit lease on previous tag object `55e8ec09250ba36bd0ab293844ef86b1174633a7`; new tag object `dab234ba1df351cd19b04d52c15861f22ca42a8f` points to the product commit. Later status commits advance main separately.
+- Existing release title/notes updated and single Windows asset replaced. Fresh GitHub download: 11,228,672 bytes, SHA-256 `F48ACCBCB0972E388A277B4C867ECB95B9C341B1DE6B1E64FA82A520D18BC927`, identical to the tested EXE and GitHub digest. Prerelease true, draft false, target product commit verified. Asset node ID: `RA_kwDOUNq3jc4grIix`.
+- Previous metadata/binary were backed up before replacement in `.tmp/release-issue10-20260907/previous/`; backup SHA-256 `2772B5307CF5FAA652AE576A1E889CD25C7CAD41096262AD3EC3CC9D2B362565` matches the prior release. Notes/upload/fresh download retained in the parent folder. All product commit hooks passed. No rebuild or behavior change during publication.
+- Issue #10/#11 remain OPEN, intentionally awaiting target-machine confirmation / a separate implementation request respectively. Unrelated workspace files are preserved and excluded.
 ## Issue #10 title-derived filenames — 2026-09-07
 
 - `npm test`: 45/45 (284 ms); `go test ./...` (0.718 s), `go vet ./...`, JS syntax and repair/manual builds pass. Built with `go build -buildvcs=false -o dist/issue10-20260907/HTMLtoPPTX.exe .`.

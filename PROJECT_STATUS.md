@@ -15,11 +15,13 @@ Build the HTML-to-PPTX converter described in `docs/HTML_to_PPTX_converter_spec_
 
 ## Current milestone
 
-GitHub Issues #8/#9 passed target-machine validation and are closed. The user authorized implementation, commit/push and replacement of the existing prerelease for #10 only. Title-derived editor output names are implemented; unit/Go/build and nine actual Edge download/extraction cases pass. Preview/manual regression also passes; commit/push and prerelease replacement are next. #11 remains assessment-only and is outside this implementation.
+GitHub Issues #8/#9 passed target-machine validation and are closed. The user authorized implementation, commit/push and replacement of the existing prerelease for #10 only. Title-derived editor output names are implemented; unit/Go/build and nine actual Edge download/extraction cases pass. Preview/manual regression passes. Product commit 8616650 is pushed and the existing prerelease/tag/asset is replaced; a fresh download matches the verified executable. Target-machine confirmation is next. #11 remains assessment-only and is outside this implementation.
 
 ## Current work
 
-- 2026-09-07 Issue #10: implemented title-derived editor virtual filenames with the existing parse5 bundle (no dependency addition). ZIP/PPTX share a sanitized title stem; blank/missing titles retain `貼り付けHTML`, A4 suffixes remain, file-upload names remain unchanged. Updated help and generated manual. Executable: `dist/issue10-20260907/HTMLtoPPTX.exe`. Verification so far: 45 unit tests, Go test/vet/build and nine Edge downloads/extractions; preview (38 pages / 16 layouts) and manual (44 layouts) regressions also pass; publication pending.
+- 2026-09-07 Issue #10 publication complete: product commit `8616650f813d3dceb8a8841d0b506e2aaaedf294` pushed to main; annotated alpha.1 tag `dab234ba1df351cd19b04d52c15861f22ca42a8f` resolves to it. Updated existing release notes/title and replaced its single Windows asset. Fresh download matches the tested EXE and GitHub digest. Backup/notes/download: `.tmp/release-issue10-20260907/`. #10 remains open for target-machine validation; #11 remains open and unimplemented.
+
+- 2026-09-07 Issue #10: implemented title-derived editor virtual filenames with the existing parse5 bundle (no dependency addition). ZIP/PPTX share a sanitized title stem; blank/missing titles retain `貼り付けHTML`, A4 suffixes remain, file-upload names remain unchanged. Updated help and generated manual. Executable: `dist/issue10-20260907/HTMLtoPPTX.exe`. Verification so far: 45 unit tests, Go test/vet/build and nine Edge downloads/extractions; preview (38 pages / 16 layouts) and manual (44 layouts) regressions also pass. Published as product commit 8616650; fresh download matches.
 - 2026-09-07: user confirmed #8/#9 pass on the target machine and authorized closure. Both GitHub Issues now report CLOSED / COMPLETED. Read #10/#11 and inspected naming, textarea and repair-position code at HEAD `e30e31f`. Both are feasible: #10 is a small naming change; #11 is a medium editor-display change with native input/history regression checks. [Assessment and proposed acceptance checks](project-status/ISSUES-10-11-ASSESSMENT.md). No product code, dependencies or release artifacts changed.
 - 2026-09-07: pushed preview product commit `e54b710` and replaced the existing alpha.1 prerelease/tag/Windows executable at the user's request. Fresh download matches the verified 11,226,624-byte artifact. Existing alpha.1 metadata and executable are backed up under `.tmp/release-preview-20260907/previous/`. Context7 `/websites/cli_github_manual` confirmed release edit/notes-file, upload replacement and fresh download verification. Publication complete; Issue closure remains pending target-machine validation.
 - 2026-09-07: implemented Issues #8 (fit/zoom/pan) and #9 (page navigation) after the user requested action. New `web/preview.js` reuses existing `.slide`/A4 detection and isolated-page measurement, provides previous/next/direct page selection, fit, zoom percentage and mouse/keyboard panning, and falls back to a whole-document preview. Source input and conversion frames are unchanged by preview controls. The static sandbox is retained; dynamic script-added contents are still checked in the converted PPTX. Updated manual chapter 3 and its actual screenshot. All acceptance checks pass; [assessment and completion evidence](project-status/ISSUES-8-9-ASSESSMENT.md).
@@ -59,11 +61,11 @@ GitHub Issues #8/#9 passed target-machine validation and are closed. The user au
 
 ## Current release
 
-- Product commit: `e54b71080eaa0958cce86ce72e0e9f5e7e1f7e0e`
-- Release: [`v0.1.0-alpha.1`](https://github.com/divine261402-pixel/HTMLtoPPTX/releases/tag/v0.1.0-alpha.1) — `HTMLtoPPTX v0.1.0-alpha.1（プレビュー操作改善 実機検証版）`
+- Product commit: `8616650f813d3dceb8a8841d0b506e2aaaedf294`
+- Release: [`v0.1.0-alpha.1`](https://github.com/divine261402-pixel/HTMLtoPPTX/releases/tag/v0.1.0-alpha.1) — `HTMLtoPPTX v0.1.0-alpha.1（保存ファイル名改善 実機検証版）`
 - Asset: `HTMLtoPPTX-v0.1.0-alpha.1-windows-amd64.exe`
-- Size: 11,226,624 bytes
-- SHA-256: `2772B5307CF5FAA652AE576A1E889CD25C7CAD41096262AD3EC3CC9D2B362565`
+- Size: 11,228,672 bytes
+- SHA-256: `F48ACCBCB0972E388A277B4C867ECB95B9C341B1DE6B1E64FA82A520D18BC927`
 - The annotated tag and GitHub prerelease both target the clean product commit above. The release contains exactly one Windows asset.
 
 ## Current manual decisions
@@ -74,7 +76,7 @@ GitHub Issues #8/#9 passed target-machine validation and are closed. The user au
 
 ## Next actions
 
-Publish the verified #10 build by committing/pushing and replacing the existing alpha.1 prerelease/tag/asset. Then validate title-derived ZIP/PPTX names on the target Windows machine before closing #10. #11 remains assessment-only and requires a separate implementation request. #8/#9 are closed after target-machine confirmation.
+Issue #10 implementation, commit/push and existing alpha.1 prerelease replacement are complete. Validate title-derived ZIP/PPTX names on the target Windows machine before closing #10. #11 remains assessment-only and requires a separate implementation request. #8/#9 are closed after target-machine confirmation.
 
 On the target Windows browser, open the updated alpha.1 executable and use the shared header「How to use」entry while editing. The approved integration/release task is complete; video recording and narration remain a future task.
 
@@ -156,7 +158,7 @@ Confirm the latest artifact's top-right gear → 8bit appearance in light/dark o
 
 ## Working tree notes
 
-- Issue #10 owns filename helper/bundle, editor call/help/manual, unit and download acceptance tests, and status/assessment records. All checks pass. Preserve and exclude unrelated .codex/config.toml, .codex-remote-attachments/, docs/ and test-data/.
+- Issue #10 owns filename helper/bundle, editor call/help/manual, unit and download acceptance tests, and status/assessment records. Implementation and publication are committed/pushed; all checks pass. Preserve and exclude unrelated .codex/config.toml, .codex-remote-attachments/, docs/ and test-data/.
 
 - #10/#11 assessment owns only `PROJECT_STATUS.md` and new `project-status/ISSUES-10-11-ASSESSMENT.md`. Existing `.codex/config.toml`, `.codex-remote-attachments/`, `docs/` and `test-data/` changes remain preserved. No implementation, commit, push or release change was made in this assessment task.
 - Preview product changes are committed and pushed. Publication records are committed separately; unrelated `.codex/config.toml`, `.codex-remote-attachments/`, `docs/` and `test-data/` remain preserved and excluded. Historical implementation-only notes below describe the state before this publication request.
