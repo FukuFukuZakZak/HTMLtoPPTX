@@ -2,7 +2,7 @@
 
 ## Final result — 2026-09-07
 
-Implemented the user's selected WebView2 standalone and fixed-port Web startup modes. All local acceptance checks pass. Distribution is `dist/HTMLtoPPTX-beta-20260907-windows-x64.zip`; source build is `scripts/build-windows.ps1`. Deployment and target-server checks are in [BETA-DEPLOYMENT.md](BETA-DEPLOYMENT.md). No commit, push or public prerelease replacement was performed for this beta.
+Implemented the user's selected WebView2 standalone and fixed-port Web startup modes. All local acceptance checks pass. Distribution is `dist/HTMLtoPPTX-beta-20260907-windows-x64.zip`; source build is `scripts/build-windows.ps1`. Deployment and target-server checks are in [BETA-DEPLOYMENT.md](BETA-DEPLOYMENT.md). Published at user request on 2026-09-08 JST as v0.1.0-beta.1, product commit bb00e1fb4858653be14f099bf2390b092d02476f. Fresh release download matches the tested ZIP SHA-256 below. Release: https://github.com/divine261402-pixel/HTMLtoPPTX/releases/tag/v0.1.0-beta.1
 
 - First launch opens an owned WebView2 window at 127.0.0.1 with an automatic port. Explicit standalone port is supported. Main-window close closes owned help, exits EXE and releases listeners/lock; repeated launch activates the existing deployment. Reload/minimize do not terminate it.
 - Settings save atomically and apply next process start. Web chooses an assigned IPv4 automatically or explicitly and uses fixed configurable port 8080 by default. Port collision is an error, never an automatic fallback. Web has no native/browser window, survives client closure and supports Task Scheduler. `--background` requires configured Web mode.
