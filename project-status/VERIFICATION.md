@@ -1,5 +1,13 @@
 # Verification evidence
 
+## Preview prerelease replacement — 2026-09-07 JST
+
+- At the user's request, committed/pushed product `e54b71080eaa0958cce86ce72e0e9f5e7e1f7e0e` to `origin/main` and replaced the existing alpha.1 annotated tag using an explicit lease on previous tag object `c195eb7c033b2d02c1215c7e5011a5753b583d20`. New tag object `55e8ec09250ba36bd0ab293844ef86b1174633a7` points to the product commit. Later status-only commits may advance main independently.
+- Updated existing release title/notes and replaced its single Windows asset (new asset ID `547856432`). GitHub reports prerelease true, draft false, target e54b710. Fresh download is 11,226,624 bytes, SHA-256 `2772B5307CF5FAA652AE576A1E889CD25C7CAD41096262AD3EC3CC9D2B362565`, identical to the previously browser-tested distribution and GitHub's asset digest.
+- Old release metadata/binary backed up under `.tmp/release-preview-20260907/previous/`. Backup hash `7352875E071476B806EFC13AB1DF04AB4A53F1FCB71E4FBA33DC68A5D08C8F02` matches the previous record. Upload copy, notes and fresh download are under `.tmp/release-preview-20260907/`.
+- Context7 `/websites/cli_github_manual`: existing release edit with notes-file and target, asset replacement with clobber, fresh download. Backup precedes clobber because it deletes the old asset first. Commit hooks normalized app.js line endings; all hooks pass on retry. No behavioral changes or rebuild occurred during publication; the exact tested binary was uploaded.
+- User-owned `.codex/config.toml` and untracked inputs remain excluded. Issues #8/#9 were not closed; target-machine confirmation is next.
+
 ## Issues #8/#9 preview controls — 2026-09-07
 
 - Implemented `web/preview.js` and editor controls for whole-page fit, 1.25× zoom steps (up to 400%), percentage, drag/keyboard pan and previous/next/direct page selection. Existing `.slide`/A4 detection and page measurement are reused without modifying the conversion core. Unpaged HTML uses a whole-document fallback. Input refresh and page changes reset fit; manual zoom survives resizing.
