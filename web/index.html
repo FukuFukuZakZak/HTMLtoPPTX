@@ -9,6 +9,7 @@
     <script src="./theme.js"></script>
     <link rel="stylesheet" href="./style.css">
     <link rel="stylesheet" href="./special-theme.css">
+    <link rel="stylesheet" href="./startup.css">
   </head>
   <body>
     <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -37,11 +38,11 @@
           <label><input type="radio" name="theme" value="dark"><span><svg class="icon" aria-hidden="true"><use href="#icon-moon"/></svg>ダーク</span></label>
           <label><input type="radio" name="theme" value="system" checked><span><svg class="icon" aria-hidden="true"><use href="#icon-monitor"/></svg>システム</span></label>
         </fieldset>
-        <button class="settings-button" id="open-settings-button" type="button" aria-label="テーマ設定" aria-haspopup="dialog" aria-controls="theme-settings" title="テーマ設定"><svg class="icon" aria-hidden="true"><use href="#icon-settings"/></svg></button>
+        <button class="settings-button" id="open-settings-button" type="button" aria-label="アプリ設定" aria-haspopup="dialog" aria-controls="theme-settings" title="アプリ設定"><svg class="icon" aria-hidden="true"><use href="#icon-settings"/></svg></button>
       </div>
     </header>
     <dialog class="theme-settings" id="theme-settings" aria-labelledby="theme-settings-title" aria-describedby="theme-settings-description">
-      <div class="settings-heading"><h2 id="theme-settings-title">スペシャルテーマ</h2><button class="settings-close" id="close-settings-button" type="button" aria-label="テーマ設定を閉じる" autofocus>×</button></div>
+      <div class="settings-heading"><h2 id="theme-settings-title">アプリ設定</h2><button class="settings-close" id="close-settings-button" type="button" aria-label="アプリ設定を閉じる" autofocus>×</button></div>
       <p id="theme-settings-description">いつもの操作を、お好みの見た目で。</p>
       <fieldset class="appearance-options">
         <legend class="visually-hidden">デザインを選択</legend>
@@ -49,6 +50,32 @@
         <label class="appearance-option"><input type="radio" name="appearance" value="8bit"><span class="appearance-card"><span class="theme-sample sample-pixel" aria-hidden="true"><i></i><i></i><i></i></span><strong>8bit</strong><small>ドット文字とレトロなウィンドウ</small><span class="appearance-selected" aria-hidden="true">選択中</span></span></label>
       </fieldset>
       <p class="settings-hint">ライト・ダーク・システムの設定を引き継ぎます。<br>変更はすぐに反映され、このブラウザに保存されます。</p>
+      <section id="startup-settings" class="startup-settings" hidden aria-labelledby="startup-title">
+        <h3 id="startup-title">アプリの起動設定</h3>
+        <p id="startup-current" class="settings-hint"></p>
+        <form id="startup-form" action="/api/startup" method="post">
+          <fieldset><legend>次回の起動モード</legend>
+            <label><input type="radio" name="startup-mode" value="standalone" checked> スタンドアロン（専用画面で使う）</label>
+            <label><input type="radio" name="startup-mode" value="web"> Web（庁内で共有する）</label>
+          </fieldset>
+          <fieldset id="standalone-fields"><legend>ローカル接続：127.0.0.1</legend>
+            <label><input id="standalone-auto" name="standalone-auto" type="checkbox" checked> 空きポートを自動で選ぶ</label>
+            <label for="standalone-port">指定ポート</label><input id="standalone-port" name="standalone-port" type="number" min="1" max="65535" value="8080" required disabled>
+          </fieldset>
+          <fieldset id="web-fields" hidden disabled><legend>Web接続</legend>
+            <label><input id="web-auto-ip" name="web-auto-ip" type="checkbox" checked> 端末のIPアドレスを自動取得する</label>
+            <label for="web-ip">指定IPアドレス</label><input id="web-ip" name="web-ip" type="text" list="machine-addresses" placeholder="例：192.168.1.10" required disabled>
+            <datalist id="machine-addresses"></datalist>
+            <p id="machine-address-hint" class="settings-hint"></p>
+            <label for="web-port">固定ポート</label><input id="web-port" name="web-port" type="number" min="1" max="65535" value="8080" required>
+            <p class="settings-hint">共有するURLを安定させるため、固定ポートを使用します。使用中のポートでは起動できません。</p>
+          </fieldset>
+          <p id="startup-restart-hint" class="settings-hint">メイン画面を閉じるとアプリも終了します。保存した起動設定は、次にアプリを起動すると反映されます。</p>
+          <button type="submit" id="save-startup" class="secondary-button">次回の起動設定を保存</button>
+        </form>
+        <p id="startup-result" class="settings-hint" role="status" aria-live="polite"></p>
+        <details><summary>設定の保存場所</summary><p id="startup-config-path" class="settings-hint"></p></details>
+      </section>
     </dialog>
     <main class="workspace" id="file-workspace">
       <section class="intro" aria-labelledby="intro-title">
@@ -218,5 +245,6 @@
     <script src="./preview.js"></script>
     <script src="./editor-display.js"></script>
     <script src="./app.js"></script>
+    <script src="./startup.js"></script>
   </body>
 </html>

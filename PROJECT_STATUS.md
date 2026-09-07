@@ -1,6 +1,6 @@
 # Project status
 
-Last updated: 2026-09-07
+Last updated: 2026-09-08
 Status owner: Codex and repository maintainers
 
 This file is the short, current handoff view. Longer-lived details are split by purpose:
@@ -15,9 +15,13 @@ Build the HTML-to-PPTX converter described in `docs/HTML_to_PPTX_converter_spec_
 
 ## Current milestone
 
+Beta startup modes are implemented and locally verified on 2026-09-07: owned WebView2 standalone and fixed-port Web (default 8080). Native close/duplicate/download acceptance, actual Task Scheduler launch and requested verification recordings pass. Local distribution: `dist/HTMLtoPPTX-beta-20260907-windows-x64.zip`; [deployment guide](project-status/BETA-DEPLOYMENT.md), [implementation and evidence](project-status/BETA-STARTUP-ASSESSMENT.md). Target-server unattended/reboot and cross-device network acceptance remain for the internal beta. User authorized commit, push and beta upload on 2026-09-08. Publication of v0.1.0-beta.1 is in progress.
+
 User confirmed Issue #10 passed target-machine validation; closed as completed on 2026-09-07. Issue #11 implementation is complete: logical line numbers, colored inserted-tag ranges and clickable repair locations, preserving native textarea input/history. Implementation and automated acceptance are complete. Edge verified wrapping/scroll alignment, repair links, native history, clipboard and Japanese composition events; the user subsequently confirmed target-machine validation passed on 2026-09-07. Issue #11 is CLOSED / COMPLETED. The subsequent user-authorized commit, push and prerelease replacement are complete; the fresh release download matches the tested EXE.
 
 ## Current work
+
+- Beta startup complete locally: persisted settings applied next launch, exclusive OS lock, duplicate activation/crash recovery, owned WebView2 main/help windows and close-controlled server shutdown, local capability-protected administration, GUI-subsystem EXE and bounded logs. Web has no window and survives browser closure. Native conversion/ZIP, six Edge layouts, port collision/save failure, actual scheduler and Go/JS checks pass. Requested videos capture only application content. Distribution includes EXE, deployment instructions, notices and verification evidence.
 
 - Issue #11 publication complete: product b86b2d1 pushed to main; annotated alpha.1 tag 67fc448791da94432eb747013297ece52f04318c points to it. Updated release title/notes and replaced its single Windows EXE. Fresh download size/hash match the tested artifact and GitHub digest. Backup, notes and download: .tmp/release-issue11-20260907/. Issue #11 was closed as COMPLETED at 2026-09-07T05:53:59Z after user target-machine confirmation.
 
@@ -80,9 +84,11 @@ User confirmed Issue #10 passed target-machine validation; closed as completed o
 
 ## Next actions
 
+Use `dist/HTMLtoPPTX-beta-20260907-windows-x64.zip` for internal beta acceptance following `project-status/BETA-DEPLOYMENT.md`: verify target WebView2/PowerPoint, actual server account when logged out and after reboot, remote-client access, selected NIC and firewall scope. Local implementation and verification are complete. User authorized publication on 2026-09-08; publish a new v0.1.0-beta.1 prerelease and verify a fresh asset download. No lifecycle decision is pending.
+
 Issues #8/#9/#10/#11 have passed user target-machine validation and are closed. The implementation and publication milestone is complete; await the next user-reported issue or requested enhancement.
 
-On the target Windows browser, open the updated alpha.1 executable and use the shared header「How to use」entry while editing. The approved integration/release task is complete; video recording and narration remain a future task.
+On target Windows, verify the shared「How to use」entry while editing. Startup verification videos are included with the beta; a narrated full conversion tutorial remains separate future work.
 
 Try `dist/html-repair-20260906/HTMLtoPPTX.exe` on the target LGWAN/Windows browser: paste representative exaBase HTML, run `簡易補正`, inspect preview and use Ctrl+Z/Ctrl+Y. Closing positions use structural/indentation hints; arbitrary missing content or intended formatting cannot be reconstructed. Broaden supported repairs only with representative failing examples and original-output comparisons.
 
@@ -100,6 +106,13 @@ Confirm the latest artifact's top-right gear → 8bit appearance in light/dark o
 
 ## Active risks / blockers
 
+- Beta: no known local acceptance blocker. Standalone requires WebView2 Runtime (tested 152.0.4191.66); offline installer procedure is documented. Automatic IP can select an unintended NIC or change the URL; explicit intranet IP/DHCP reservation is recommended for shared service. Web is HTTP without application login and is intended for a managed intranet. Real unattended server account/reboot, remote firewall routing and native PowerPoint remain target-environment checks. Keep configuration/runtime metadata under deployment ACLs. Automatic standalone port changes may reset origin-scoped appearance preferences.
+
+## Beta startup assessment decisions
+
+- User selected native WebView2 standalone and fixed Web port. Main-window close destroys owned help windows and stops the server; minimizing/reloading does not define lifetime. Web has a separate local management listener and continues without clients. Default config is EXE-directory HTMLtoPPTX.config.json; --config identifies the deployment and duplicate-lock scope. --configure opens local management (temporary standalone when stopped), --stop stops that deployment, and --background rejects standalone to prevent invisible first-run startup. Settings take effect on the next process start.
+- Use go-webview2 v1.0.23 only for its loader and a narrow repository-local COM ABI adapter. Its generated WebView2 wrappers are incompatible with the current Go callback signatures and HWND controller argument; importing that package caused init panic. The local adapter uses Microsoft SDK interface declarations, retains callbacks and closes controllers on the STA thread. Production does not enable remote debugging; the acceptance harness explicitly opts in.
+
 - Issue #11: automated checks and user target-machine validation passed. No remaining blocker for this issue; closed as completed. Native textarea owns input/history; display layers never execute source HTML.
 - Issues #8/#9: target-machine validation passed per user and both Issues are closed. Preview uses static DOM: pages/charts created by scripts are checked through the existing conversion option. HTML with no detectable page boundary is shown as one document with an explanatory status.
 
@@ -108,7 +121,7 @@ Confirm the latest artifact's top-right gear → 8bit appearance in light/dark o
 - Implemented #10 behavior: use the first document-head HTML title, normalize whitespace and unsafe filename characters, and fall back to `貼り付けHTML` when missing/empty. Keep a common stem for ZIP/PPTX and existing mixed-orientation suffixes. File-upload naming remains based on the selected file. Do not execute scripts to obtain a title.
 - Implemented #11 approach: retain the native textarea and add logical line numbers plus an inert synchronized display for inserted-tag highlights. Preserve soft wrapping; continuation rows do not receive new source line numbers. Repair reports should distinguish opening-tag and inserted-tag positions and support navigation. Clear highlights on subsequent input/Undo/Redo to avoid stale positions; no-op repair may retain valid highlights for the identical source. These display behaviors are implemented; final inserted ranges use UTF-16 offsets and post-fence-removal line numbers.
 
-- The approved manual is integrated; video production remains a separate future task. Screenshots document the unchanged conversion controls from product commit `2139b95`; the newly added header help link is not pictured. No integration blockers remain.
+- The approved manual is integrated. Startup verification video is complete; a narrated full conversion tutorial remains separate. No manual integration blockers remain.
 - Simple repair does not guarantee reconstruction of arbitrary malformed HTML. Missing inline formatting ends, starting tags/attributes, unfinished script/style/comment text, foreign content and ambiguous nesting are outside automatic repair. Native history uses the deprecated but currently working `execCommand("insertText")` API; Windows Edge acceptance must be repeated for an engine migration. No custom input/history reentry is used.
 - Browser and filesystem access are available with the current full-access setting; the previous local-URL, uv-cache and Git-write blockers are resolved.
 - Microsoft PowerPoint is not installed/registered in this environment. All 24 final slides were individually inspected using LibreOffice 26.2.5.2 → PDF → PNG. Native PowerPoint rendering and editing are not verified.
@@ -125,6 +138,14 @@ Confirm the latest artifact's top-right gear → 8bit appearance in light/dark o
 - The initial design document and other user-owned untracked inputs must not be added or modified without explicit user intent.
 
 ## Latest verification
+
+- 2026-09-08 publication preparation: remote main equals HEAD 4061c49; v0.1.0-beta.1 is unused. Existing tested ZIP and EXE hashes match the final beta evidence. Context7 /websites/cli_github_manual consulted for release create --verify-tag/--prerelease/--notes-file and fresh asset download. No product changes or rebuild for publication.
+
+- Final beta: `go test ./...` pass (1.281s), `go vet ./...` pass, `npm test` 46/46 (0.310s). Real process tests cover duplicate/crash/restart/deferred settings/admin boundaries, fixed-port collision with actionable error and atomic save failure preserving disk/current settings. Edge acceptance `.tmp/startup-final/` passes six layouts, form validation/save/reload/focus/guest denial, Windows GUI PE subsystem and real ZIP. Native final EXE acceptance `.tmp/desktop-final/` passes actual WebView2 conversion/download, owned help, duplicate reuse, main-window close removing process/listeners/metadata, next-launch Web settings, no Web window and server survival after browser close. Actual Task Scheduler acceptance passes with Interactive logon, unrelated working directory, fixed port, no window and clean stop; temporary task removed. Unattended logon/reboot is not claimed.
+- Final EXE SHA-256: `8C94C7C62C7CB39CEFE677FC9B2D77FE5650AAA1EC61ED6D534DE44929F819C1`. Requested recordings use native WebView2 content screenshots at 5 fps and Edge client video, with no desktop/background capture. Native closure was independently verified using standard WM_CLOSE through CloseMainWindow and exit/listener assertions. Verification JSON and actual conversion ZIP are included in the package.
+- Context7 Verification: WebView2 native STA/controller lifecycle, runtime distribution and new-window behavior; Playwright WebView2 connectOverCDP, screenshots/video/downloads; FFmpeg capture/encoding; earlier Win32 exclusive CreateFile and MDN pagehide/EventSource. Context7 had no exact go-webview2 or Task Scheduler cmdlet coverage, so official pinned loader sources and Microsoft Register-ScheduledTask/New-ScheduledTaskPrincipal docs were the fallback. Microsoft.Web.WebView2 SDK 1.0.3800.47 WebView2.h confirmed COM handler IIDs. Modern Web Guidance forms, Go Testing and computer-use skills were applied. Graphify AST refresh is recorded in the beta assessment.
+
+- 2026-09-07 beta startup assessment: inspected Git HEAD 4061c49 and preserved existing unrelated changes; Serena verified startup/static handler, focused searches verified Worker/download and origin-scoped appearance settings. Context7 /mdn/content consulted for unreliable unload/pagehide notifications; official Go linker and WebView2 distribution docs checked. Assessment only, no new executable or runtime test results.
 
 - 2026-09-07 assessment: Git HEAD `e30e31f`; #8 closed at `2026-09-07T01:20:43Z`, #9 at `2026-09-07T01:20:45Z`, both CLOSED / COMPLETED, confirmed via `gh issue view`. #10/#11 bodies read from GitHub; no Issue comments posted. Inspected `web/app.js`, `web/converter-core.js`, `web/index.html`, `web/style.css` and `src/html-repair.mjs`. Two direct Node probes confirm opening-tag line numbers and offsets after code-fence removal. Context7: `/websites/cli_github_manual` issue close/view; `/mdn/content` textarea plain-text behavior and inert DOMParser parsing. Modern Web Guidance search/retrieve: `highlight-text-ranges`; applicable to a separate text display, not directly to textarea values. Product code unchanged; full regression/build checks not required for this assessment.
 - 2026-09-07 JST publication: remote product commit `e54b710`; annotated tag `55e8ec09250ba36bd0ab293844ef86b1174633a7` points to it. Existing release remains prerelease, non-draft, with one Windows asset (ID `547856432`). Fresh download size and SHA-256 match the tested artifact above. All applicable commit hooks passed after automatic line-ending normalization. No application behavior or dependencies changed during publication. Context7: `/websites/cli_github_manual`, existing release edit/upload replacement/download. Detailed evidence: `project-status/VERIFICATION.md`.
@@ -161,6 +182,8 @@ Confirm the latest artifact's top-right gear → 8bit appearance in light/dark o
 - Verified executable SHA-256: `0F0BCA1778506E32711EA6A38351E8D602999ECFF9FA5A945DEA876E9C8E5652`. Exact files, archive hashes, visual findings and commands are in [Verification evidence](project-status/VERIFICATION.md).
 
 ## Working tree notes
+
+- Beta task owns main.go, startup_*.go, desktop_windows.go, internal/desktopwv/, go.mod/go.sum, web/index.html, web/startup.js/css, scripts/build-windows.ps1, scripts/startup-acceptance.cjs, scripts/desktop-acceptance.cjs, scripts/scheduler-acceptance.ps1 and status/assessment/deployment docs (plus graph refresh if tracked). Existing .codex/config.toml, .codex-remote-attachments/, docs/ and test-data/ are preserved. Implementation is complete; user authorized commit/push and a new beta prerelease on 2026-09-08. Local package/evidence are ignored artifacts; unrelated files remain excluded.
 
 - Issue #11 implementation is committed and pushed as b86b2d1: new editor-display.js and editor-display-acceptance.cjs, repair range metadata/tests/bundle, app/HTML/CSS, test harness, manual chapter/screenshot/generated assets and status records. User-owned .codex/config.toml, .codex-remote-attachments/, docs/ and test-data/ remain preserved. The public prerelease now contains Issue #11. Publication evidence is recorded separately; no rebuild was needed.
 

@@ -2,49 +2,20 @@ package main
 
 import (
 	"embed"
-	"fmt"
 	"io/fs"
 	"log"
-	"net"
 	"net/http"
 	"os"
-	"os/exec"
-	"os/signal"
-	"syscall"
-	"time"
 )
 
 //go:embed web
 var embeddedWeb embed.FS
 
 func main() {
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		log.Fatalf("ローカルサーバーを開始できません: %v", err)
+	if err := runApplication(os.Args[1:]); err != nil {
+		log.Print(err)
+		os.Exit(1)
 	}
-
-	server := &http.Server{
-		Handler:           newHandler(),
-		ReadHeaderTimeout: 5 * time.Second,
-	}
-	url := fmt.Sprintf("http://%s", listener.Addr())
-
-	go func() {
-		if err := server.Serve(listener); err != nil && err != http.ErrServerClosed {
-			log.Printf("ローカルサーバーが停止しました: %v", err)
-		}
-	}()
-
-	fmt.Printf("HTML → PowerPoint Converter: %s\n", url)
-	if os.Getenv("HTMLTOPPTX_NO_BROWSER") != "1" {
-		if err := openBrowser(url); err != nil {
-			log.Printf("ブラウザを自動起動できません。上のURLを開いてください: %v", err)
-		}
-	}
-
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
-	<-stop
 }
 
 func newHandler() http.Handler {
@@ -64,8 +35,4 @@ func newHandler() http.Handler {
 		w.Header().Set("Referrer-Policy", "no-referrer")
 		static.ServeHTTP(w, r)
 	})
-}
-
-func openBrowser(url string) error {
-	return exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
 }
