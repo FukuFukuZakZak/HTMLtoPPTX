@@ -15,11 +15,15 @@ Build the HTML-to-PPTX converter described in `docs/HTML_to_PPTX_converter_spec_
 
 ## Current milestone
 
+Landscape size confirmation is implemented and locally verified on 2026-09-08. Mixed 16:9/A4 landscape within one HTML now prompts for explicit, unchecked-by-default consent to 16:9 fitting; continue without consent retains size-separated output, and cancel stops the batch. Review build: `dist/landscape-size-20260908/HTMLtoPPTX.exe`. [Decisions and verification](project-status/LANDSCAPE-SIZE-CONFIRMATION.md). The user authorized commit, push and replacement of the existing beta. Publication is in progress; the packaged build is `dist/HTMLtoPPTX-beta-20260908-windows-x64.zip`.
+
 Beta startup modes are implemented and locally verified on 2026-09-07: owned WebView2 standalone and fixed-port Web (default 8080). Native close/duplicate/download acceptance, actual Task Scheduler launch and requested verification recordings pass. Local distribution: `dist/HTMLtoPPTX-beta-20260907-windows-x64.zip`; [deployment guide](project-status/BETA-DEPLOYMENT.md), [implementation and evidence](project-status/BETA-STARTUP-ASSESSMENT.md). Target-server unattended/reboot and cross-device network acceptance remain for the internal beta. Published v0.1.0-beta.1 on 2026-09-08 JST at user request. Product commit bb00e1fb4858653be14f099bf2390b092d02476f is pushed to main and tagged; fresh asset download matches the tested ZIP. Release: https://github.com/divine261402-pixel/HTMLtoPPTX/releases/tag/v0.1.0-beta.1
 
 User confirmed Issue #10 passed target-machine validation; closed as completed on 2026-09-07. Issue #11 implementation is complete: logical line numbers, colored inserted-tag ranges and clickable repair locations, preserving native textarea input/history. Implementation and automated acceptance are complete. Edge verified wrapping/scroll alignment, repair links, native history, clipboard and Japanese composition events; the user subsequently confirmed target-machine validation passed on 2026-09-07. Issue #11 is CLOSED / COMPLETED. The subsequent user-authorized commit, push and prerelease replacement are complete; the fresh release download matches the tested EXE.
 
 ## Current work
+
+- 2026-09-08 landscape confirmation complete: source-size consistency is recommended in a native dialog, and only checking the 16:9 option combines landscape pages. The choice resets for each HTML and each conversion. A4 landscape is fitted proportionally with white side margins; editable text, shapes and images are retained, original landscape order is preserved, and A4 portrait remains separate. UI help and manual chapter 9 explain all choices. Unit, Go, browser/download and rendered-output checks pass; see [evidence](project-status/LANDSCAPE-SIZE-CONFIRMATION.md).
 
 - Beta startup complete locally: persisted settings applied next launch, exclusive OS lock, duplicate activation/crash recovery, owned WebView2 main/help windows and close-controlled server shutdown, local capability-protected administration, GUI-subsystem EXE and bounded logs. Web has no window and survives browser closure. Native conversion/ZIP, six Edge layouts, port collision/save failure, actual scheduler and Go/JS checks pass. Requested videos capture only application content. Distribution includes EXE, deployment instructions, notices and verification evidence.
 
@@ -59,7 +63,7 @@ User confirmed Issue #10 passed target-machine validation; closed as completed o
 - GitHub Issues #1-#7 are closed.
 - Conversion fidelity for the supplied smartphone-class flyer is substantially improved: A4 portrait clipping uses the detected page bounds, visually clipped accessibility text stays hidden, circular badges remain ellipses, flex/grid text alignment is retained, single-line text receives PowerPoint metric tolerance, and container text no longer duplicates or overlaps nested content. Loaded `img`, `canvas`, inline SVG, and CSS pseudo-elements are now included in the extracted slide model.
 - The file-upload workflow now has a separate lightweight paste mode: a plain textarea on the left, a script-disabled live preview on the right, and the same conversion/progress/ZIP pipeline used by uploaded HTML files. Pasted input uses a safe document-title virtual filename, with `貼り付けHTML.html` as fallback; no code-editor dependency was added.
-- A mixed A4 HTML is classified page by page and split into `元名-A4縦.pptx` and `元名-A4横.pptx` inside the ZIP while preserving page order within each orientation. The converter screen explains that the files must then be combined manually in PowerPoint.
+- A mixed A4 HTML is classified page by page and split into `元名-A4縦.pptx` and `元名-A4横.pptx` inside the ZIP while preserving page order within each orientation. When one HTML mixes 16:9 and A4 landscape, the user may explicitly choose proportional 16:9 fitting in the confirmation dialog; otherwise original-size separation remains the default.
 - Multiple `.html`/`.htm` files can be selected. Each source becomes an independent PPTX, case-insensitive duplicate names receive ` (2)`, ` (3)`, and so on, and every conversion is delivered as one ZIP.
 - Hidden `.slide` elements are measured in isolation and restored. Text extraction preserves authored and rendered line boundaries, inline styles, CSS whitespace, and computed line height as editable PowerPoint text.
 - Content added after an HTML file opens remains disabled by default. The UI detects HTML that contains executable scripts, warns that menus or charts may be omitted while the option is off, and explains the choice with concrete source-based examples. If enabled, inline scripts run in a network-blocked, opaque-origin sandbox and the resulting DOM is snapshotted before conversion.
@@ -84,6 +88,8 @@ User confirmed Issue #10 passed target-machine validation; closed as completed o
 
 ## Next actions
 
+- Try `dist/landscape-size-20260908/HTMLtoPPTX.exe` with representative HTML on the target machine and open the output in native PowerPoint. Local acceptance is complete. User-authorized commit/push and beta asset replacement are in progress; finish remote asset/hash and tag verification. A separate baseline SVG/Worker defect discovered during verification is recorded in the evidence file; it is outside the requested grouping change.
+
 Use `dist/HTMLtoPPTX-beta-20260907-windows-x64.zip` for internal beta acceptance following `project-status/BETA-DEPLOYMENT.md`: verify target WebView2/PowerPoint, actual server account when logged out and after reboot, remote-client access, selected NIC and firewall scope. Local implementation and verification are complete. Publication and fresh-download verification are complete for v0.1.0-beta.1. Next action is target-environment internal acceptance; no lifecycle decision is pending.
 
 Issues #8/#9/#10/#11 have passed user target-machine validation and are closed. The implementation and publication milestone is complete; await the next user-reported issue or requested enhancement.
@@ -105,6 +111,8 @@ Confirm the latest artifact's top-right gear → 8bit appearance in light/dark o
 9. In a fresh Codex task, confirm the project plugin/MCP profile is reloaded and compare the initial prompt/tool-schema token count with the previous approximately 40,000-token baseline.
 
 ## Active risks / blockers
+
+- No landscape-confirmation implementation blocker remains. PowerPoint applies one slide size to a deck, so opted-in A4 landscape fitting has white side margins; this is explained before consent. Native PowerPoint rendering remains target-environment verification. An inline SVG fixture fails with `Image is not defined` in both the previous and current Worker; this existing issue is documented separately, while PNG image scaling passes.
 
 - Beta: no known local acceptance blocker. Standalone requires WebView2 Runtime (tested 152.0.4191.66); offline installer procedure is documented. Automatic IP can select an unintended NIC or change the URL; explicit intranet IP/DHCP reservation is recommended for shared service. Web is HTTP without application login and is intended for a managed intranet. Real unattended server account/reboot, remote firewall routing and native PowerPoint remain target-environment checks. Keep configuration/runtime metadata under deployment ACLs. Automatic standalone port changes may reset origin-scoped appearance preferences.
 
@@ -138,6 +146,11 @@ Confirm the latest artifact's top-right gear → 8bit appearance in light/dark o
 - The initial design document and other user-owned untracked inputs must not be added or modified without explicit user intent.
 
 ## Latest verification
+
+- 2026-09-08 beta replacement preparation: verified EXE hash matches the tested build. New ZIP `HTMLtoPPTX-beta-20260908-windows-x64.zip` is 9,770,953 bytes, SHA-256 `A378C5846779A12329C55D9E8DC995F8E501D7D7DB73141850A61549702AE804`; all 28 archive files and manifest entries checked. Prior startup videos/evidence are dated separately from the new landscape acceptance. Context7 `/websites/cli_github_manual` consulted for existing prerelease edit, asset upload/download and removal after verification. No product rebuild or code change during publication.
+
+- 2026-09-08 landscape confirmation: `npm test` 50/50; `go test ./...`, `go vet ./...`, JS syntax checks and Windows build pass. Built-EXE Edge acceptance: 8 confirmation layouts / 8 ZIP downloads, independent file consent, unchecked split, checked merge, cancel/Escape, retry reset, original order and proportional editable geometry; existing UI 58 layouts and manual 44 layouts pass. LibreOffice rendered the split/merged decks and their A4 landscape page was visually compared. SHA-256 `9E2685A012237F4C4B36CBB0C9EAF9FA69B8A6CEC207F4A903ADB93349454C59` (13,075,968 bytes).
+- Context7 consulted `/mdn/content` for native modal dialog close/cancel/autofocus and checkbox behavior, `/gitbrent/pptxgenjs` for layout and editable geometry/text scaling, and `/microsoft/playwright` for Edge/download/checkbox verification. Modern Web Guidance CLI was blocked by npm network/cache access, so the MDN Context7 fallback was used. Detailed commands, evidence and the baseline SVG defect are recorded in [landscape verification](project-status/LANDSCAPE-SIZE-CONFIRMATION.md).
 
 - 2026-09-08 beta publication: product bb00e1fb4858653be14f099bf2390b092d02476f pushed to main; annotated v0.1.0-beta.1 resolves to it. Release is prerelease=true, draft=false, asset ID 549340298. Fresh download is 9,771,164 bytes and SHA-256 81EFFC627842DCA49F54BDCA159C1A5E859B97FDF97B8E189252A738A19B6BDD, matching local tested ZIP and GitHub digest. Evidence: .tmp/release-beta-20260908/download/. All commit hooks passed after status line-ending normalization. No product changes or rebuild during publication.
 
@@ -184,6 +197,8 @@ Confirm the latest artifact's top-right gear → 8bit appearance in light/dark o
 - Verified executable SHA-256: `0F0BCA1778506E32711EA6A38351E8D602999ECFF9FA5A945DEA876E9C8E5652`. Exact files, archive hashes, visual findings and commands are in [Verification evidence](project-status/VERIFICATION.md).
 
 ## Working tree notes
+
+- Landscape confirmation owns `web/app.js`, `web/converter-core.js`, `web/converter-worker.js`, dialog HTML/CSS, `web/landscape-size.test.js`, `scripts/landscape-size-acceptance.cjs`, the updated UI/Go assertions, manual chapter 9/generated output, and status/evidence records. Local build and test artifacts are under `dist/landscape-size-20260908/` and `.tmp/landscape-size-*`. Existing PV work, `.codex/config.toml`, `.codex-remote-attachments/`, `docs/` and `test-data/` are preserved. Commit, push and beta replacement are now authorized; publication verification is in progress.
 
 - Beta task owns main.go, startup_*.go, desktop_windows.go, internal/desktopwv/, go.mod/go.sum, web/index.html, web/startup.js/css, scripts/build-windows.ps1, scripts/startup-acceptance.cjs, scripts/desktop-acceptance.cjs, scripts/scheduler-acceptance.ps1 and status/assessment/deployment docs (plus graph refresh if tracked). Existing .codex/config.toml, .codex-remote-attachments/, docs/ and test-data/ are preserved. Beta implementation is committed/pushed as bb00e1f and published as v0.1.0-beta.1. Local package/evidence remain ignored artifacts; unrelated .codex/config.toml, .codex-remote-attachments/, docs/ and test-data/ remain excluded and preserved.
 

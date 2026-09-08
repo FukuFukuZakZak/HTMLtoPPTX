@@ -54,7 +54,16 @@ self.onmessage = async function (event) {
 
       for (const model of presentation.slides) {
         const slide = pptx.addSlide();
-        slide.background = { color: model.background };
+        const sourceLayout = model.sourceLayout || presentation.layout;
+        const fit = HtmlToPptxCore.layoutFit(sourceLayout, presentation.layout);
+        const fitted = sourceLayout.id !== presentation.layout.id;
+        slide.background = { color: fitted ? "FFFFFF" : model.background };
+        if (fitted) {
+          slide.addShape(pptx.ShapeType.rect, {
+            x: fit.x, y: fit.y, w: sourceLayout.width * fit.scale, h: sourceLayout.height * fit.scale,
+            fill: { color: model.background }, line: { transparency: 100 }
+          });
+        }
 
         for (const item of model.shapes) {
           const shapeType = item.kind === "custom"
@@ -66,25 +75,28 @@ self.onmessage = async function (event) {
               : item.rounded
                 ? pptx.ShapeType.roundRect
                 : pptx.ShapeType.rect;
-          slide.addShape(shapeType, HtmlToPptxCore.shapeOptions(item));
+          slide.addShape(shapeType, HtmlToPptxCore.fitPptxOptions(HtmlToPptxCore.shapeOptions(item), fit));
         }
 
         for (const item of model.images) {
           if (!item.data) continue;
-          slide.addImage({
+          slide.addImage(HtmlToPptxCore.fitPptxOptions({
             data: item.data,
             x: Math.max(0, Number(item.x) || 0),
             y: Math.max(0, Number(item.y) || 0),
             w: Math.max(0, Number(item.w) || 0),
             h: Math.max(0, Number(item.h) || 0),
             altText: item.altText || ""
-          });
+          }, fit));
         }
 
         for (const item of model.texts) {
           const content = HtmlToPptxCore.richTextContent(item);
           if ((Array.isArray(content) && content.length > 0) || (!Array.isArray(content) && content)) {
-            slide.addText(content, HtmlToPptxCore.textOptions(item));
+            const fittedContent = Array.isArray(content)
+              ? content.map((run) => ({ ...run, options: HtmlToPptxCore.fitPptxOptions(run.options, fit) }))
+              : content;
+            slide.addText(fittedContent, HtmlToPptxCore.fitPptxOptions(HtmlToPptxCore.textOptions(item), fit));
           }
         }
 

@@ -57,9 +57,10 @@ func TestEmbeddedWebUI(t *testing.T) {
 		}
 	}
 	if !strings.Contains(string(body), `id="orientation-notice-title"`) ||
-		!strings.Contains(string(body), "ページごと") ||
-		!strings.Contains(string(body), "縦・横別") ||
-		!strings.Contains(string(body), "手動で統合") {
+		!strings.Contains(string(body), `id="landscape-size-dialog"`) ||
+		!strings.Contains(string(body), `id="unify-landscape" type="checkbox"`) ||
+		!strings.Contains(string(body), "チェックせずに続行すると") ||
+		!strings.Contains(string(body), "A4縦のページは別ファイル") {
 		t.Fatal("mixed-orientation workflow notice is missing")
 	}
 	if response.Header.Get("Content-Security-Policy") == "" {

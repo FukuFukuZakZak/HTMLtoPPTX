@@ -201,7 +201,7 @@ async function saveDownload(page, selector, name) {
     await assertFits(page, "mixed-a4-complete", [...fileControls, "#download-link", "#message"]);
     await saveDownload(page, "#download-link", "batch-mixed-a4.zip");
     assert.equal(report.downloads.at(-1).presentations.length, 3);
-    assert.match(await page.locator("#message").innerText(), /手動統合/);
+    assert.match(await page.locator("#message").innerText(), /縦・横のページは別々のPPTX/);
     await page.locator("#open-editor-button").click();
     await page.locator("#html-editor").fill(sample);
     await page.locator("#editor-execute-scripts").check();

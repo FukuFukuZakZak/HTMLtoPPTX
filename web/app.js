@@ -308,6 +308,33 @@
     startConversion([source], editorExecuteScripts.checked, editorUi);
   });
 
+  function confirmLandscapeSize(fileName, signal) {
+    const dialog = document.getElementById("landscape-size-dialog");
+    const checkbox = document.getElementById("unify-landscape");
+    document.getElementById("landscape-size-file").textContent = fileName;
+    checkbox.checked = false;
+    dialog.returnValue = "cancel";
+    return new Promise((resolve, reject) => {
+      const cleanup = () => {
+        dialog.removeEventListener("close", onClose);
+        signal.removeEventListener("abort", onAbort);
+      };
+      const onClose = () => {
+        cleanup();
+        resolve(!signal.aborted && dialog.returnValue === "continue" ? checkbox.checked : null);
+      };
+      const onAbort = () => {
+        cleanup();
+        if (dialog.open) dialog.close("cancel");
+        resolve(null);
+      };
+      dialog.addEventListener("close", onClose);
+      signal.addEventListener("abort", onAbort, { once: true });
+      if (signal.aborted) { onAbort(); return; }
+      try { dialog.showModal(); } catch (error) { cleanup(); reject(error); }
+    });
+  }
+
   async function startConversion(sourceFiles, shouldExecuteScripts, ui) {
     if (sourceFiles.length === 0 || activeJob) return;
     const controller = new AbortController();
@@ -339,7 +366,9 @@
     try {
       const presentationDrafts = [];
       let totalSlides = 0;
-      let hasMixedA4Orientation = false;
+      let hasSeparateOrientations = false;
+      let unifiedLandscapeFiles = 0;
+      let splitLandscapeFiles = 0;
       for (let fileIndex = 0; fileIndex < sourceFiles.length; fileIndex += 1) {
         const sourceFile = sourceFiles[fileIndex];
         if (controller.signal.aborted) return;
@@ -374,10 +403,22 @@
           }
         }
         totalSlides += pageSlides.length;
-        const groups = HtmlToPptxCore.groupSlidesByLayout(pageSlides);
+        frame.remove();
+        frame = null;
+        let unifyLandscape = false;
+        if (HtmlToPptxCore.hasMixedLandscapeSizes(pageSlides)) {
+          ui.progressLabel.textContent = "横向きページのサイズを確認してください";
+          ui.progressDetail.textContent = "確認画面で選択するまで変換を待機します";
+          unifyLandscape = await confirmLandscapeSize(sourceFile.name, controller.signal);
+          if (controller.signal.aborted) return;
+          if (unifyLandscape === null) { job.abort(); return; }
+          if (unifyLandscape) unifiedLandscapeFiles += 1;
+          else splitLandscapeFiles += 1;
+        }
+        const groups = HtmlToPptxCore.groupSlidesByLayout(pageSlides, unifyLandscape);
         const groupLayoutIds = new Set(groups.map((group) => group.layout.id));
-        hasMixedA4Orientation = hasMixedA4Orientation || (
-          groupLayoutIds.has("a4-portrait") && groupLayoutIds.has("a4-landscape")
+        hasSeparateOrientations = hasSeparateOrientations || (
+          groupLayoutIds.has("a4-portrait") && (groupLayoutIds.has("a4-landscape") || groupLayoutIds.has("wide"))
         );
         for (const group of groups) {
           presentationDrafts.push({
@@ -389,8 +430,6 @@
             slides: group.slides
           });
         }
-        frame.remove();
-        frame = null;
       }
 
       const outputNames = HtmlToPptxCore.uniquePptxFileNames(presentationDrafts.map((item) => item.desiredOutputName));
@@ -427,9 +466,9 @@
           prepareZipDownload(data.buffer, HtmlToPptxCore.zipOutputFileName(sourceFiles.map((file) => file.name)));
           worker.terminate();
           worker = null;
-          const integrationNote = hasMixedA4Orientation
-            ? " A4縦・横のPPTXはPowerPointで手動統合してください。"
-            : "";
+          const integrationNote = (unifiedLandscapeFiles ? ` ${unifiedLandscapeFiles}件のHTMLで横向きページを16:9に統一しました。` : "")
+            + (splitLandscapeFiles ? ` ${splitLandscapeFiles}件のHTMLは横向きページをサイズ別に分割しました。` : "")
+            + (hasSeparateOrientations ? " 縦・横のページは別々のPPTXに出力しました。" : "");
           finishJob(job, ui, `${presentations.length}件のPPTXをZIPにまとめました。［ZIPを保存］を押してください。${integrationNote}`, false);
         } else if (data.type === "error") {
           if (worker) worker.terminate();
@@ -465,6 +504,7 @@
     }
     ui.progressDetail.textContent = text;
     setMessage(ui, text, isError);
+    if (text.startsWith("変換をキャンセル")) ui.convertButton.focus();
   }
 
   function createScriptSnapshot(html, signal) {

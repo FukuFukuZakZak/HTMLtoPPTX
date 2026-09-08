@@ -119,14 +119,55 @@
     return uniquePptxFileNames(Array.from(inputNames || [], outputFileName));
   }
 
-  function groupSlidesByLayout(pageSlides) {
+  function hasMixedLandscapeSizes(pageSlides) {
+    const sizes = new Set(Array.from(pageSlides || [], (page) => presentationLayout(page && page.layout))
+      .filter((layout) => layout.width > layout.height)
+      .map((layout) => `${layout.width}:${layout.height}`));
+    return sizes.size > 1;
+  }
+
+  function groupSlidesByLayout(pageSlides, unifyLandscape = false) {
     const groups = new Map();
     for (const pageSlide of Array.from(pageSlides || [])) {
-      const layout = presentationLayout(pageSlide && pageSlide.layout);
+      const sourceLayout = presentationLayout(pageSlide && pageSlide.layout);
+      const layout = unifyLandscape === true && sourceLayout.width > sourceLayout.height
+        ? PRESENTATION_LAYOUTS.wide : sourceLayout;
       if (!groups.has(layout.id)) groups.set(layout.id, { layout, slides: [] });
-      groups.get(layout.id).slides.push(pageSlide && pageSlide.slide);
+      groups.get(layout.id).slides.push(layout.id === sourceLayout.id
+        ? pageSlide && pageSlide.slide
+        : { ...pageSlide.slide, sourceLayout });
     }
     return Array.from(groups.values());
+  }
+
+  function layoutFit(source, target) {
+    const from = presentationLayout(source);
+    const to = presentationLayout(target);
+    const scale = Math.min(to.width / from.width, to.height / from.height);
+    return { scale, x: (to.width - from.width * scale) / 2, y: (to.height - from.height * scale) / 2 };
+  }
+
+  // Transform normalized PptxGenJS options, after the existing clipping/minima.
+  // Fonts, line weights and local freeform points use the same scale as geometry.
+  function fitPptxOptions(options, fit) {
+    if (fit.scale === 1 && fit.x === 0 && fit.y === 0) return options;
+    const result = { ...options };
+    for (const key of ["x", "y", "w", "h", "fontSize", "lineSpacing", "charSpacing", "rectRadius"]) {
+      if (Number.isFinite(options[key])) result[key] = options[key] * fit.scale;
+    }
+    if (Number.isFinite(result.x)) result.x += fit.x;
+    if (Number.isFinite(result.y)) result.y += fit.y;
+    if (options.line && Number.isFinite(options.line.width)) {
+      result.line = { ...options.line, width: options.line.width * fit.scale };
+    }
+    if (Array.isArray(options.points)) {
+      result.points = options.points.map((point) => {
+        const scaled = { ...point };
+        for (const key of ["x", "y"]) if (Number.isFinite(point[key])) scaled[key] *= fit.scale;
+        return scaled;
+      });
+    }
+    return result;
   }
 
   function zipOutputFileName(inputNames) {
@@ -387,6 +428,7 @@
     }
     return slides.map((slide) => ({
       background: hexColor(slide.background, "FFFFFF"),
+      ...(slide.sourceLayout ? { sourceLayout: presentationLayout(slide.sourceLayout) } : {}),
       shapes: Array.isArray(slide.shapes) ? slide.shapes : [],
       images: Array.isArray(slide.images) ? slide.images : [],
       texts: Array.isArray(slide.texts) ? slide.texts : []
@@ -406,6 +448,9 @@
     uniquePptxFileNames,
     uniqueOutputFileNames,
     groupSlidesByLayout,
+    hasMixedLandscapeSizes,
+    layoutFit,
+    fitPptxOptions,
     zipOutputFileName,
     hexColor,
     colorOptions,

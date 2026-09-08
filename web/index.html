@@ -141,7 +141,7 @@
               </div>
             </details>
           </section>
-          <div class="output-note"><strong>1つのHTMLごとにPPTXを作成</strong><p>ページサイズは自動判定。すべてのPPTXを1つのZIPにまとめます。</p><p>A4の縦・横が混在するHTMLは向き別に出力します。PowerPointで手動で統合してください。</p></div>
+          <div class="output-note"><strong>1つのHTMLごとにPPTXを作成</strong><p>ページサイズは自動判定。すべてのPPTXを1つのZIPにまとめます。</p><p>サイズが異なるページは分割出力。16:9とA4横の混在時は、確認画面で統一を選べます。</p></div>
           <div class="conversion-actions">
             <button class="primary-button" id="convert-button" type="button" disabled><svg class="icon" aria-hidden="true"><use href="#icon-slide"/></svg>PPTXへ変換</button>
             <a class="download-button" id="download-link" hidden><svg class="icon" aria-hidden="true"><use href="#icon-download"/></svg>ZIPを保存</a>
@@ -159,7 +159,7 @@
         <summary>対応するHTML・出力について</summary>
         <div class="help-body help-columns">
           <div><h3>対応するHTML</h3><p><code>.slide</code>、またはA4横・A4縦と判断できるページを含むHTMLに対応します。A4は <code>@page</code> の <code>size</code> またはページ要素の寸法から判定します。</p><p>入力内容はこのPC内だけで処理します。外部ファイルを参照する画像やフォントは反映されない場合があります。</p></div>
-          <div><h3 id="orientation-notice-title">A4の縦・横が混在する場合</h3><p>ページごとに向きを判定し、縦・横別のPPTXを作成します。PowerPointでは1つのファイル内に異なるページサイズを混在できません。1つにまとめる場合は、出力後にPowerPointで手動統合してください。</p></div>
+          <div><h3 id="orientation-notice-title">ページサイズが混在する場合</h3><p>元のHTMLでサイズを揃えることをおすすめします。16:9とA4横が混在すると確認画面が開きます。チェックした場合のみ横向きを16:9に統一し、A4横は比率を保って縮小・中央配置します。未チェックで続行するとサイズ別に分割出力します。キャンセルしてHTMLを修正することもできます。A4縦は別ファイルです。</p></div>
         </div>
       </details>
     </main>
@@ -236,9 +236,21 @@
       </section>
       <details class="workspace-help">
         <summary>貼り付け変換・出力について</summary>
-        <div class="help-body"><p>貼り付けたHTMLにタイトル（&lt;title&gt;）がある場合は、その内容をZIP・PPTXのファイル名に使います。タイトルがない・空の場合は「貼り付けHTML」を使います。長い名前やファイル名に使えない文字は調整します。外部ファイルを参照する画像やフォントは反映されない場合があります。</p><p>16:9・A4縦・A4横のページサイズを自動判定します。A4の縦・横が混在する場合は向き別のPPTXをZIPにまとめます。1つにまとめる場合はPowerPointで手動統合してください。</p><p>入力内容はこのPC内だけで処理されます。再読み込みや画面を閉じると入力内容は消えます。</p></div>
+        <div class="help-body"><p>貼り付けたHTMLにタイトル（&lt;title&gt;）がある場合は、その内容をZIP・PPTXのファイル名に使います。タイトルがない・空の場合は「貼り付けHTML」を使います。長い名前やファイル名に使えない文字は調整します。外部ファイルを参照する画像やフォントは反映されない場合があります。</p><p>16:9・A4縦・A4横を自動判定します。元のHTMLでサイズを揃えることをおすすめします。16:9とA4横が混在すると確認画面が開き、チェックした場合のみ横向きを16:9に統一します。A4横は比率を保って縮小・中央配置されます。未チェックで続行するとサイズ別に分割出力します。キャンセルしてHTMLを修正することもできます。A4縦は別ファイルです。</p><p>入力内容はこのPC内だけで処理されます。再読み込みや画面を閉じると入力内容は消えます。</p></div>
       </details>
     </main>
+    <dialog class="theme-settings landscape-size-dialog" id="landscape-size-dialog" aria-labelledby="landscape-size-title" aria-describedby="landscape-size-description">
+      <form method="dialog">
+        <h2 id="landscape-size-title">横向きページのサイズが混在しています</h2>
+        <p class="landscape-size-file" id="landscape-size-file"></p>
+        <p id="landscape-size-description">16:9とA4横のページを検出しました。レイアウトを保つため、元のHTMLでページサイズを揃えることをおすすめします。修正する場合はキャンセルしてください。</p>
+        <p>PowerPointは1つのPPTX内でページサイズを混在できません。今回の出力方法を選んでください。</p>
+        <label class="landscape-size-choice" for="unify-landscape"><input id="unify-landscape" type="checkbox" aria-describedby="landscape-size-consent" autofocus><strong>横向きページを16:9に統一する</strong></label>
+        <p id="landscape-size-consent">チェックした場合のみ、このHTMLの横向きページを1つのPPTXにまとめます。A4横の内容は縦横比を保って縮小・中央配置し、左右に余白を付けます。</p>
+        <p><strong>チェックせずに続行すると、元のサイズ別にPPTXを分割して出力します。</strong> A4縦のページは別ファイルになります。この選択は保存されません。</p>
+        <div class="landscape-size-actions"><button class="back-button" type="submit" value="cancel">キャンセル</button><button class="primary-button" type="submit" value="continue">続行</button></div>
+      </form>
+    </dialog>
     <div class="render-host" id="render-host" aria-hidden="true"></div>
     <script src="./converter-core.js"></script>
     <script src="./html-repair.js"></script>

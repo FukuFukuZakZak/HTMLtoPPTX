@@ -19,6 +19,13 @@
   color: var(--ink); background: var(--surface); box-shadow: 0 16px 64px #0005;
 }
 .theme-settings::backdrop { background: #101d30a6; }
+.landscape-size-dialog { width: min(620px, calc(100% - 32px)); }
+.landscape-size-dialog h2 { font-size: 20px; line-height: 1.5; }
+.landscape-size-dialog p { margin: 14px 0; font-size: 14px; line-height: 1.7; }
+.landscape-size-file { overflow-wrap: anywhere; color: var(--muted); }
+.landscape-size-choice { display: flex; align-items: flex-start; gap: 12px; padding: 16px; border: 1px solid var(--rule); border-radius: 8px; background: var(--accent-soft); cursor: pointer; }
+.landscape-size-choice input { width: 20px; height: 20px; margin-top: 2px; flex-shrink: 0; accent-color: var(--accent); }
+.landscape-size-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
 .settings-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .settings-heading h2 { font-size: 21px; }
 .theme-settings > p { color: var(--muted); font-size: 13px; margin-top: 8px; }
