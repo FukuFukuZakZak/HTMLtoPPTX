@@ -15,9 +15,9 @@ Build the HTML-to-PPTX converter described in `docs/HTML_to_PPTX_converter_spec_
 
 ## Current milestone
 
-Landscape size confirmation is implemented and locally verified on 2026-09-08. Mixed 16:9/A4 landscape within one HTML now prompts for explicit, unchecked-by-default consent to 16:9 fitting; continue without consent retains size-separated output, and cancel stops the batch. Review build: `dist/landscape-size-20260908/HTMLtoPPTX.exe`. [Decisions and verification](project-status/LANDSCAPE-SIZE-CONFIRMATION.md). The user authorized commit, push and replacement of the existing beta. Publication is in progress; the packaged build is `dist/HTMLtoPPTX-beta-20260908-windows-x64.zip`.
+Landscape size confirmation is implemented and locally verified on 2026-09-08. Mixed 16:9/A4 landscape within one HTML now prompts for explicit, unchecked-by-default consent to 16:9 fitting; continue without consent retains size-separated output, and cancel stops the batch. Review build: `dist/landscape-size-20260908/HTMLtoPPTX.exe`. [Decisions and verification](project-status/LANDSCAPE-SIZE-CONFIRMATION.md). Published at user request: product commit `fda4338b8c27282dc76dc1f8f8c0a993482e287e` is pushed to main and tagged `v0.1.0-beta.1`. The beta asset is now `HTMLtoPPTX-beta-20260908-windows-x64.zip`; fresh download/hash verification passed and the previous ZIP was removed.
 
-Beta startup modes are implemented and locally verified on 2026-09-07: owned WebView2 standalone and fixed-port Web (default 8080). Native close/duplicate/download acceptance, actual Task Scheduler launch and requested verification recordings pass. Local distribution: `dist/HTMLtoPPTX-beta-20260907-windows-x64.zip`; [deployment guide](project-status/BETA-DEPLOYMENT.md), [implementation and evidence](project-status/BETA-STARTUP-ASSESSMENT.md). Target-server unattended/reboot and cross-device network acceptance remain for the internal beta. Published v0.1.0-beta.1 on 2026-09-08 JST at user request. Product commit bb00e1fb4858653be14f099bf2390b092d02476f is pushed to main and tagged; fresh asset download matches the tested ZIP. Release: https://github.com/divine261402-pixel/HTMLtoPPTX/releases/tag/v0.1.0-beta.1
+Beta startup modes are implemented and locally verified on 2026-09-07: owned WebView2 standalone and fixed-port Web (default 8080). Native close/duplicate/download acceptance, actual Task Scheduler launch and requested verification recordings pass. Local distribution: `dist/HTMLtoPPTX-beta-20260907-windows-x64.zip`; [deployment guide](project-status/BETA-DEPLOYMENT.md), [implementation and evidence](project-status/BETA-STARTUP-ASSESSMENT.md). Target-server unattended/reboot and cross-device network acceptance remain for the internal beta. Initial beta publication was v0.1.0-beta.1 on 2026-09-08 JST, at product commit bb00e1fb4858653be14f099bf2390b092d02476f; it has since been replaced by the landscape-confirmation build above. Release: https://github.com/divine261402-pixel/HTMLtoPPTX/releases/tag/v0.1.0-beta.1
 
 User confirmed Issue #10 passed target-machine validation; closed as completed on 2026-09-07. Issue #11 implementation is complete: logical line numbers, colored inserted-tag ranges and clickable repair locations, preserving native textarea input/history. Implementation and automated acceptance are complete. Edge verified wrapping/scroll alignment, repair links, native history, clipboard and Japanese composition events; the user subsequently confirmed target-machine validation passed on 2026-09-07. Issue #11 is CLOSED / COMPLETED. The subsequent user-authorized commit, push and prerelease replacement are complete; the fresh release download matches the tested EXE.
 
@@ -73,12 +73,12 @@ User confirmed Issue #10 passed target-machine validation; closed as completed o
 
 ## Current release
 
-- Product commit: `b86b2d1a08b813e0a5b24d887c551ed4c6655d38`
-- Release: [`v0.1.0-alpha.1`](https://github.com/divine261402-pixel/HTMLtoPPTX/releases/tag/v0.1.0-alpha.1) — `HTMLtoPPTX v0.1.0-alpha.1（行番号・補正表示改善 実機検証版）`
-- Asset: `HTMLtoPPTX-v0.1.0-alpha.1-windows-amd64.exe`
-- Size: 11,240,448 bytes
-- SHA-256: `4831FA7CBB9822A29C656CD7C849D83B833C4A2F624271819413C61F68EB7929`
-- The annotated tag and GitHub prerelease both target the clean product commit above. The release contains exactly one Windows asset.
+- Product commit: `fda4338b8c27282dc76dc1f8f8c0a993482e287e`
+- Release: [v0.1.0-beta.1](https://github.com/divine261402-pixel/HTMLtoPPTX/releases/tag/v0.1.0-beta.1) — HTMLtoPPTX v0.1.0-beta.1（課内検証版）
+- Asset: `HTMLtoPPTX-beta-20260908-windows-x64.zip`, 9,770,953 bytes; asset ID 550130197.
+- ZIP SHA-256: `A378C5846779A12329C55D9E8DC995F8E501D7D7DB73141850A61549702AE804`.
+- EXE SHA-256: `9E2685A012237F4C4B36CBB0C9EAF9FA69B8A6CEC207F4A903ADB93349454C59`.
+- Annotated beta tag resolves to the product commit. Prerelease=true, draft=false, exactly one ZIP asset. Fresh download and all 27 manifest entries match. The previous 20260907 ZIP is removed from the release and retained locally.
 
 ## Current manual decisions
 
@@ -88,7 +88,7 @@ User confirmed Issue #10 passed target-machine validation; closed as completed o
 
 ## Next actions
 
-- Try `dist/landscape-size-20260908/HTMLtoPPTX.exe` with representative HTML on the target machine and open the output in native PowerPoint. Local acceptance is complete. User-authorized commit/push and beta asset replacement are in progress; finish remote asset/hash and tag verification. A separate baseline SVG/Worker defect discovered during verification is recorded in the evidence file; it is outside the requested grouping change.
+- Try `dist/landscape-size-20260908/HTMLtoPPTX.exe` with representative HTML on the target machine and open the output in native PowerPoint. Local acceptance and user-authorized commit/push/beta replacement are complete; use the updated v0.1.0-beta.1 ZIP for target-machine acceptance. A separate baseline SVG/Worker defect discovered during verification is recorded in the evidence file; it is outside the requested grouping change.
 
 Use `dist/HTMLtoPPTX-beta-20260907-windows-x64.zip` for internal beta acceptance following `project-status/BETA-DEPLOYMENT.md`: verify target WebView2/PowerPoint, actual server account when logged out and after reboot, remote-client access, selected NIC and firewall scope. Local implementation and verification are complete. Publication and fresh-download verification are complete for v0.1.0-beta.1. Next action is target-environment internal acceptance; no lifecycle decision is pending.
 
@@ -147,6 +147,8 @@ Confirm the latest artifact's top-right gear → 8bit appearance in light/dark o
 
 ## Latest verification
 
+- 2026-09-08 beta replacement complete: `fda4338` pushed to main; remote annotated beta tag resolves to the same product commit. Release asset 550130197 is the sole asset, prerelease=true/draft=false. Fresh ZIP hash matches the GitHub digest and local verified package; included EXE and all 27 manifest entries match. Previous beta ZIP removed after verification. Evidence: `.tmp/release-landscape-20260908/download-verification.json`. Commit hooks pass; their line-ending fixes affected only the new test driver and evidence Markdown.
+
 - 2026-09-08 beta replacement preparation: verified EXE hash matches the tested build. New ZIP `HTMLtoPPTX-beta-20260908-windows-x64.zip` is 9,770,953 bytes, SHA-256 `A378C5846779A12329C55D9E8DC995F8E501D7D7DB73141850A61549702AE804`; all 28 archive files and manifest entries checked. Prior startup videos/evidence are dated separately from the new landscape acceptance. Context7 `/websites/cli_github_manual` consulted for existing prerelease edit, asset upload/download and removal after verification. No product rebuild or code change during publication.
 
 - 2026-09-08 landscape confirmation: `npm test` 50/50; `go test ./...`, `go vet ./...`, JS syntax checks and Windows build pass. Built-EXE Edge acceptance: 8 confirmation layouts / 8 ZIP downloads, independent file consent, unchecked split, checked merge, cancel/Escape, retry reset, original order and proportional editable geometry; existing UI 58 layouts and manual 44 layouts pass. LibreOffice rendered the split/merged decks and their A4 landscape page was visually compared. SHA-256 `9E2685A012237F4C4B36CBB0C9EAF9FA69B8A6CEC207F4A903ADB93349454C59` (13,075,968 bytes).
@@ -198,7 +200,7 @@ Confirm the latest artifact's top-right gear → 8bit appearance in light/dark o
 
 ## Working tree notes
 
-- Landscape confirmation owns `web/app.js`, `web/converter-core.js`, `web/converter-worker.js`, dialog HTML/CSS, `web/landscape-size.test.js`, `scripts/landscape-size-acceptance.cjs`, the updated UI/Go assertions, manual chapter 9/generated output, and status/evidence records. Local build and test artifacts are under `dist/landscape-size-20260908/` and `.tmp/landscape-size-*`. Existing PV work, `.codex/config.toml`, `.codex-remote-attachments/`, `docs/` and `test-data/` are preserved. Commit, push and beta replacement are now authorized; publication verification is in progress.
+- Landscape confirmation owns `web/app.js`, `web/converter-core.js`, `web/converter-worker.js`, dialog HTML/CSS, `web/landscape-size.test.js`, `scripts/landscape-size-acceptance.cjs`, the updated UI/Go assertions, manual chapter 9/generated output, and status/evidence records. Local build and test artifacts are under `dist/landscape-size-20260908/` and `.tmp/landscape-size-*`. Existing PV work, `.codex/config.toml`, `.codex-remote-attachments/`, `docs/` and `test-data/` are preserved. Product changes are committed/pushed as `fda4338` and published in the replaced v0.1.0-beta.1 ZIP. PV status paragraphs remain unstaged with the local PV deliverables.
 
 - Beta task owns main.go, startup_*.go, desktop_windows.go, internal/desktopwv/, go.mod/go.sum, web/index.html, web/startup.js/css, scripts/build-windows.ps1, scripts/startup-acceptance.cjs, scripts/desktop-acceptance.cjs, scripts/scheduler-acceptance.ps1 and status/assessment/deployment docs (plus graph refresh if tracked). Existing .codex/config.toml, .codex-remote-attachments/, docs/ and test-data/ are preserved. Beta implementation is committed/pushed as bb00e1f and published as v0.1.0-beta.1. Local package/evidence remain ignored artifacts; unrelated .codex/config.toml, .codex-remote-attachments/, docs/ and test-data/ remain excluded and preserved.
 

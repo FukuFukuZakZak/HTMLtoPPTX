@@ -40,10 +40,16 @@ A minimal inline SVG image produces `Image is not defined` in the browser Worker
 - SHA-256: `9E2685A012237F4C4B36CBB0C9EAF9FA69B8A6CEC207F4A903ADB93349454C59`.
 - This is the same executable exercised by the Edge acceptance suites. No product code changed after its build.
 - User review: use representative mixed HTML and try unchecked continue, checked continue, and cancel; inspect output in native PowerPoint on the target machine.
-- The user subsequently authorized commit, push and replacement of the existing beta. Publication is in progress; unrelated local files remain excluded.
+- The user subsequently authorized commit, push and replacement of the existing beta. Publication is complete; unrelated local files remain excluded.
 
 ## Beta replacement preparation
 
 The replacement retains release `v0.1.0-beta.1`. Distribution: `HTMLtoPPTX-beta-20260908-windows-x64.zip`, 9,770,953 bytes, SHA-256 `A378C5846779A12329C55D9E8DC995F8E501D7D7DB73141850A61549702AE804`. The included EXE is byte-identical to the previously tested build above. ZIP CRC, all 28 files and the SHA256 manifest were checked. Updated README describes consent behavior and the baseline SVG limitation; earlier startup recordings/evidence are explicitly dated. No product rebuild was necessary.
 
-Context7 `/websites/cli_github_manual` consulted for editing an existing prerelease, notes-file, asset upload/download and deletion after replacement verification. Remote publication outcome will be recorded after download/hash and tag verification.
+Context7 `/websites/cli_github_manual` consulted for editing an existing prerelease, notes-file, asset upload/download and deletion after replacement verification. Remote publication outcome is recorded below.
+
+## Published replacement
+
+Product commit `fda4338b8c27282dc76dc1f8f8c0a993482e287e` is pushed to main. The annotated `v0.1.0-beta.1` tag now resolves to that commit, updated with a lease against the previously verified tag object. The same GitHub prerelease remains published (draft=false), with exactly one asset: `HTMLtoPPTX-beta-20260908-windows-x64.zip`, asset ID 550130197. Release notes cover the new confirmation and baseline SVG limitation.
+
+A fresh release download matches the verified local ZIP SHA-256 and GitHub asset digest. Its included EXE and all 27 SHA256SUMS entries match. The previous ZIP was removed only after the new download passed verification. Evidence: `.tmp/release-landscape-20260908/download-verification.json`. No product rebuild or feature changes were necessary; all commit hooks passed after normalizing the new test/evidence file line endings. Publication status is committed separately from the product tag.
