@@ -50,7 +50,7 @@
         const option = document.createElement("option"); option.value = address.address; option.label = address.interface; return option;
       }));
       byID("machine-address-hint").textContent = data.addresses.length
-        ? `自動選択の候補：${data.addresses.map(a => `${a.address}（${a.interface}）`).join("、")}。複数ある場合は庁内接続用のIPを指定してください。`
+        ? `自動選択の候補：${data.addresses.map(a => `${a.address}（${a.interface}）`).join("、")}。複数ある場合はイントラネット接続用のIPを指定してください。`
         : "現在、利用できるIPv4アドレスがありません。ネットワーク接続を確認してください。";
       byID("startup-current").textContent = `現在：${data.active.mode === "web" ? "Web" : "スタンドアロン"} ／ ${data.url}`;
       byID("startup-config-path").textContent = data.configPath;

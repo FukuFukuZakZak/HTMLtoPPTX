@@ -2,6 +2,7 @@
   "name": "html-to-pptx-local-converter",
   "private": true,
   "version": "0.1.0",
+  "license": "MIT",
   "description": "Development dependencies and tests for the embedded HTML to PPTX converter UI.",
   "scripts": {
     "build:manual": "node deliverables/Howtouse/build-manual.cjs && node deliverables/Howtouse/build-manual.cjs --app",

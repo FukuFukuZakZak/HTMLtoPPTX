@@ -56,7 +56,7 @@
         <form id="startup-form" action="/api/startup" method="post">
           <fieldset><legend>次回の起動モード</legend>
             <label><input type="radio" name="startup-mode" value="standalone" checked> スタンドアロン（専用画面で使う）</label>
-            <label><input type="radio" name="startup-mode" value="web"> Web（庁内で共有する）</label>
+            <label><input type="radio" name="startup-mode" value="web"> Web（イントラネットで共有する）</label>
           </fieldset>
           <fieldset id="standalone-fields"><legend>ローカル接続：127.0.0.1</legend>
             <label><input id="standalone-auto" name="standalone-auto" type="checkbox" checked> 空きポートを自動で選ぶ</label>
@@ -135,7 +135,7 @@
               <summary>この設定について</summary>
               <div class="help-body">
                 <p>オンにすると、HTML内のプログラム（JavaScript）をこのツールの隔離領域で実行します。</p>
-                <p><strong>オンにしてよい例：</strong>自分で作成したHTML、庁内で作成され、作成元を確認できるHTML。</p>
+                <p><strong>オンにしてよい例：</strong>自分で作成したHTML、社内・組織内で作成され、作成元を確認できるHTML。</p>
                 <p><strong>オフにする例：</strong>メール添付や外部サイトから取得したHTML、作成元が分からないHTML、判断に迷うHTML。</p>
                 <p>オンの場合も外部通信は遮断されます。</p>
               </div>
@@ -184,7 +184,7 @@
             <summary>この設定について</summary>
             <div class="help-body">
               <p>オンにすると、HTML内のプログラム（JavaScript）を隔離領域で実行し、追加表示されたメニューやグラフなども変換します。プレビューには反映されません。</p>
-              <p><strong>オンにしてよい例：</strong>自分で作成したHTML、庁内で作成され、作成元を確認できるHTML。</p>
+              <p><strong>オンにしてよい例：</strong>自分で作成したHTML、社内・組織内で作成され、作成元を確認できるHTML。</p>
               <p><strong>オフにする例：</strong>メール添付や外部サイトから取得したHTML、作成元が分からないHTML、判断に迷うHTML。</p>
               <p>オンの場合も外部通信は遮断されます。</p>
             </div>

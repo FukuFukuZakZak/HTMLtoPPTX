@@ -15,15 +15,19 @@ Build the HTML-to-PPTX converter described in `docs/HTML_to_PPTX_converter_spec_
 
 ## Current milestone
 
-Landscape size confirmation is implemented and locally verified on 2026-09-08. Mixed 16:9/A4 landscape within one HTML now prompts for explicit, unchecked-by-default consent to 16:9 fitting; continue without consent retains size-separated output, and cancel stops the batch. Review build: `dist/landscape-size-20260908/HTMLtoPPTX.exe`. [Decisions and verification](project-status/LANDSCAPE-SIZE-CONFIRMATION.md). Published at user request: product commit `fda4338b8c27282dc76dc1f8f8c0a993482e287e` is pushed to main and tagged `v0.1.0-beta.1`. The beta asset is now `HTMLtoPPTX-beta-20260908-windows-x64.zip`; fresh download/hash verification passed and the previous ZIP was removed.
+v0.1.0 official release preparation complete: MIT License added, terms standardized for local/intranet non-CDN environments, Japanese README added, and released as private repository tag v0.1.0.
 
-Beta startup modes are implemented and locally verified on 2026-09-07: owned WebView2 standalone and fixed-port Web (default 8080). Native close/duplicate/download acceptance, actual Task Scheduler launch and requested verification recordings pass. Local distribution: `dist/HTMLtoPPTX-beta-20260907-windows-x64.zip`; [deployment guide](project-status/BETA-DEPLOYMENT.md), [implementation and evidence](project-status/BETA-STARTUP-ASSESSMENT.md). Target-server unattended/reboot and cross-device network acceptance remain for the internal beta. Initial beta publication was v0.1.0-beta.1 on 2026-09-08 JST, at product commit bb00e1fb4858653be14f099bf2390b092d02476f; it has since been replaced by the landscape-confirmation build above. Release: https://github.com/divine261402-pixel/HTMLtoPPTX/releases/tag/v0.1.0-beta.1
+Landscape size confirmation is implemented and locally verified on 2026-09-08. Mixed 16:9/A4 landscape within one HTML now prompts for explicit, unchecked-by-default consent to 16:9 fitting; continue without consent retains size-separated output, and cancel stops the batch. [Decisions and verification](project-status/LANDSCAPE-SIZE-CONFIRMATION.md). Release: https://github.com/divine261402-pixel/HTMLtoPPTX/releases/tag/v0.1.0
 
 User confirmed Issue #10 passed target-machine validation; closed as completed on 2026-09-07. Issue #11 implementation is complete: logical line numbers, colored inserted-tag ranges and clickable repair locations, preserving native textarea input/history. Implementation and automated acceptance are complete. Edge verified wrapping/scroll alignment, repair links, native history, clipboard and Japanese composition events; the user subsequently confirmed target-machine validation passed on 2026-09-07. Issue #11 is CLOSED / COMPLETED. The subsequent user-authorized commit, push and prerelease replacement are complete; the fresh release download matches the tested EXE.
 
 ## Current work
 
 - 2026-09-08 landscape confirmation complete: source-size consistency is recommended in a native dialog, and only checking the 16:9 option combines landscape pages. The choice resets for each HTML and each conversion. A4 landscape is fitted proportionally with white side margins; editable text, shapes and images are retained, original landscape order is preserved, and A4 portrait remains separate. UI help and manual chapter 9 explain all choices. Unit, Go, browser/download and rendered-output checks pass; see [evidence](project-status/LANDSCAPE-SIZE-CONFIRMATION.md).
+
+- 2026-09-08 PV editorial revision completed: user asked to emphasize 完全ローカル完結. Replaced the 44–51s theme montage with conversion contained inside a laptop, and made that phrase the closing hero message. Verified revised MP4: `deliverables/PV/HTMLtoPPTX-PV-local-60s.mp4`. Original edition preserved; player, poster and production sources now use the revision. No product or publication changes.
+
+- 2026-09-08: application PV completed at `deliverables/PV/HTMLtoPPTX-PV-60s.mp4`: 60 seconds, Full HD / 30 fps, authentic beta UI captures, new demo document, motion graphics and original synthesized music, without captions/narration. Full decode, audio analysis and Edge playback passed. Player, reusable production sources and evidence accompany the film. No application code or publication changed.
 
 - Beta startup complete locally: persisted settings applied next launch, exclusive OS lock, duplicate activation/crash recovery, owned WebView2 main/help windows and close-controlled server shutdown, local capability-protected administration, GUI-subsystem EXE and bounded logs. Web has no window and survives browser closure. Native conversion/ZIP, six Edge layouts, port collision/save failure, actual scheduler and Go/JS checks pass. Requested videos capture only application content. Distribution includes EXE, deployment instructions, notices and verification evidence.
 
@@ -74,7 +78,7 @@ User confirmed Issue #10 passed target-machine validation; closed as completed o
 ## Current release
 
 - Product commit: `fda4338b8c27282dc76dc1f8f8c0a993482e287e`
-- Release: [v0.1.0-beta.1](https://github.com/divine261402-pixel/HTMLtoPPTX/releases/tag/v0.1.0-beta.1) — HTMLtoPPTX v0.1.0-beta.1（課内検証版）
+- Release: [v0.1.0](https://github.com/divine261402-pixel/HTMLtoPPTX/releases/tag/v0.1.0) — HTMLtoPPTX v0.1.0（MIT License OSS）
 - Asset: `HTMLtoPPTX-beta-20260908-windows-x64.zip`, 9,770,953 bytes; asset ID 550130197.
 - ZIP SHA-256: `A378C5846779A12329C55D9E8DC995F8E501D7D7DB73141850A61549702AE804`.
 - EXE SHA-256: `9E2685A012237F4C4B36CBB0C9EAF9FA69B8A6CEC207F4A903ADB93349454C59`.
@@ -90,20 +94,22 @@ User confirmed Issue #10 passed target-machine validation; closed as completed o
 
 - Try `dist/landscape-size-20260908/HTMLtoPPTX.exe` with representative HTML on the target machine and open the output in native PowerPoint. Local acceptance and user-authorized commit/push/beta replacement are complete; use the updated v0.1.0-beta.1 ZIP for target-machine acceptance. A separate baseline SVG/Worker defect discovered during verification is recorded in the evidence file; it is outside the requested grouping change.
 
+- Revised local-processing PV is ready for user viewing via `deliverables/PV/index.html` or `HTMLtoPPTX-PV-local-60s.mp4`. Further editorial changes or publication require a new user request; production has no outstanding acceptance checks.
+
 Use `dist/HTMLtoPPTX-beta-20260907-windows-x64.zip` for internal beta acceptance following `project-status/BETA-DEPLOYMENT.md`: verify target WebView2/PowerPoint, actual server account when logged out and after reboot, remote-client access, selected NIC and firewall scope. Local implementation and verification are complete. Publication and fresh-download verification are complete for v0.1.0-beta.1. Next action is target-environment internal acceptance; no lifecycle decision is pending.
 
 Issues #8/#9/#10/#11 have passed user target-machine validation and are closed. The implementation and publication milestone is complete; await the next user-reported issue or requested enhancement.
 
 On target Windows, verify the shared「How to use」entry while editing. Startup verification videos are included with the beta; a narrated full conversion tutorial remains separate future work.
 
-Try `dist/html-repair-20260906/HTMLtoPPTX.exe` on the target LGWAN/Windows browser: paste representative exaBase HTML, run `簡易補正`, inspect preview and use Ctrl+Z/Ctrl+Y. Closing positions use structural/indentation hints; arbitrary missing content or intended formatting cannot be reconstructed. Broaden supported repairs only with representative failing examples and original-output comparisons.
+Try `dist/html-repair-20260906/HTMLtoPPTX.exe` on the target Windows browser: paste representative exaBase HTML, run `簡易補正`, inspect preview and use Ctrl+Z/Ctrl+Y. Closing positions use structural/indentation hints; arbitrary missing content or intended formatting cannot be reconstructed. Broaden supported repairs only with representative failing examples and original-output comparisons.
 
-Confirm the latest artifact's top-right gear → 8bit appearance in light/dark on the target FullHD/LGWAN browser and preferred Windows display scaling. The next product milestone is shared intranet hosting: establish the target web server and stable origin, then verify the existing browser-only conversion, Worker and CSP behavior in that environment. The current executable still starts a local server for review.
+Confirm the latest artifact's top-right gear → 8bit appearance in light/dark on the target FullHD browser and preferred Windows display scaling. The next product milestone is shared intranet hosting: establish the target web server and stable origin, then verify the existing browser-only conversion, Worker and CSP behavior in that environment. The current executable still starts a local server for review.
 
 1. Open the verified files in `dist/quality-20260906/変換結果.zip` in Microsoft PowerPoint on a machine where it is installed; confirm editable text/shapes, Japanese fonts and the corrected inline badges/checklist. This environment completed browser, OOXML and LibreOffice checks.
 2. Supply the missing hero illustration as a `data:` URL inside the smartphone HTML, or add an explicit associated-asset import workflow; then repeat the real conversion to confirm the intended illustration is embedded.
 3. Open both latest `test-data` outputs in Microsoft PowerPoint and confirm editable-object placement, Japanese font substitution, and image compatibility outside LibreOffice rendering.
-4. Validate the paste workflow with representative HTML copied directly from exaBase AI on the target LGWAN environment, including inline CSS, Japanese text, and expected restrictions on external assets.
+4. Validate the paste workflow with representative HTML copied directly from exaBase AI on the target intranet environment, including inline CSS, Japanese text, and expected restrictions on external assets.
 5. Validate the closed Issue #5 against its attached PDF/PPTX pair in Microsoft PowerPoint, focusing on table-cell line order, explicit breaks, boundary containment, and logical edit units.
 6. Open representative mixed A4 output in Microsoft PowerPoint and confirm both page setups, editable-object placement, and the documented manual-combination workflow.
 7. Implement Issue #5 stage 3: surface material `fit: shrink` risk, detect/report font fallback where practical, and calibrate remaining PowerPoint-specific line-height differences.
@@ -114,7 +120,15 @@ Confirm the latest artifact's top-right gear → 8bit appearance in light/dark o
 
 - No landscape-confirmation implementation blocker remains. PowerPoint applies one slide size to a deck, so opted-in A4 landscape fitting has white side margins; this is explained before consent. Native PowerPoint rendering remains target-environment verification. An inline SVG fixture fails with `Image is not defined` in both the previous and current Worker; this existing issue is documented separately, while PNG image scaling passes.
 
+- PV: no production blocker. Gallery images show the source HTML; the actual converted three-slide PPTX was checked structurally, without claiming PowerPoint visual validation. Unrelated working-tree changes remain preserved.
+
 - Beta: no known local acceptance blocker. Standalone requires WebView2 Runtime (tested 152.0.4191.66); offline installer procedure is documented. Automatic IP can select an unintended NIC or change the URL; explicit intranet IP/DHCP reservation is recommended for shared service. Web is HTTP without application login and is intended for a managed intranet. Real unattended server account/reboot, remote firewall routing and native PowerPoint remain target-environment checks. Keep configuration/runtime metadata under deployment ACLs. Automatic standalone port changes may reset origin-scoped appearance preferences.
+
+## PV production decisions
+
+- User's follow-up makes 完全ローカル完結 the main value proposition. The revised closing scene contains all file motion within a laptop; the final hero title states that exact phrase. Explanatory subtitles and narration remain absent. This is a film edit, with no new product networking guarantee or behavior change.
+
+- The user authorized a local fallback. Connected Canva tools expose no video generation/MP4 export, so the deliverable uses local Canvas/Playwright/FFmpeg and needs no Canva paid assets. AI-generated paper art and newly synthesized music support a visual story without captions or narration. No posting, release changes or GitHub-publication promises were made.
 
 ## Beta startup assessment decisions
 
@@ -153,6 +167,12 @@ Confirm the latest artifact's top-right gear → 8bit appearance in light/dark o
 
 - 2026-09-08 landscape confirmation: `npm test` 50/50; `go test ./...`, `go vet ./...`, JS syntax checks and Windows build pass. Built-EXE Edge acceptance: 8 confirmation layouts / 8 ZIP downloads, independent file consent, unchecked split, checked merge, cancel/Escape, retry reset, original order and proportional editable geometry; existing UI 58 layouts and manual 44 layouts pass. LibreOffice rendered the split/merged decks and their A4 landscape page was visually compared. SHA-256 `9E2685A012237F4C4B36CBB0C9EAF9FA69B8A6CEC207F4A903ADB93349454C59` (13,075,968 bytes).
 - Context7 consulted `/mdn/content` for native modal dialog close/cancel/autofocus and checkbox behavior, `/gitbrent/pptxgenjs` for layout and editable geometry/text scaling, and `/microsoft/playwright` for Edge/download/checkbox verification. Modern Web Guidance CLI was blocked by npm network/cache access, so the MDN Context7 fallback was used. Detailed commands, evidence and the baseline SVG defect are recorded in [landscape verification](project-status/LANDSCAPE-SIZE-CONFIRMATION.md).
+
+- 2026-09-08 PV local-processing revision: full-media decode, format/audio assertions and Edge playback passed. 60.000 s / 1,800 frames / 1920x1080 / 30 fps, H.264 + AAC stereo, 20,878,590 bytes, -15.47 LUFS / -1.94 dBTP. Six seeks include 48.7s laptop scene and 55.5s final title; both encoded frames visually inspected. All six JS/CJS syntax checks passed. Context7 `/mdn/content` consulted for Canvas clip/save/restore/path drawing; Modern Web Guidance remained unavailable offline (no npm cache), using official MDN fallback. Verification JSON files now describe the revised edition; original movie retained separately.
+
+- 2026-09-08 PV: `deliverables/PV/verify.cjs` passed full decode and media assertions: 60.000 s, 1920x1080, 30 fps / 1,800 frames, H.264 + AAC stereo 48 kHz, 24,411,426 bytes, no subtitles, -15.47 LUFS and -1.94 dBTP. `check-playback.cjs` passed Edge playback advancement and five seeks with no media/page errors; final gallery/title frames visually inspected. Capture evidence confirms nine real app states, three pages and actual ZIP/PPTX output with editable text. Rendering completed without browser errors. Evidence and reproducible runtime paths: `deliverables/PV/PRODUCTION.md` and the four verification JSON files.
+- PV documentation requirement: Context7 consulted `/websites/ffmpeg_documentation` for encoding/audio normalization, `/microsoft/playwright` for browser screenshots and `/mdn/content` for Canvas animation. Modern Web Guidance npm invocation was unavailable; official MDN documentation was the fallback. No product source changes, so product suites were not rerun.
+- PV production scripts: `node --check` passed all six JavaScript/CommonJS files.
 
 - 2026-09-08 beta publication: product bb00e1fb4858653be14f099bf2390b092d02476f pushed to main; annotated v0.1.0-beta.1 resolves to it. Release is prerelease=true, draft=false, asset ID 549340298. Fresh download is 9,771,164 bytes and SHA-256 81EFFC627842DCA49F54BDCA159C1A5E859B97FDF97B8E189252A738A19B6BDD, matching local tested ZIP and GitHub digest. Evidence: .tmp/release-beta-20260908/download/. All commit hooks passed after status line-ending normalization. No product changes or rebuild during publication.
 
@@ -201,6 +221,8 @@ Confirm the latest artifact's top-right gear → 8bit appearance in light/dark o
 ## Working tree notes
 
 - Landscape confirmation owns `web/app.js`, `web/converter-core.js`, `web/converter-worker.js`, dialog HTML/CSS, `web/landscape-size.test.js`, `scripts/landscape-size-acceptance.cjs`, the updated UI/Go assertions, manual chapter 9/generated output, and status/evidence records. Local build and test artifacts are under `dist/landscape-size-20260908/` and `.tmp/landscape-size-*`. Existing PV work, `.codex/config.toml`, `.codex-remote-attachments/`, `docs/` and `test-data/` are preserved. Product changes are committed/pushed as `fda4338` and published in the replaced v0.1.0-beta.1 ZIP. PV status paragraphs remain unstaged with the local PV deliverables.
+
+- PV task owns `deliverables/PV/` and this status update; all deliverables are local and uncommitted. Initial `.codex/config.toml`, `.codex-remote-attachments/`, `docs/` and `test-data/` changes remain untouched. Generated Graphify output is refreshed as required by repository instructions.
 
 - Beta task owns main.go, startup_*.go, desktop_windows.go, internal/desktopwv/, go.mod/go.sum, web/index.html, web/startup.js/css, scripts/build-windows.ps1, scripts/startup-acceptance.cjs, scripts/desktop-acceptance.cjs, scripts/scheduler-acceptance.ps1 and status/assessment/deployment docs (plus graph refresh if tracked). Existing .codex/config.toml, .codex-remote-attachments/, docs/ and test-data/ are preserved. Beta implementation is committed/pushed as bb00e1f and published as v0.1.0-beta.1. Local package/evidence remain ignored artifacts; unrelated .codex/config.toml, .codex-remote-attachments/, docs/ and test-data/ remain excluded and preserved.
 
